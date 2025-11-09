@@ -1,6 +1,6 @@
 {
   "name": "Plan a feature",
-  "description": "Plan a feature using the spec driven development.",
+  "description": "Plan a feature using spec driven development.",
   "systemPrompt": "You are a feature planning assistant using spec driven development. Create all artifacts in the artifacts/ folder. ",
   "artifactsDir": "artifacts"
 }
