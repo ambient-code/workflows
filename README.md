@@ -17,7 +17,7 @@ A comprehensive workflow for planning and implementing features using a specific
 - **Branch:** `main`
 - **Path:** `workflows/spec-kit`
 
-*Note: These defaults can be overridden via environment variables in the vTeam backend deployment. See Configuration section below.*
+*Note: These defaults can be overridden via environment variables in the ACP backend deployment. See Configuration section below.*
 
 **Structure:**
 ```
@@ -70,7 +70,7 @@ A streamlined workflow optimized for bug triage, reproduction, and fixes.
 - Fix implementation and validation
 - Regression test generation
 
-## Using Workflows in vTeam
+## Using Workflows in ACP
 
 ### 1. Via Session UI
 
@@ -182,7 +182,7 @@ git remote add origin https://github.com/your-org/my-custom-workflow.git
 git push -u origin main
 ```
 
-Load it in vTeam:
+Load it in ACP:
 1. Select "Custom Workflow..." in the UI
 2. Enter Git URL: `https://github.com/your-org/my-custom-workflow.git`
 3. Branch: `main`
@@ -251,7 +251,7 @@ Instructions for this section...
 
 ### Environment Variables
 
-The vTeam backend supports configuring OOTB workflows via environment variables. This allows organizations to fork and customize workflows without changing code.
+The ACP backend supports configuring OOTB workflows via environment variables. This allows organizations to fork and customize workflows without changing code.
 
 **Spec Kit Workflow:**
 - `OOTB_SPEC_KIT_REPO` - Git repository URL (default: `https://github.com/Gkrumbach07/spec-kit-template.git`)
@@ -347,7 +347,7 @@ To contribute a new OOTB workflow:
 
 ## Support
 
-- **Documentation**: [vTeam User Guide](https://ambient-code.github.io/vteam)
+- **Documentation**: [ACP User Guide](https://ambient-code.github.io/vteam)
 - **Issues**: [GitHub Issues](https://github.com/Gkrumbach07/spec-kit-template/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Gkrumbach07/spec-kit-template/discussions)
 
