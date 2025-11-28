@@ -8,16 +8,13 @@ Workflows are Git repositories containing scripts, templates, agent configuratio
 
 ## Available Workflows
 
-### Spec Kit Workflow (Default)
+### Spec Kit Workflow
 
 A comprehensive workflow for planning and implementing features using a specification-first approach.
 
-**Default Configuration:**
-- **Repository:** `https://github.com/Gkrumbach07/spec-kit-template.git`
-- **Branch:** `main`
-- **Path:** `workflows/spec-kit`
+**Status:** Production Ready
 
-*Note: These defaults can be overridden via environment variables in the ACP backend deployment. See Configuration section below.*
+**Location:** `workflows/spec-kit`
 
 **Structure:**
 ```
@@ -60,15 +57,41 @@ workflows/default/
 - Teams needing structured planning
 - Documentation-first approaches
 
-### Bug Fix Workflow (Coming Soon)
+### Template Workflow
 
-A streamlined workflow optimized for bug triage, reproduction, and fixes.
+A comprehensive, self-contained template demonstrating all available configuration options for creating custom ACP workflows.
 
-**Planned Features:**
-- Bug analysis and reproduction
-- Root cause identification
-- Fix implementation and validation
-- Regression test generation
+**Status:** Production Ready
+
+**Location:** `workflows/template-workflow`
+
+**Features:**
+- Fully documented `ambient.json` with inline comments
+- Example slash commands demonstrating workflow phases
+- Sample agent personas for different roles
+- Complete field reference documentation
+- Best practices and usage patterns
+
+**Best For:**
+- Creating custom workflows
+- Learning workflow structure
+- Understanding configuration options
+- Starting point for new workflow types
+
+### Bug Fix Workflow
+
+A systematic workflow for analyzing, fixing, and verifying software bugs with comprehensive testing and documentation.
+
+**Status:** Production Ready
+
+**Location:** `workflows/bugfix`
+
+**Features:**
+- Systematic bug reproduction and documentation
+- Root cause analysis and impact assessment
+- Fix implementation following best practices
+- Comprehensive testing and regression test creation
+- Complete documentation and release notes generation
 
 ## Using Workflows in ACP
 
@@ -79,9 +102,10 @@ When creating or working with a session:
 1. Navigate to your session detail page
 2. Open the **Workflows** accordion
 3. Select a workflow:
-   - **Spec Kit Workflow (OOTB)** - The default specification workflow
-   - **Bug Fix Workflow** - (Coming soon)
-   - **Custom Workflow...** - Load your own workflow
+   - **Spec Kit Workflow** - Specification-driven feature development
+   - **Bug Fix Workflow** - Systematic bug resolution
+   - **Template Workflow** - Starting point for custom workflows
+   - **Custom Workflow...** - Load your own workflow from any Git repository
 
 The workflow will be cloned into your session's workspace and set as Claude's working directory.
 
@@ -91,7 +115,7 @@ The workflow will be cloned into your session's workspace and set as Claude's wo
 POST /api/projects/{project}/agentic-sessions/{session}/workflow
 
 {
-  "gitUrl": "https://github.com/Gkrumbach07/spec-kit-template.git",
+  "gitUrl": "https://github.com/ambient-code/workflows.git",
   "branch": "main",
   "path": "workflows/spec-kit"
 }
@@ -108,15 +132,19 @@ When a workflow is activated, your session workspace is organized as:
 ```
 /workspace/sessions/{session-name}/
 ├── workflows/
-│   ├── default/           # Empty unless workflow selected
-│   └── spec-kit/          # Active workflow (when selected)
-│       ├── .specify/      # Scripts, templates, memory
+│   ├── spec-kit/          # Spec Kit workflow (when selected)
+│   │   ├── .specify/      # Scripts, templates, memory
+│   │   └── .claude/       # Agents and commands
+│   ├── bugfix/            # Bug Fix workflow (when selected)
+│   │   ├── .ambient/      # Workflow configuration
+│   │   └── .claude/       # Agents and commands
+│   └── template-workflow/ # Template workflow (when selected)
+│       ├── .ambient/      # Workflow configuration
 │       └── .claude/       # Agents and commands
 └── artifacts/             # Output directory for generated files
-    ├── spec/             # Generated specifications
-    ├── plans/            # Implementation plans
-    ├── tasks/            # Task breakdowns
-    └── implementation/   # Code and artifacts
+    ├── specs/            # Feature specifications (spec-kit)
+    ├── bugfix/           # Bug fix artifacts (bugfix workflow)
+    └── [custom]/         # Custom workflow outputs
 ```
 
 **Key Concepts:**
@@ -126,6 +154,8 @@ When a workflow is activated, your session workspace is organized as:
 - **Workflow Switching**: You can switch workflows mid-session without losing your artifacts
 
 ## Creating Custom Workflows
+
+**Quick Start:** See the [Workflow Development Guide](WORKFLOW_DEVELOPMENT_GUIDE.md) for a complete guide to creating custom workflows.
 
 ### Basic Structure
 
@@ -249,41 +279,24 @@ Instructions for this section...
 
 ## Configuration
 
-### Environment Variables
+### Future Platform Integration
 
-The ACP backend supports configuring OOTB workflows via environment variables. This allows organizations to fork and customize workflows without changing code.
+The Ambient Code Platform will eventually point to this repository (`https://github.com/ambient-code/workflows`) as the official source for OOTB workflows.
 
-**Spec Kit Workflow:**
-- `OOTB_SPEC_KIT_REPO` - Git repository URL (default: `https://github.com/Gkrumbach07/spec-kit-template.git`)
-- `OOTB_SPEC_KIT_BRANCH` - Branch to use (default: `main`)
-- `OOTB_SPEC_KIT_PATH` - Path within repository (default: `workflows/spec-kit`)
+### Environment Variables (Future)
 
-**Bug Fix Workflow:**
-- `OOTB_BUG_FIX_REPO` - Git repository URL (required to enable)
-- `OOTB_BUG_FIX_BRANCH` - Branch to use (default: `main`)
-- `OOTB_BUG_FIX_PATH` - Path within repository (optional)
+Organizations will be able to configure OOTB workflows via environment variables in the ACP backend deployment, allowing customization without code changes.
 
-**Example Deployment:**
+**Planned Configuration:**
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend
-spec:
-  template:
-    spec:
-      containers:
-      - name: backend
-        env:
-        - name: OOTB_SPEC_KIT_REPO
-          value: "https://github.com/your-org/custom-spec-kit.git"
-        - name: OOTB_SPEC_KIT_BRANCH
-          value: "production"
+# Future ACP backend environment variables
+OOTB_WORKFLOWS_REPO: "https://github.com/ambient-code/workflows.git"
+OOTB_WORKFLOWS_BRANCH: "main"
 ```
 
-### Backend API
+### Backend API (Future)
 
-The backend provides a public endpoint to list available OOTB workflows:
+The backend will provide a public endpoint to list available OOTB workflows:
 
 ```bash
 GET /api/workflows/ootb
@@ -295,25 +308,34 @@ Response:
       "id": "spec-kit",
       "name": "Spec Kit Workflow",
       "description": "Comprehensive workflow for planning and implementing features...",
-      "gitUrl": "https://github.com/Gkrumbach07/spec-kit-template.git",
+      "gitUrl": "https://github.com/ambient-code/workflows.git",
       "branch": "main",
       "path": "workflows/spec-kit",
       "enabled": true
     },
     {
-      "id": "bug-fix",
+      "id": "bugfix",
       "name": "Bug Fix Workflow",
-      "description": "Streamlined workflow for bug triage...",
-      "gitUrl": "",
+      "description": "Systematic workflow for bug resolution...",
+      "gitUrl": "https://github.com/ambient-code/workflows.git",
       "branch": "main",
-      "path": "",
-      "enabled": false
+      "path": "workflows/bugfix",
+      "enabled": true
+    },
+    {
+      "id": "template-workflow",
+      "name": "Template Workflow",
+      "description": "Starting point for custom workflows...",
+      "gitUrl": "https://github.com/ambient-code/workflows.git",
+      "branch": "main",
+      "path": "workflows/template-workflow",
+      "enabled": true
     }
   ]
 }
 ```
 
-The frontend automatically fetches and displays configured workflows.
+The frontend will automatically fetch and display configured workflows.
 
 ## Troubleshooting
 
@@ -347,9 +369,9 @@ To contribute a new OOTB workflow:
 
 ## Support
 
-- **Documentation**: [ACP User Guide](https://ambient-code.github.io/vteam)
-- **Issues**: [GitHub Issues](https://github.com/Gkrumbach07/spec-kit-template/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Gkrumbach07/spec-kit-template/discussions)
+- **Documentation**: [ACP User Guide](https://ambient-code.github.io/platform)
+- **Issues**: [GitHub Issues](https://github.com/ambient-code/workflows/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ambient-code/workflows/discussions)
 
 ## License
 
@@ -357,7 +379,7 @@ This repository and all OOTB workflows are provided under the MIT License. See L
 
 ---
 
-**Repository:** [Gkrumbach07/spec-kit-template](https://github.com/Gkrumbach07/spec-kit-template)  
-**Default Workflow:** Spec Kit (`workflows/spec-kit`)  
-**Platform:** Ambient Code Platform (vTeam)
+**Repository:** [ambient-code/workflows](https://github.com/ambient-code/workflows)
+**Available Workflows:** Spec Kit, Bug Fix, Template
+**Platform:** Ambient Code Platform
 
