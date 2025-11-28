@@ -88,22 +88,24 @@ Each command file includes:
 
 ### Agent Personas: `.claude/agents/`
 
-Three example agents demonstrating different roles:
+The template includes three **example agents** demonstrating different roles. These are for illustration purposes only.
 
-1. **Alex - Solutions Architect**
-   - System architecture and design
-   - Technology decisions
-   - Technical leadership
+**For Production Use:**
 
-2. **Sam - Senior Software Engineer**
-   - Code implementation
-   - Testing and quality
-   - Technical execution
+1. **Platform Agents** - If your workflow runs in the Ambient Code Platform, agents from `platform/agents/` will be automatically loaded:
+   - **Amber** - Codebase intelligence, pair programming, proactive maintenance
+   - **Parker** (Product Manager) - Market strategy, customer feedback, business value
+   - **Ryan** (UX Researcher) - User insights, data analysis, evidence-based decisions
+   - **Stella** (Staff Engineer) - Technical leadership, implementation excellence, mentoring
+   - **Steve** (UX Designer) - Visual design, prototyping, user interface creation
+   - **Terry** (Technical Writer) - User-centered documentation, technical accuracy
 
-3. **Morgan - Product Manager**
-   - Requirements definition
-   - User stories
-   - Product strategy
+2. **Custom Agents** - Replace the example agents with your own workflow-specific personas as needed
+
+**Note:** Workflows are self-contained. If you want to use agents, either:
+- Rely on platform agents being loaded from context
+- Include your own agent definitions in `.claude/agents/`
+- Or both - custom agents can complement platform agents
 
 Each agent file includes:
 - Role and expertise
@@ -145,11 +147,11 @@ Each agent file includes:
    - Remove commands you don't need
    - Follow the structure in the examples
 
-4. **Adapt agent personas**
-   - Edit existing agents to match your team
-   - Add new agents for specialized roles
-   - Remove agents you don't need
-   - Update expertise and communication styles
+4. **Adapt agent personas (optional)**
+   - Platform agents (Amber, Parker, Stella, etc.) are automatically available
+   - Remove the example agents - they're just for illustration
+   - Add workflow-specific agents only if needed for unique expertise
+   - Platform agents handle most common roles
 
 5. **Test your workflow**
    - Load it in an ACP session
@@ -181,8 +183,9 @@ Start with just the essentials:
    - Start with the commands you actually need
    - Expand over time
 
-4. **Skip agents initially**
-   - Add agent personas later as needed
+4. **Skip custom agents initially**
+   - Platform agents (Amber, Stella, Parker, etc.) are already available
+   - Add workflow-specific agents only if truly needed
 
 ## Best Practices
 
@@ -204,11 +207,11 @@ Start with just the essentials:
 
 ### Agent Personas
 
-1. **Distinct roles**: Each agent has a unique perspective
-2. **Clear expertise**: Define what each agent knows
-3. **Communication style**: Give each agent a personality
-4. **When to invoke**: Explain when to use each agent
-5. **Realistic**: Base on actual team roles
+1. **Leverage platform agents**: Use Amber, Parker, Stella, Ryan, Steve, Terry from the platform
+2. **Add custom agents sparingly**: Only create workflow-specific agents for unique expertise
+3. **Clear expertise**: Define what each agent knows
+4. **Communication style**: Give each agent a personality
+5. **When to invoke**: Explain when to use each agent
 
 ### Directory Organization
 
