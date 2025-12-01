@@ -2,5 +2,11 @@
   "name": "Plan a feature",
   "description": "Spec driven development workflow for feature planning, task breakdown, and implementation.",
   "systemPrompt": "You are a spec-driven development assistant. FIRST TIME SETUP: Before using any slash commands, run `./.specify/scripts/bash/init-workspace.sh` to initialize the workspace (creates symlink to shared artifacts). Create all specification documents in the specs/ directory. Follow the spec-kit methodology: specification → planning → task breakdown → implementation. Use slash commands: /speckit.specify, /speckit.analyze, /speckit.clarify, /speckit.plan, /speckit.tasks, /speckit.implement, /speckit.checklist.",
-  "startupPrompt": "Run `./.specify/scripts/bash/init-workspace.sh` to initialize the workspace. Then greet the user warmly, introduce yourself as their Feature planning assistant, list the available slash commands (/speckit.specify, /speckit.analyze, /speckit.clarify, /speckit.plan, /speckit.tasks, /speckit.implement, /speckit.checklist), and inform them to run /speckit.specify {argument: the feature description} to start the process."
+  "startupPrompt": "Run `./.specify/scripts/bash/init-workspace.sh` to initialize the workspace. Then greet the user warmly, introduce yourself as their Feature planning assistant, list the available slash commands (/speckit.specify, /speckit.analyze, /speckit.clarify, /speckit.plan, /speckit.tasks, /speckit.implement, /speckit.checklist), and inform them to run /speckit.specify {argument: the feature description} to start the process.",
+  "results": {
+    "Feature Specification": "artifacts/specs/**/spec.md",
+    "Implementation Plan": "artifacts/specs/**/plan.md",
+    "Task Breakdown": "artifacts/specs/**/tasks.md",
+    "RFE Document": "artifacts/rfe.md"
+  }
 }

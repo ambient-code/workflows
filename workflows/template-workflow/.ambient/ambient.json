@@ -1,0 +1,392 @@
+{
+  // ============================================================================
+  // AMBIENT WORKFLOW CONFIGURATION TEMPLATE
+  // ============================================================================
+  // This file configures an Ambient Code Platform (ACP) workflow. It defines
+  // how the AI agent behaves, what prompts it receives, and what outputs it
+  // generates during the workflow execution.
+  //
+  // IMPORTANT: This is a TEMPLATE with inline comments. JSON does not support
+  // comments natively, so remove all comment lines (// ...) before using this
+  // file in production. Alternatively, use a JSON5 or JSONC parser if supported.
+  // ============================================================================
+
+  // ----------------------------------------------------------------------------
+  // name (REQUIRED) - string
+  // ----------------------------------------------------------------------------
+  // The display name of the workflow shown in the ACP UI and CLI.
+  // This should be short, descriptive, and user-friendly.
+  //
+  // Best practices:
+  // - Keep it concise (2-5 words)
+  // - Use title case
+  // - Make it action-oriented or descriptive of the workflow's purpose
+  //
+  // Examples:
+  // - "Plan a feature"
+  // - "Bug Triage Workflow"
+  // - "Code Review Assistant"
+  // - "Database Migration Helper"
+  // ----------------------------------------------------------------------------
+  "name": "Template Workflow",
+
+  // ----------------------------------------------------------------------------
+  // description (REQUIRED) - string
+  // ----------------------------------------------------------------------------
+  // A detailed description of what this workflow does and when to use it.
+  // This appears in the workflow selection UI and helps users understand
+  // the workflow's purpose and scope.
+  //
+  // Best practices:
+  // - Be clear and specific about the workflow's purpose
+  // - Mention the key phases or steps
+  // - Indicate what type of work this workflow is best suited for
+  // - Keep it to 1-3 sentences
+  //
+  // Examples:
+  // - "Spec driven development workflow for feature planning, task breakdown, and implementation."
+  // - "Streamlined workflow for bug triage, root cause analysis, and fix implementation with automated testing."
+  // - "Comprehensive code review workflow that analyzes code quality, security, and best practices."
+  // ----------------------------------------------------------------------------
+  "description": "A comprehensive template workflow demonstrating all available configuration options for the Ambient Code Platform. Use this as a starting point for creating custom workflows.",
+
+  // ----------------------------------------------------------------------------
+  // systemPrompt (REQUIRED) - string
+  // ----------------------------------------------------------------------------
+  // The core instructions that define the AI agent's role, capabilities, and
+  // behavior throughout the workflow. This is loaded into the agent's context
+  // at the start of each session and defines the "personality" and expertise
+  // of the agent.
+  //
+  // Best practices:
+  // - Start with a clear role definition ("You are a...")
+  // - List key responsibilities and capabilities
+  // - Define the methodology or approach the agent should follow
+  // - Reference available slash commands
+  // - Include any critical setup instructions
+  // - Mention where to create output files (typically artifacts/ directory)
+  // - Keep it focused on the agent's core purpose
+  //
+  // Common patterns:
+  // - "You are a [role] assistant..."
+  // - "Follow the [methodology] approach: [phase 1] → [phase 2] → [phase 3]"
+  // - "Use slash commands: /command1, /command2, /command3"
+  // - "Create all output files in the [directory] directory"
+  //
+  // Examples:
+  // - "You are a spec-driven development assistant. Follow the spec-kit methodology: specification → planning → task breakdown → implementation."
+  // - "You are a bug fix specialist. Follow the debug workflow: reproduce → analyze → fix → verify → document."
+  // - "You are a code review expert. Analyze code for quality, security, performance, and maintainability."
+  //
+  // Setup instructions example:
+  // - "FIRST TIME SETUP: Before using any slash commands, run `./scripts/init.sh` to initialize the workspace."
+  // ----------------------------------------------------------------------------
+  "systemPrompt": "You are a workflow assistant for the Ambient Code Platform. Your role is to guide users through structured development processes using a combination of slash commands, agent personas, and automated scripts.\n\nKEY RESPONSIBILITIES:\n- Guide users through multi-phase workflows\n- Execute slash commands to perform specific tasks\n- Collaborate with specialized agent personas when needed\n- Generate well-structured artifacts and documentation\n- Maintain consistency and quality throughout the workflow\n\nWORKFLOW METHODOLOGY:\nThis is a template workflow that demonstrates the general structure:\n1. INITIALIZE: Set up the workspace and understand requirements\n2. ANALYZE: Examine the problem space and gather context\n3. PLAN: Create a structured plan or specification\n4. EXECUTE: Implement the solution following the plan\n5. VERIFY: Validate the implementation and document results\n\nAVAILABLE COMMANDS:\nUse the following slash commands to execute workflow phases:\n- /init - Initialize the workflow workspace\n- /analyze - Analyze the current state and requirements\n- /plan - Create a detailed plan or specification\n- /execute - Implement the planned solution\n- /verify - Validate and document the results\n\nOUTPUT LOCATIONS:\n- Create all specifications in: artifacts/specs/\n- Create all plans in: artifacts/plans/\n- Create all implementation artifacts in: artifacts/implementation/\n- Create all documentation in: artifacts/docs/\n\nFIRST TIME SETUP:\nBefore using any slash commands, ensure the workspace is initialized. If this is your first time, run the initialization command to set up the required directory structure.",
+
+  // ----------------------------------------------------------------------------
+  // startupPrompt (REQUIRED) - string
+  // ----------------------------------------------------------------------------
+  // The initial message or instructions that the agent should present to the
+  // user when the workflow is first activated. This is the agent's "greeting"
+  // and sets the tone for the session.
+  //
+  // Best practices:
+  // - Greet the user warmly and professionally
+  // - Introduce the agent's role and capabilities
+  // - List available slash commands
+  // - Provide clear next steps or how to get started
+  // - Include any first-time setup instructions
+  // - Make it actionable - tell users exactly what to do first
+  //
+  // Common patterns:
+  // - "Greet the user warmly and introduce yourself as..."
+  // - "List the available slash commands..."
+  // - "Inform them to run [command] to start the process"
+  // - "Explain that they should first run [setup script]"
+  //
+  // Examples:
+  // - "Greet the user warmly, introduce yourself as their Feature planning assistant, list available commands, and tell them to run /specify to start."
+  // - "Welcome the user, explain that you help with bug fixes, list the /triage, /analyze, /fix commands, and ask what bug they'd like to work on."
+  // - "Introduce yourself as a code review assistant, explain your capabilities, and ask the user to run /review with a file or directory path."
+  //
+  // First-time setup example:
+  // - "Run `./scripts/init.sh` to initialize the workspace. Then greet the user warmly..."
+  // ----------------------------------------------------------------------------
+  "startupPrompt": "Welcome! I'm your Ambient Workflow Assistant.\n\n🎯 GETTING STARTED:\nThis workflow helps you execute structured development processes with the following phases:\n1. Initialize workspace\n2. Analyze requirements\n3. Create plans/specifications\n4. Execute implementation\n5. Verify and document results\n\n📋 AVAILABLE COMMANDS:\n- /init - Initialize the workflow workspace and directory structure\n- /analyze - Analyze the problem, codebase, or requirements\n- /plan - Create detailed plans or specifications\n- /execute - Implement the planned solution\n- /verify - Validate results and generate documentation\n\n🚀 QUICK START:\nTo begin, run `/init` to set up your workspace, or jump straight to `/analyze [your-description]` if you already know what you want to work on.\n\n💡 TIP:\nEach command guides you through a specific phase of the workflow. You can run them in sequence or jump to any phase based on your needs.\n\nWhat would you like to work on today?",
+
+  // ----------------------------------------------------------------------------
+  // results (OPTIONAL) - object with string values
+  // ----------------------------------------------------------------------------
+  // Defines the key output artifacts generated by this workflow and where
+  // they can be found. This helps users and the system understand what files
+  // are created and where to look for them.
+  //
+  // Structure:
+  // - Each key is a human-readable name for an artifact type
+  // - Each value is a file path or glob pattern relative to the workspace
+  //
+  // Best practices:
+  // - Use descriptive names for artifact types
+  // - Use glob patterns (*) to match multiple files
+  // - Use ** to match nested directories
+  // - Organize outputs in the artifacts/ directory
+  // - Group related artifacts in subdirectories
+  //
+  // Common patterns:
+  // - Single file: "artifacts/output.md"
+  // - Multiple files in a directory: "artifacts/specs/*.md"
+  // - Nested directories: "artifacts/specs/**/*.md"
+  // - Specific file types: "artifacts/**/*.json"
+  //
+  // Examples:
+  // {
+  //   "Feature Specification": "artifacts/specs/**/spec.md",
+  //   "Implementation Plan": "artifacts/specs/**/plan.md",
+  //   "Task Breakdown": "artifacts/specs/**/tasks.md",
+  //   "Test Results": "artifacts/test-results/**/*.xml",
+  //   "Code Coverage": "artifacts/coverage/coverage.json"
+  // }
+  //
+  // Use cases:
+  // - Document what outputs the workflow produces
+  // - Help users locate generated files
+  // - Enable automated artifact collection
+  // - Support workflow chaining (one workflow's outputs as another's inputs)
+  // ----------------------------------------------------------------------------
+  "results": {
+    // Specification documents created during the analysis/planning phase
+    "Specifications": "artifacts/specs/**/*.md",
+
+    // Implementation plans detailing technical approach
+    "Implementation Plans": "artifacts/plans/**/*.md",
+
+    // Task breakdowns for execution
+    "Task Lists": "artifacts/tasks/**/*.md",
+
+    // Generated code and implementation artifacts
+    "Implementation Artifacts": "artifacts/implementation/**/*",
+
+    // Documentation and reports
+    "Documentation": "artifacts/docs/**/*.md",
+
+    // Verification and test results
+    "Verification Results": "artifacts/verification/**/*.md",
+
+    // Any JSON configuration or data files
+    "Configuration Files": "artifacts/**/*.json",
+
+    // Generated diagrams or images
+    "Diagrams": "artifacts/**/*.{png,jpg,svg,mmd}",
+
+    // Log files from workflow execution
+    "Execution Logs": "artifacts/logs/**/*.log"
+  }
+
+  // ============================================================================
+  // ADDITIONAL CONFIGURATION OPTIONS
+  // ============================================================================
+  // The following fields are not currently used in the spec-kit example but
+  // may be supported by the Ambient Code Platform or useful for future
+  // extensions. Include these if your workflow needs them.
+  // ============================================================================
+
+  // ----------------------------------------------------------------------------
+  // version (OPTIONAL) - string
+  // ----------------------------------------------------------------------------
+  // Semantic version of this workflow configuration.
+  // Useful for tracking changes and ensuring compatibility.
+  //
+  // Example: "version": "1.0.0"
+  // ----------------------------------------------------------------------------
+  // "version": "1.0.0",
+
+  // ----------------------------------------------------------------------------
+  // author (OPTIONAL) - string or object
+  // ----------------------------------------------------------------------------
+  // Information about the workflow author or maintainer.
+  //
+  // Examples:
+  // "author": "Your Name"
+  // "author": {
+  //   "name": "Your Name",
+  //   "email": "you@example.com",
+  //   "organization": "Your Company"
+  // }
+  // ----------------------------------------------------------------------------
+  // "author": {
+  //   "name": "Ambient Code Platform Team",
+  //   "email": "workflows@ambient.example.com",
+  //   "organization": "Ambient Code"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // repository (OPTIONAL) - string or object
+  // ----------------------------------------------------------------------------
+  // Link to the source repository for this workflow.
+  //
+  // Examples:
+  // "repository": "https://github.com/org/workflow-repo"
+  // "repository": {
+  //   "type": "git",
+  //   "url": "https://github.com/org/workflow-repo",
+  //   "branch": "main"
+  // }
+  // ----------------------------------------------------------------------------
+  // "repository": {
+  //   "type": "git",
+  //   "url": "https://github.com/your-org/template-workflow",
+  //   "branch": "main"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // tags (OPTIONAL) - array of strings
+  // ----------------------------------------------------------------------------
+  // Keywords or categories for this workflow.
+  // Useful for discovery and filtering in a workflow marketplace.
+  //
+  // Examples:
+  // "tags": ["feature-development", "planning", "implementation"]
+  // "tags": ["bug-fix", "debugging", "testing"]
+  // "tags": ["code-review", "quality", "security"]
+  // ----------------------------------------------------------------------------
+  // "tags": ["template", "example", "starter", "general-purpose"],
+
+  // ----------------------------------------------------------------------------
+  // icon (OPTIONAL) - string
+  // ----------------------------------------------------------------------------
+  // An emoji or icon identifier to display with this workflow in the UI.
+  //
+  // Examples:
+  // "icon": "🔧"
+  // "icon": "🐛"
+  // "icon": "📝"
+  // "icon": "🚀"
+  // ----------------------------------------------------------------------------
+  // "icon": "📋",
+
+  // ----------------------------------------------------------------------------
+  // displayName (OPTIONAL) - string
+  // ----------------------------------------------------------------------------
+  // An alternative display name if different from "name".
+  // Can include emojis or special formatting.
+  //
+  // Example: "displayName": "📋 Template Workflow"
+  // ----------------------------------------------------------------------------
+  // "displayName": "📋 Template Workflow",
+
+  // ----------------------------------------------------------------------------
+  // license (OPTIONAL) - string
+  // ----------------------------------------------------------------------------
+  // The license under which this workflow is distributed.
+  //
+  // Examples:
+  // "license": "MIT"
+  // "license": "Apache-2.0"
+  // "license": "Proprietary"
+  // ----------------------------------------------------------------------------
+  // "license": "MIT",
+
+  // ----------------------------------------------------------------------------
+  // dependencies (OPTIONAL) - object or array
+  // ----------------------------------------------------------------------------
+  // External tools, CLI utilities, or other workflows required by this workflow.
+  //
+  // Examples:
+  // "dependencies": {
+  //   "git": ">=2.0.0",
+  //   "node": ">=18.0.0",
+  //   "python": ">=3.9"
+  // }
+  // "dependencies": ["spec-kit-workflow", "testing-workflow"]
+  // ----------------------------------------------------------------------------
+  // "dependencies": {
+  //   "git": ">=2.0.0",
+  //   "bash": ">=4.0"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // environment (OPTIONAL) - object
+  // ----------------------------------------------------------------------------
+  // Environment variables or configuration values required by the workflow.
+  //
+  // Example:
+  // "environment": {
+  //   "ARTIFACTS_DIR": "artifacts",
+  //   "DEFAULT_BRANCH": "main",
+  //   "LOG_LEVEL": "info"
+  // }
+  // ----------------------------------------------------------------------------
+  // "environment": {
+  //   "ARTIFACTS_DIR": "artifacts",
+  //   "WORKSPACE_DIR": "/workspace",
+  //   "LOG_LEVEL": "info"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // hooks (OPTIONAL) - object
+  // ----------------------------------------------------------------------------
+  // Lifecycle hooks that execute at specific points in the workflow.
+  // Each hook can reference a script to run.
+  //
+  // Example:
+  // "hooks": {
+  //   "pre-init": "./scripts/pre-init.sh",
+  //   "post-init": "./scripts/post-init.sh",
+  //   "pre-execute": "./scripts/validate.sh",
+  //   "post-execute": "./scripts/cleanup.sh"
+  // }
+  // ----------------------------------------------------------------------------
+  // "hooks": {
+  //   "pre-init": "./scripts/hooks/pre-init.sh",
+  //   "post-init": "./scripts/hooks/post-init.sh",
+  //   "pre-execute": "./scripts/hooks/pre-execute.sh",
+  //   "post-execute": "./scripts/hooks/post-execute.sh",
+  //   "on-error": "./scripts/hooks/on-error.sh"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // settings (OPTIONAL) - object
+  // ----------------------------------------------------------------------------
+  // Workflow-specific settings and preferences.
+  //
+  // Example:
+  // "settings": {
+  //   "autoSave": true,
+  //   "verboseLogging": false,
+  //   "templateDirectory": "./templates",
+  //   "maxConcurrentTasks": 5
+  // }
+  // ----------------------------------------------------------------------------
+  // "settings": {
+  //   "autoSave": true,
+  //   "verboseLogging": false,
+  //   "createBackups": true,
+  //   "templateDirectory": "./templates",
+  //   "scriptDirectory": "./scripts"
+  // },
+
+  // ----------------------------------------------------------------------------
+  // metadata (OPTIONAL) - object
+  // ----------------------------------------------------------------------------
+  // Arbitrary metadata for tracking, analytics, or custom extensions.
+  //
+  // Example:
+  // "metadata": {
+  //   "created": "2025-01-15",
+  //   "lastUpdated": "2025-11-13",
+  //   "category": "development",
+  //   "maturity": "stable"
+  // }
+  // ----------------------------------------------------------------------------
+  // "metadata": {
+  //   "created": "2025-11-13",
+  //   "lastUpdated": "2025-11-13",
+  //   "category": "template",
+  //   "maturity": "experimental",
+  //   "estimatedDuration": "30-60 minutes"
+  // }
+
+  // ============================================================================
+  // END OF CONFIGURATION TEMPLATE
+  // ============================================================================
+}
