@@ -1,0 +1,9 @@
+{
+  "name": "Specify a feature",
+  "description": "Specify workflow to guide users through the first step of the spec driven development process",
+  "systemPrompt": "",
+  "startupPrompt": "",
+  "results": {
+    "Feature Specification": "artifacts/specs/**/spec.md"
+  }
+}
