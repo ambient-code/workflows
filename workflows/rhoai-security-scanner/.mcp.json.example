@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "rhoai-scanner": {
+      "comment": "Example MCP server configuration for RHOAI security scanner",
+      "comment2": "This would work if the scanner provided an MCP server interface",
+      "command": "rhoai-security-scanner-mcp",
+      "args": [
+        "--mode", "server",
+        "--port", "0"
+      ],
+      "env": {
+        "SCANNER_MODE": "mcp",
+        "GITLAB_TOKEN": "${GITLAB_TOKEN}",
+        "SCANNER_REPO": "https://gitlab.cee.redhat.com/mstratto/rhoai-security-scanner.git",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "gitlab-integration": {
+      "comment": "Optional GitLab integration for accessing the scanner repository",
+      "command": "mcp-gitlab",
+      "args": [],
+      "env": {
+        "GITLAB_URL": "https://gitlab.cee.redhat.com",
+        "GITLAB_TOKEN": "${GITLAB_TOKEN}",
+        "READ_ONLY_MODE": "false"
+      }
+    },
+    "security-tools": {
+      "comment": "Generic security tools MCP server",
+      "command": "mcp-security-tools",
+      "args": ["--tools", "trivy,grype,kubesec"],
+      "env": {
+        "SCAN_TIMEOUT": "300",
+        "OUTPUT_FORMAT": "json"
+      }
+    }
+  }
+}
