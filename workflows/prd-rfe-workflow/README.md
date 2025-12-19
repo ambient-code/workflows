@@ -298,23 +298,9 @@ todo: add quickstart
 ### Prerequisites
 todo: add prerequisites
 
-## Agent Orchestration
-
-Agent collaboration is automatically triggered when you use the workflow commands—specialized agents are orchestrated as needed to ensure high-quality product documentation. Additionally, you can bring any individual agent into a conversation at any point by typing the '@' symbol and selecting an agent by name.
-
-
 ## Customization
 
-### For Your Organization
-
-You can customize this workflow by:
-
-1. **Customizing PRD template** in `/prd.create` to match your org's format
-2. **Adding custom prioritization methods** in `/rfe.prioritize`
-3. **Modifying RFE sizing criteria** to match your team's velocity
-4. **Adding company-specific agents** for domain expertise
-5. **Extending phases** with additional validation steps
-6. **Customizing artifact paths** to match your document management system
+todo: add customization instructions
 
 
 ## Contributing
