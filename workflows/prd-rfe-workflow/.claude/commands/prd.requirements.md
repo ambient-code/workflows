@@ -28,10 +28,10 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the requirements gathering process. Work collaboratively with them to create well-structured, research-informed requirements.
 
 1. **Load Context**:
-   - Read `artifacts/discovery.md` if it exists
+   - Read `discovery.md` if it exists
    - Consider user input from $ARGUMENTS
 
-2. **Create Requirements Document**: Generate `artifacts/requirements.md`:
+2. **Create Requirements Document**: Generate `requirements.md`:
 
    ```markdown
    # Product Requirements: [Product/Feature Name]

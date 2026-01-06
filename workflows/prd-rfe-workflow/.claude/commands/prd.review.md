@@ -28,12 +28,12 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the review process. Work collaboratively with them to assess quality, completeness, and feasibility from multiple perspectives.
 
 1. **Load PRD Artifacts**:
-   - Read `artifacts/discovery.md` (if exists)
-   - Read `artifacts/requirements.md` (if exists)
-   - Read `artifacts/prd.md` (required)
+   - Read `discovery.md` (if exists)
+   - Read `requirements.md` (if exists)
+   - Read `prd.md` (required)
    - Consider user input from $ARGUMENTS
 
-2. **Create PRD Review Report**: Generate `artifacts/prd-review-report.md`:
+2. **Create PRD Review Report**: Generate `prd-review-report.md`:
 
    ```markdown
    # PRD Completeness Review Report

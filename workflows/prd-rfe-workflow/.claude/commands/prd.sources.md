@@ -17,10 +17,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command generates a comprehensive list of all data sources that informed the PRD creation. It analyzes the PRD document, discovery artifacts, requirements, and any referenced materials to create a complete source attribution list.
 
 1. **Load Context**:
-   - Read `artifacts/prd.md` (required)
-   - Read `artifacts/discovery.md` (if exists)
-   - Read `artifacts/requirements.md` (if exists)
-   - Read `artifacts/prd-review-report.md` (if exists)
+   - Read `prd.md` (required)
+   - Read `discovery.md` (if exists)
+   - Read `requirements.md` (if exists)
+   - Read `prd-review-report.md` (if exists)
    - Scan for any references, citations, or links in these documents
 
 2. **Identify Source Types**:
@@ -76,7 +76,7 @@ This command generates a comprehensive list of all data sources that informed th
    - **Relevance**: What part of the PRD it informed (e.g., "User Research - Pain Points", "Technical Architecture", "Competitive Analysis")
    - **Citation**: How it's referenced in the PRD (if applicable)
 
-4. **Generate Sources Document**: Create `artifacts/prd-sources.md`:
+4. **Generate Sources Document**: Create `prd-sources.md`:
 
    ```markdown
    # PRD Data Sources

@@ -28,7 +28,7 @@ Invoke these agents at the start of the discovery process to leverage their expe
 
 Given that initial input, do this:
 
-1. **Create Discovery Document**: Generate `artifacts/discovery.md` with the following structure:
+1. **Create Discovery Document**: Generate `discovery.md` with the following structure:
 
    ```markdown
    # Product Discovery: [Product/Feature Name]

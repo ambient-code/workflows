@@ -35,7 +35,7 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 1. **Execute Discovery**:
    - Run the discovery phase using the user's initial input
    - Invoke collaborating agents: @parker-product_manager.md, @ryan-ux_researcher.md, @aria-ux_architect.md
-   - Generate `artifacts/discovery.md`
+   - Generate `discovery.md`
    - Make reasonable assumptions when information is missing
    - Only ask questions if critical information is completely absent
 
@@ -49,9 +49,9 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 2: Requirements (`/prd.requirements`)
 
 1. **Execute Requirements Gathering**:
-   - Read `artifacts/discovery.md`
+   - Read `discovery.md`
    - Invoke collaborating agents: @parker-product_manager.md, @ryan-ux_researcher.md, @olivia-product_owner.md, @aria-ux_architect.md
-   - Generate `artifacts/requirements.md`
+   - Generate `requirements.md`
    - Use discovery insights to create requirements
    - Apply MoSCoW prioritization automatically
 
@@ -65,9 +65,9 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 3: PRD Creation (`/prd.create`)
 
 1. **Execute PRD Creation**:
-   - Read `artifacts/discovery.md` and `artifacts/requirements.md`
+   - Read `discovery.md` and `requirements.md`
    - Invoke collaborating agents: @parker-product_manager.md, @ryan-ux_researcher.md, @terry-technical_writer.md, @casey-content_strategist.md
-   - Generate `artifacts/prd.md` and `artifacts/prd-checklist.md`
+   - Generate `prd.md` and `prd-checklist.md`
    - Synthesize all information into comprehensive PRD
    - Make reasonable assumptions for missing details
 
@@ -76,9 +76,9 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 4: PRD Review (`/prd.review`)
 
 1. **Execute PRD Review**:
-   - Read `artifacts/prd.md`
+   - Read `prd.md`
    - Invoke collaborating agents: @steve-ux_designer.md, @aria-ux_architect.md, @olivia-product_owner.md, @archie-architect.md
-   - Generate `artifacts/prd-review-report.md`
+   - Generate `prd-review-report.md`
    - Assess quality, completeness, and feasibility
    - Determine if prototype is needed
 
@@ -93,9 +93,9 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 5: PRD Revision (`/prd.revise`) - Conditional
 
 1. **Only execute if review identified critical issues**:
-   - Read `artifacts/prd-review-report.md`
+   - Read `prd-review-report.md`
    - Invoke collaborating agents: @parker-product_manager.md, @terry-technical_writer.md
-   - Update `artifacts/prd.md` based on review feedback
+   - Update `prd.md` based on review feedback
    - Address all critical issues automatically
    - Make reasonable decisions on non-critical feedback
 
@@ -104,9 +104,9 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 6: RFE Breakdown (`/rfe.breakdown`)
 
 1. **Execute RFE Breakdown**:
-   - Read `artifacts/prd.md`
+   - Read `prd.md`
    - Invoke collaborating agents: @olivia-product_owner.md, @stella-staff_engineer.md, @archie-architect.md, @neil-test_engineer.md
-   - Generate `artifacts/rfes.md` and individual RFE files in `artifacts/rfe-tasks/`
+   - Generate `rfes.md` and individual RFE files in `rfe-tasks/`
    - Break down PRD into implementable RFEs
    - Size RFEs appropriately
    - Identify dependencies automatically
@@ -116,7 +116,7 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 7: RFE Review (`/rfe.review`)
 
 1. **Execute RFE Review**:
-   - Read `artifacts/rfes.md` and RFE files
+   - Read `rfes.md` and RFE files
    - Invoke collaborating agents: @stella-staff_engineer.md, @archie-architect.md, @neil-test_engineer.md, @emma-engineering_manager.md, @olivia-product_owner.md
    - Review all RFEs for technical feasibility, testability, and capacity
    - Assess architecture alignment
@@ -143,10 +143,10 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 9: Prioritization (`/rfe.prioritize`)
 
 1. **Execute Prioritization**:
-   - Read `artifacts/rfes.md` and `artifacts/prd.md`
+   - Read `rfes.md` and `prd.md`
    - Invoke collaborating agents: @parker-product_manager.md, @olivia-product_owner.md, @emma-engineering_manager.md
    - Apply RICE or MoSCoW framework automatically
-   - Generate `artifacts/prioritization.md` and optionally `artifacts/roadmap-visual.md`
+   - Generate `prioritization.md` and optionally `roadmap-visual.md`
    - Create implementation roadmap
 
 2. **Critical Questions (only if needed)**:
@@ -159,12 +159,12 @@ This command automates the entire PRD-RFE workflow from discovery through Jira s
 ### Phase 10: RFE Submission (`/rfe.submit`)
 
 1. **Execute Submission**:
-   - Read `artifacts/rfes.md` and all RFE files
+   - Read `rfes.md` and all RFE files
    - Invoke collaborating agents: @olivia-product_owner.md, @emma-engineering_manager.md, @parker-product_manager.md
    - Check for Jira MCP availability
    - If available: Create Jira tickets automatically
    - If not available: Generate manual submission instructions
-   - Create `artifacts/jira-tickets.md` (if Jira MCP available)
+   - Create `jira-tickets.md` (if Jira MCP available)
 
 2. **No questions** - complete workflow
 

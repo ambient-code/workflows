@@ -27,8 +27,8 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the prioritization process. Work collaboratively with them to apply prioritization frameworks, assess business value, and create a realistic implementation roadmap.
 
 1. **Load Context**:
-   - Read `artifacts/rfes.md`
-   - Read `artifacts/prd.md` for business goals and success metrics
+   - Read `rfes.md`
+   - Read `prd.md` for business goals and success metrics
    - Consider user input from $ARGUMENTS for prioritization criteria
 
 2. **Gather Prioritization Input**:
@@ -63,7 +63,7 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    - **Fill-ins**: Low value, low effort (do if time permits)
    - **Money Pit**: Low value, high effort (avoid/defer)
 
-4. **Create Prioritization Document**: Generate `artifacts/prioritization.md`:
+4. **Create Prioritization Document**: Generate `prioritization.md`:
 
    ```markdown
    # RFE Prioritization & Roadmap
@@ -212,7 +212,7 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    - Effort estimates are realistic
    - Risks are identified and addressed
 
-6. **Create Visual Roadmap** (optional): Generate `artifacts/roadmap-visual.md`:
+6. **Create Visual Roadmap** (optional): Generate `roadmap-visual.md`:
 
    ```markdown
    # Visual Roadmap

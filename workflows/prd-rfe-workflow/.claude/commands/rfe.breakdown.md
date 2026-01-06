@@ -28,7 +28,7 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the breakdown process. Work collaboratively with them to decompose the PRD into well-scoped, technically feasible RFEs with proper sizing and dependencies.
 
 1. **Load Context**:
-   - Read `artifacts/prd.md`
+   - Read `prd.md`
    - Understand functional requirements, user stories, and features
    - Consider user input from $ARGUMENTS
 
@@ -38,7 +38,7 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    - Identify discrete, implementable units of work
    - Group related requirements into logical RFEs
 
-3. **Create RFE Master List**: Generate `artifacts/rfes.md`:
+3. **Create RFE Master List**: Generate `rfes.md`:
 
    ```markdown
    # Request for Enhancement (RFE) List
@@ -136,10 +136,10 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    ```
 
 4. **Generate Individual RFE Documents**:
-   - Create `artifacts/rfe-tasks/` directory (if it doesn't exist)
+   - Create `rfe-tasks/` directory (if it doesn't exist)
    - **IMPORTANT**: Create individual RFE files for ALL RFEs identified in the master list, not just a sample
    - **TEMPLATE**: Use the Red Hat RFE format template at `.claude/templates/rfe-template.md` as a guide
-   - For EACH RFE in the breakdown, create `artifacts/rfe-tasks/RFE-XXX-[slug].md` following the template structure:
+   - For EACH RFE in the breakdown, create `rfe-tasks/RFE-XXX-[slug].md` following the template structure:
 
    ```markdown
    # RFE-XXX: [Title]
@@ -295,7 +295,7 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    | [Risk 1] | [High/Med/Low] | [How to address] |
    ```
 
-   **CRITICAL**: You MUST create individual RFE files for EVERY RFE identified in the master list. Do not create only a sample file. Each RFE from the master list must have its own corresponding file in the `artifacts/rfe-tasks/` directory.
+   **CRITICAL**: You MUST create individual RFE files for EVERY RFE identified in the master list. Do not create only a sample file. Each RFE from the master list must have its own corresponding file in the `rfe-tasks/` directory.
 
 5. **RFE Breakdown Principles**:
    - **Atomic**: Each RFE should be independently deliverable
@@ -317,11 +317,11 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    - Dependencies are acyclic (no circular dependencies)
    - Each RFE has clear acceptance criteria
    - Priorities align with business goals
-   - **VERIFY**: Every RFE in the master list has a corresponding individual file in `artifacts/rfe-tasks/`
+   - **VERIFY**: Every RFE in the master list has a corresponding individual file in `rfe-tasks/`
 
 8. **Report Completion**:
-   - Path to RFE master list (`artifacts/rfes.md`)
-   - Path to individual RFE files directory (`artifacts/rfe-tasks/`)
+   - Path to RFE master list (`rfes.md`)
+   - Path to individual RFE files directory (`rfe-tasks/`)
    - Count of RFEs by priority and size
    - Total estimated effort
    - Dependency summary

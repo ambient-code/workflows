@@ -29,13 +29,13 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the review process. Work collaboratively with them to validate technical approach, assess testability, check capacity, and ensure architecture alignment.
 
 1. **Load RFE Artifacts**:
-   - Read `artifacts/rfes.md` (required)
-   - Read individual RFE files from `artifacts/rfe-tasks/*.md`
-   - Read `artifacts/prd.md` for context
-   - Read `artifacts/prioritization.md` (if exists)
+   - Read `rfes.md` (required)
+   - Read individual RFE files from `rfe-tasks/*.md`
+   - Read `prd.md` for context
+   - Read `prioritization.md` (if exists)
    - Consider user input from $ARGUMENTS
 
-2. **Create RFE Technical Review Report**: Generate `artifacts/rfe-review-report.md`:
+2. **Create RFE Technical Review Report**: Generate `rfe-review-report.md`:
 
    ```markdown
    # RFE Technical Feasibility Review Report

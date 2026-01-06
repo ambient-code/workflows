@@ -28,11 +28,11 @@ You MUST proactively invoke the following collaborating agents to ensure high-qu
 Invoke these agents throughout the PRD creation process. Work collaboratively with them to synthesize discovery and requirements into a comprehensive, well-written PRD.
 
 1. **Load Context**:
-   - Read `artifacts/discovery.md` if it exists
-   - Read `artifacts/requirements.md` if it exists
+   - Read `discovery.md` if it exists
+   - Read `requirements.md` if it exists
    - Consider user input from $ARGUMENTS
 
-2. **Create PRD**: Generate `artifacts/prd.md` with comprehensive structure:
+2. **Create PRD**: Generate `prd.md` with comprehensive structure:
 
    ```markdown
    # Product Requirements Document (PRD)
@@ -248,7 +248,7 @@ Invoke these agents throughout the PRD creation process. Work collaboratively wi
    - **Testability**: Requirements can be validated
    - **Consistency**: No contradictions between sections
 
-5. **Create PRD Validation Checklist**: Generate `artifacts/prd-checklist.md`:
+5. **Create PRD Validation Checklist**: Generate `prd-checklist.md`:
 
    ```markdown
    # PRD Quality Checklist

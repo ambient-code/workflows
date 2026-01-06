@@ -27,9 +27,9 @@ You MUST proactively invoke the following collaborating agents to ensure proper 
 Invoke these agents at the start of the submission process. Work collaboratively with them to ensure tickets are properly structured, prioritized, and assigned.
 
 1. **Load Context**:
-   - Read `artifacts/rfes.md` (RFE master list)
-   - Read all individual RFE files from `artifacts/rfe-tasks/` directory
-   - Check if prioritization document exists (`artifacts/prioritization.md`)
+   - Read `rfes.md` (RFE master list)
+   - Read all individual RFE files from `rfe-tasks/` directory
+   - Check if prioritization document exists (`prioritization.md`)
    - Consider user input from $ARGUMENTS
 
 2. **Check Jira MCP Server Availability**:
@@ -42,7 +42,7 @@ Invoke these agents at the start of the submission process. Work collaboratively
    For each RFE in the master list:
    
    a. **Read RFE File**:
-      - Load `artifacts/rfe-tasks/RFE-XXX-[slug].md`
+      - Load `rfe-tasks/RFE-XXX-[slug].md`
       - Extract key information:
         - RFE ID and title
         - Summary
@@ -78,7 +78,7 @@ Invoke these agents at the start of the submission process. Work collaboratively
    
    e. **Report Ticket Creation**:
       - Document created ticket keys (e.g., PROJ-123, PROJ-124)
-      - Create a mapping file: `artifacts/jira-tickets.md` with:
+      - Create a mapping file: `jira-tickets.md` with:
         ```markdown
         # Jira Ticket Mapping
         
@@ -115,7 +115,7 @@ Invoke these agents at the start of the submission process. Work collaboratively
    
    1. **Open Jira** and navigate to your project board
    
-   2. **For each RFE file** in `artifacts/rfe-tasks/`:
+   2. **For each RFE file** in `rfe-tasks/`:
       
       a. Click "Create" to create a new ticket
       
@@ -150,19 +150,19 @@ Invoke these agents at the start of the submission process. Work collaboratively
       - Use Jira's "Links" feature to connect prerequisite and blocking tickets
    
    4. **Create Epics** (if applicable):
-      - If RFEs are grouped by epic (check `artifacts/rfes.md` for phase/epic groupings)
+      - If RFEs are grouped by epic (check `rfes.md` for phase/epic groupings)
       - Create epic tickets and link related RFE tickets to them
    
    5. **Verify Submission**:
-      - Check that all RFEs from `artifacts/rfes.md` have corresponding Jira tickets
+      - Check that all RFEs from `rfes.md` have corresponding Jira tickets
       - Verify dependencies are properly linked
       - Confirm acceptance criteria are included
    
    ### Quick Reference
    
-   - **Total RFEs**: Check `artifacts/rfes.md` for count
-   - **RFE Files**: `artifacts/rfe-tasks/RFE-*.md`
-   - **Prioritization**: If available, check `artifacts/prioritization.md` for recommended order
+   - **Total RFEs**: Check `rfes.md` for count
+   - **RFE Files**: `rfe-tasks/RFE-*.md`
+   - **Prioritization**: If available, check `prioritization.md` for recommended order
    ```
 
 5. **Validate Submission**:
