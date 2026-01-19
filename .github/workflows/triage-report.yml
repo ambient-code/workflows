@@ -1,4 +1,4 @@
-name: Generate Triage Report
+name: Backlog Triage
 
 on:
   schedule:
@@ -162,7 +162,7 @@ jobs:
           from datetime import datetime
 
           # Read template
-          with open('workflows/workflows/triage/templates/report.html', 'r') as f:
+          with open('workflows/triage/templates/report.html', 'r') as f:
               template = f.read()
 
           # Read triaged issues
