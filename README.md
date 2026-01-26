@@ -171,6 +171,7 @@ All workflows require an `ambient.json` configuration file at `.ambient/ambient.
 3. **Include templates** - Help agents maintain consistency
 4. **Version control** - Use branches for workflow versions
 5. **Test iteratively** - Validate workflows in real sessions
+6. **Add workspace navigation guidance** - Include file location rules in systemPrompt to reduce Claude's file-finding fumbles (see [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md))
 
 ### Example: Minimal Custom Workflow
 
