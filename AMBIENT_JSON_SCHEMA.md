@@ -326,6 +326,7 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
 5. **Include agent orchestration**: When to invoke specialized agents
 6. **Add error handling**: How to recover from failures
 7. **Use markdown formatting**: Headers, lists, code blocks for readability
+8. **Add workspace navigation guidance**: Help Claude find files efficiently (see [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md))
 
 ### Startup Prompt Design
 
