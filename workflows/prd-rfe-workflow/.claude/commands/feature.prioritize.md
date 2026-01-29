@@ -1,6 +1,6 @@
 ---
-description: Prioritize RFEs using various prioritization frameworks and create an implementation roadmap.
-displayName: rfe.prioritize
+description: Prioritize Features using various prioritization frameworks and create an implementation roadmap.
+displayName: feature.prioritize
 icon: 🎯
 ---
 
@@ -14,11 +14,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-This command helps prioritize RFEs and creates an implementation roadmap. It should be run after `/rfe.breakdown`.
+This command helps prioritize Features and creates an implementation roadmap. It should be run after `/feature.breakdown`.
 
 **IMPORTANT: Agent Collaboration**
 
-You MUST proactively invoke the following collaborating agents to ensure comprehensive RFE prioritization:
+You MUST proactively invoke the following collaborating agents to ensure comprehensive Feature prioritization:
 
 1. **@parker-product_manager.md** - For RICE scoring, business value assessment, ROI analysis, and market strategy alignment
 2. **@olivia-product_owner.md** (from bullpen) - For backlog prioritization, MoSCoW categorization, and value vs effort analysis
@@ -27,7 +27,7 @@ You MUST proactively invoke the following collaborating agents to ensure compreh
 Invoke these agents at the start of the prioritization process. Work collaboratively with them to apply prioritization frameworks, assess business value, and create a realistic implementation roadmap.
 
 1. **Load Context**:
-   - Read `rfes.md`
+   - Read `features.md`
    - Read `prd.md` for business goals and success metrics
    - Consider user input from $ARGUMENTS for prioritization criteria
 
@@ -42,14 +42,14 @@ Invoke these agents at the start of the prioritization process. Work collaborati
 3. **Apply Prioritization Framework**:
 
    ### MoSCoW Method
-   Categorize each RFE:
+   Categorize each Feature:
    - **Must Have**: Critical for launch, non-negotiable
    - **Should Have**: Important but not critical
    - **Could Have**: Nice to have if time permits
    - **Won't Have**: Out of scope for this release
 
    ### RICE Scoring (if selected)
-   For each RFE, score:
+   For each Feature, score:
    - **Reach**: How many users affected? (per time period)
    - **Impact**: How much does it impact each user? (0.25=minimal, 0.5=low, 1=medium, 2=high, 3=massive)
    - **Confidence**: How confident are we? (percentage: 100%, 80%, 50%)
@@ -57,7 +57,7 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    - **RICE Score** = (Reach × Impact × Confidence) / Effort
 
    ### Value vs. Effort Matrix (if selected)
-   Plot each RFE on 2x2 grid:
+   Plot each Feature on 2x2 grid:
    - **Quick Wins**: High value, low effort (do first)
    - **Big Bets**: High value, high effort (plan carefully)
    - **Fill-ins**: Low value, low effort (do if time permits)
@@ -66,25 +66,25 @@ Invoke these agents at the start of the prioritization process. Work collaborati
 4. **Create Prioritization Document**: Generate `prioritization.md`:
 
    ```markdown
-   # RFE Prioritization & Roadmap
+   # Feature Prioritization & Roadmap
 
-   **Source**: [Link to rfes.md]
+   **Source**: [Link to features.md]
    **Date**: [Current Date]
    **Prioritization Method**: [MoSCoW/RICE/Value-Effort/Custom]
 
    ## Prioritization Summary
 
-   | Priority | Count | RFE IDs |
-   |----------|-------|---------|
-   | Must Have / High | X | RFE-001, RFE-003, RFE-005 |
-   | Should Have / Medium | X | RFE-002, RFE-004 |
-   | Could Have / Low | X | RFE-006, RFE-007 |
+   | Priority | Count | Feature IDs |
+   |----------|-------|-------------|
+   | Must Have / High | X | Feature-001, Feature-003, Feature-005 |
+   | Should Have / Medium | X | Feature-002, Feature-004 |
+   | Could Have / Low | X | Feature-006, Feature-007 |
 
    ## Prioritization Details
 
    ### Must Have / High Priority
 
-   #### RFE-001: [Title]
+   #### Feature-001: [Title]
    - **Priority Rationale**: [Why this is must-have]
    - **Business Value**: [What business value it delivers]
    - **User Impact**: [How it affects users]
@@ -92,7 +92,7 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    - **Estimated Effort**: [Size]
    - **Target Release**: [Release/Phase]
 
-   [Repeat for each high-priority RFE]
+   [Repeat for each high-priority Feature]
 
    ### Should Have / Medium Priority
 
@@ -104,10 +104,10 @@ Invoke these agents at the start of the prioritization process. Work collaborati
 
    ## RICE Scoring (if applicable)
 
-   | RFE ID | Title | Reach | Impact | Confidence | Effort | RICE Score | Priority |
-   |--------|-------|-------|--------|------------|--------|------------|----------|
-   | RFE-001 | [Title] | 1000 | 2 | 80% | 2 | 800 | High |
-   | RFE-002 | [Title] | 500 | 1 | 100% | 1 | 500 | Medium |
+   | Feature ID | Title | Reach | Impact | Confidence | Effort | RICE Score | Priority |
+   |------------|-------|-------|--------|------------|--------|------------|----------|
+   | Feature-001 | [Title] | 1000 | 2 | 80% | 2 | 800 | High |
+   | Feature-002 | [Title] | 500 | 1 | 100% | 1 | 500 | Medium |
 
    ## Value vs. Effort Matrix (if applicable)
 
@@ -115,11 +115,11 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    High Value
    │
    │  Big Bets        Quick Wins
-   │  [RFE-004]       [RFE-001, RFE-003]
+   │  [Feature-004]   [Feature-001, Feature-003]
    │
    │
    │  Money Pit       Fill-ins
-   │  [RFE-007]       [RFE-006]
+   │  [Feature-007]   [Feature-006]
    │
    └────────────────────────────── High Effort
    Low Effort
@@ -131,9 +131,9 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    **Goal**: [What this phase achieves]
    **Duration**: [Estimated timeline]
 
-   #### Included RFEs
-   - RFE-001: [Title] - [Estimated effort]
-   - RFE-002: [Title] - [Estimated effort]
+   #### Included Features
+   - Feature-001: [Title] - [Estimated effort]
+   - Feature-002: [Title] - [Estimated effort]
 
    **Phase Total**: [Total effort]
    **Key Deliverables**: [What users get]
@@ -146,31 +146,31 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    [Similar structure]
 
    ### Future Considerations (Backlog)
-   - RFE-XXX: [Title] - [Why deferred]
+   - Feature-XXX: [Title] - [Why deferred]
 
    ## Dependency-Driven Sequence
 
    **Critical Path**:
-   1. RFE-001 (Foundation) →
-   2. RFE-003 (Depends on 001) →
-   3. RFE-005 (Depends on 003)
+   1. Feature-001 (Foundation) →
+   2. Feature-003 (Depends on 001) →
+   3. Feature-005 (Depends on 003)
 
    **Parallel Work Streams**:
-   - **Stream A**: RFE-001 → RFE-003 → RFE-005
-   - **Stream B**: RFE-002 → RFE-004 (can run in parallel)
+   - **Stream A**: Feature-001 → Feature-003 → Feature-005
+   - **Stream B**: Feature-002 → Feature-004 (can run in parallel)
 
    ## Risk-Adjusted Priority
 
-   | RFE ID | Base Priority | Risk Level | Adjusted Priority | Rationale |
-   |--------|---------------|------------|-------------------|-----------|
-   | RFE-001 | High | Low | High | Safe to proceed |
-   | RFE-004 | High | High | Medium | De-risk before committing |
+   | Feature ID | Base Priority | Risk Level | Adjusted Priority | Rationale |
+   |------------|---------------|------------|-------------------|-----------|
+   | Feature-001 | High | Low | High | Safe to proceed |
+   | Feature-004 | High | High | Medium | De-risk before committing |
 
    ## Trade-off Analysis
 
    ### If Timeline is Constrained
-   **Recommended**: RFE-001, RFE-003 (Quick Wins)
-   **Defer**: RFE-004, RFE-007 (Big Bets, Money Pit)
+   **Recommended**: Feature-001, Feature-003 (Quick Wins)
+   **Defer**: Feature-004, Feature-007 (Big Bets, Money Pit)
 
    ### If Resources are Constrained
    **Recommended**: Focus on Must-Have items only
@@ -180,20 +180,20 @@ Invoke these agents at the start of the prioritization process. Work collaborati
 
    ### Business Goals Mapping
    - **Goal 1: [Business Goal]**
-     - Supported by: RFE-001, RFE-003
+     - Supported by: Feature-001, Feature-003
    - **Goal 2: [Business Goal]**
-     - Supported by: RFE-002, RFE-004
+     - Supported by: Feature-002, Feature-004
 
    ### User Needs Mapping
    - **User Need 1: [Need]**
-     - Addressed by: RFE-001, RFE-005
+     - Addressed by: Feature-001, Feature-005
    - **User Need 2: [Need]**
-     - Addressed by: RFE-002
+     - Addressed by: Feature-002
 
    ## Recommendations
 
-   1. **Start with Phase 1 RFEs**: [List and rationale]
-   2. **Parallel work**: [Which RFEs can be done in parallel]
+   1. **Start with Phase 1 Features**: [List and rationale]
+   2. **Parallel work**: [Which Features can be done in parallel]
    3. **Key dependencies**: [Critical path items]
    4. **Risk mitigation**: [High-risk items to address early]
 
@@ -202,7 +202,7 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    - [ ] Review prioritization with stakeholders
    - [ ] Confirm roadmap phases
    - [ ] Begin implementation planning for Phase 1
-   - [ ] Create detailed task breakdown for high-priority RFEs
+   - [ ] Create detailed task breakdown for high-priority Features
    ```
 
 5. **Validate Prioritization**:
@@ -224,11 +224,11 @@ Invoke these agents at the start of the prioritization process. Work collaborati
    ───────────────────────────────────────────
    Phase 1 MVP      Phase 2 Core     Phase 3
    │                │                │
-   ├─ RFE-001 ─────┤                │
-   ├─ RFE-002 ──────────────────────┤
-   │  RFE-003 ──────┤                │
-   │                └─ RFE-004 ──────┤
-   │                   RFE-005 ──────┤
+   ├─ Feature-001 ──┤                │
+   ├─ Feature-002 ──────────────────┤
+   │  Feature-003 ───┤               │
+   │                └─ Feature-004 ──┤
+   │                   Feature-005 ──┤
    ```
 
    ## Cumulative Value Delivery
