@@ -1,16 +1,16 @@
-# Create PRDs & RFEs
+# Create PRDs & Features
 
-A comprehensive workflow for creating Product Requirements Documents (PRDs) and systematically breaking them down into actionable Request for Enhancement (RFE) items.
+A comprehensive workflow for creating Product Requirements Documents (PRDs) and systematically breaking them down into actionable Feature items.
 
-This workflow is deisned to be run on [Ambient Code Platform](https://github.com/ambient-code/platform). 
+This workflow is deisned to be run on [Ambient Code Platform](https://github.com/ambient-code/platform).
 
 ## Who this is for
 
-**Product Managers** who want to leverage agents in the creation of comprehensive, well-defined, data-informed PRDs and RFEs. The goal is to generate PRDs and RFEs that are more likely to be accepted by a Senior Engineer or Architect for implementation.
+**Product Managers** who want to leverage agents in the creation of comprehensive, well-defined, data-informed PRDs and Features. The goal is to generate PRDs and Features that are more likely to be accepted by a Senior Engineer or Architect for implementation.
 
 ## Workflow
 
-The creation of a PRD and subsequent refinements of RFEs associated with that PRD follow a general workflow that starts with discovery, goes through two refinement loops, and utimately exports RFE definitions to Jira. 
+The creation of a PRD and subsequent refinements of Features associated with that PRD follow a general workflow that starts with discovery, goes through two refinement loops, and utimately exports Feature definitions to Jira.
 
 ```mermaid
 flowchart LR
@@ -18,27 +18,27 @@ flowchart LR
     UXR[(UXR MCP)] -.-> A
     UF[(User-uploaded files)] -.-> A
     CODE[(Code)] -.-> A
-    
-    A[prd.discover] --> REQ[prd.requirements]
+
+    A[prd.discover] --> REQ[prd.rfe]
     REQ --> review_loop
-    
+
     subgraph review_loop["PRD Review Loop"]
         B[prd.create] --> C[prd.review]
         C --> D[prd.revise]
         D --> B
     end
-    
-    subgraph rfe_loop["RFE Review Loop"]
-        E[rfe.breakdown] --> F[rfe.review]
-        F --> G[rfe.revise]
+
+    subgraph feature_loop["Feature Review Loop"]
+        E[feature.breakdown] --> F[feature.review]
+        F --> G[feature.revise]
         G --> E
     end
-    
-    review_loop --> rfe_loop
-    rfe_loop --> PRIO[rfe.prioritize]
-    PRIO --> H[rfe.submit]
+
+    review_loop --> feature_loop
+    feature_loop --> PRIO[feature.prioritize]
+    PRIO --> H[feature.submit]
     H -.-> JIRA[Jira]
-    
+
     style GD fill:#999,stroke:#666,color:#fff
     style UXR fill:#999,stroke:#666,color:#fff
     style UF fill:#999,stroke:#666,color:#fff
@@ -48,26 +48,26 @@ flowchart LR
 
 ### Slash Commands
 
-The workflow is accessible through slash commands which enable the user to keep the agents on track. Some commands have prerequisites. For example `/rfe.breakdown` which breaks a PRD down into RFEs, requires the existance of a PRD document. 
+The workflow is accessible through slash commands which enable the user to keep the agents on track. Some commands have prerequisites. For example `/feature.breakdown` which breaks a PRD down into Features, requires the existance of a PRD document.
 
-**Quick Start**: Use `/rfe.speedrun` to automatically run the entire workflow from discovery to Jira submission, only pausing for critical questions.
+**Quick Start**: Use `/feature.speedrun` to automatically run the entire workflow from discovery to Jira submission, only pausing for critical questions.
 
 **Individual Commands**:
 
 1. [`prd.discover`](#1-prddiscover) - Product discovery
-2. [`prd.requirements`](#2-prdrequirements) - Define precise requirements
+2. [`prd.rfe`](#2-prdrfe) - Define precise requirements
 3. [`prd.create`](#3-prdcreate) - Draft or update PRD
 4. [`prd.review`](#4-prdreview) - PRD review by senior engineer and architect agents.
 5. [`prd.revise`](#5-prdrevise) - Revise PRD based on feedback or new data
-6. [`rfe.breakdown`](#6-rfebreakdown) - Breakdown a PRD into scoped RFEs
-7. [`rfe.review`](#7-rfereview) - Individual RFE review by senior engineer and architect agents.
-8. [`rfe.revise`](#8-rferevise) - RFE Revision
-9. [`rfe.prioritize`](#9-rfeprioritize) - Prioritize RFEs and create implementation roadmap
-10. [`rfe.submit`](#10-rfesubmit) - RFE formatting and submission to Jira
+6. [`feature.breakdown`](#6-featurebreakdown) - Breakdown a PRD into scoped Features
+7. [`feature.review`](#7-featurereview) - Individual Feature review by senior engineer and architect agents.
+8. [`feature.revise`](#8-featurerevise) - Feature Revision
+9. [`feature.prioritize`](#9-featureprioritize) - Prioritize Features and create implementation roadmap
+10. [`feature.submit`](#10-featuresubmit) - Feature formatting and submission to Jira
 
 **Meta-Commands**:
 
-- [`rfe.speedrun`](#rfespeedrun) - Automatically run the complete workflow from discovery to Jira submission, only pausing for critical questions
+- [`feature.speedrun`](#featurespeedrun) - Automatically run the complete workflow from discovery to Jira submission, only pausing for critical questions
 - [`prd.sources`](#prdsources) - List all data sources that informed the PRD creation, including documents, code references, research, and external sources
 
 ---
@@ -98,7 +98,7 @@ The workflow is accessible through slash commands which enable the user to keep 
 
 ---
 
-### 2. `prd.requirements`
+### 2. `prd.rfe`
 **Purpose**: Define precise requirements
 
 **Collaborating Agents**:
@@ -116,7 +116,7 @@ The workflow is accessible through slash commands which enable the user to keep 
 - Clearly define scope and out-of-scope items
 
 **Artifacts Created**:
-- `artifacts/requirements.md` - Detailed product requirements document with business requirements, user stories, functional and non-functional requirements
+- `artifacts/rfe.md` - Detailed product requirements document with business requirements, user stories, functional and non-functional requirements
 
 ---
 
@@ -179,8 +179,8 @@ The workflow is accessible through slash commands which enable the user to keep 
 
 ---
 
-### 6. `rfe.breakdown`
-**Purpose**: Breakdown a PRD into scoped RFEs
+### 6. `feature.breakdown`
+**Purpose**: Breakdown a PRD into scoped Features
 
 **Collaborating Agents**:
 - **@olivia-product_owner.md** (bullpen) - Backlog management, story decomposition, acceptance criteria
@@ -189,20 +189,20 @@ The workflow is accessible through slash commands which enable the user to keep 
 - **@neil-test_engineer.md** (bullpen) - Testability assessment, automation requirements, cross-component impact
 
 **Key Actions**:
-- Decompose PRD into implementable RFEs
-- Define clear acceptance criteria for each RFE
+- Decompose PRD into implementable Features
+- Define clear acceptance criteria for each Feature
 - Identify technical dependencies and risks
-- Size RFEs and assess testing requirements
+- Size Features and assess testing requirements
 
 **Artifacts Created**:
-- `artifacts/rfes.md` - RFE master list with overview, summary, and detailed RFE descriptions
-- `artifacts/rfe-tasks/` - Directory containing individual RFE files
-  - `RFE-001-[slug].md`, `RFE-002-[slug].md`, etc. - Individual RFE documents following Red Hat RFE format
+- `artifacts/features.md` - Feature master list with overview, summary, and detailed Feature descriptions
+- `artifacts/feature-tasks/` - Directory containing individual Feature files
+  - `Feature-001-[slug].md`, `Feature-002-[slug].md`, etc. - Individual Feature documents following Red Hat Feature format
 
 ---
 
-### 7. `rfe.review`
-**Purpose**: Individual RFE review by senior engineer and architect agents.
+### 7. `feature.review`
+**Purpose**: Individual Feature review by senior engineer and architect agents.
 
 **Collaborating Agents**:
 - **@stella-staff_engineer.md** - Technical feasibility, implementation complexity, risk assessment
@@ -218,12 +218,12 @@ The workflow is accessible through slash commands which enable the user to keep 
 - Ensure architecture alignment
 
 **Artifacts Created**:
-- RFE review feedback and recommendations (may update individual RFE files in `artifacts/rfe-tasks/`)
+- Feature review feedback and recommendations (may update individual Feature files in `artifacts/feature-tasks/`)
 
 ---
 
-### 8. `rfe.revise`
-**Purpose**: RFE Revision
+### 8. `feature.revise`
+**Purpose**: Feature Revision
 
 **Collaborating Agents**:
 - **@olivia-product_owner.md** (bullpen) - Story refinement, scope adjustments
@@ -237,12 +237,12 @@ The workflow is accessible through slash commands which enable the user to keep 
 - Enhance testability of requirements
 
 **Artifacts Created**:
-- Updates to individual RFE files in `artifacts/rfe-tasks/` - Revised RFEs based on review feedback
+- Updates to individual Feature files in `artifacts/feature-tasks/` - Revised Features based on review feedback
 
 ---
 
-### 9. `rfe.prioritize`
-**Purpose**: Prioritize RFEs using various frameworks and create an implementation roadmap
+### 9. `feature.prioritize`
+**Purpose**: Prioritize Features using various frameworks and create an implementation roadmap
 
 **Collaborating Agents**:
 - **@parker-product_manager.md** - RICE scoring, business value assessment, ROI analysis, market strategy alignment
@@ -251,11 +251,11 @@ The workflow is accessible through slash commands which enable the user to keep 
 
 **Key Actions**:
 - Apply prioritization frameworks (MoSCoW, RICE, Value vs Effort, Kano Model)
-- Score and rank RFEs based on business value and user impact
+- Score and rank Features based on business value and user impact
 - Create implementation roadmap with phases/releases
 - Define dependency-driven sequence
 - Perform risk-adjusted prioritization
-- Map RFEs to business goals and user needs
+- Map Features to business goals and user needs
 - Generate recommendations for implementation order
 
 **Artifacts Created**:
@@ -264,11 +264,11 @@ The workflow is accessible through slash commands which enable the user to keep 
 
 ---
 
-### 10. `rfe.submit`
-**Purpose**: RFE formatting and submission to Jira
+### 10. `feature.submit`
+**Purpose**: Feature formatting and submission to Jira
 
 **Data Connections**:
-- **Jira MCP** - When available, automatically creates Jira tickets from RFE files with proper field mapping, dependencies, and attachments
+- **Jira MCP** - When available, automatically creates Jira tickets from Feature files with proper field mapping, dependencies, and attachments
 
 **Collaborating Agents**:
 - **@olivia-product_owner.md** (bullpen) - Backlog prioritization, sprint planning, ticket structure
@@ -276,21 +276,21 @@ The workflow is accessible through slash commands which enable the user to keep 
 - **@parker-product_manager.md** - Roadmap alignment, stakeholder communication
 
 **Key Actions**:
-- **If Jira MCP available**: Automatically create Jira tickets from RFE files
-  - Map RFE fields to Jira fields (title, description, priority, acceptance criteria)
+- **If Jira MCP available**: Automatically create Jira tickets from Feature files
+  - Map Feature fields to Jira fields (title, description, priority, acceptance criteria)
   - Link dependent tickets
-  - Attach RFE markdown files
+  - Attach Feature markdown files
   - Create ticket mapping document
 - **If Jira MCP not available**: Provide manual submission instructions
-  - Direct users to `artifacts/rfe-tasks/` directory
+  - Direct users to `artifacts/feature-tasks/` directory
   - Provide step-by-step instructions for creating tickets
   - Include field mapping guidance
-- Prioritize RFEs in backlog
+- Prioritize Features in backlog
 - Assign to appropriate teams
 - Align with product roadmap
 
 **Artifacts Created**:
-- `artifacts/jira-tickets.md` - Jira ticket mapping document with RFE ID to Jira ticket key mappings (when Jira MCP is available)
+- `artifacts/jira-tickets.md` - Jira ticket mapping document with Feature ID to Jira ticket key mappings (when Jira MCP is available)
 
 
 ## Quick Start

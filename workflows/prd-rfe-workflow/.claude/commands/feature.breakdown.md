@@ -1,6 +1,6 @@
 ---
-description: Break down the PRD into actionable Request for Enhancement (RFE) items.
-displayName: rfe.breakdown
+description: Break down the PRD into actionable Feature items.
+displayName: feature.breakdown
 icon: 🔨
 ---
 
@@ -14,61 +14,61 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-This command breaks down the PRD into discrete RFE items. It should be run after `/prd.create`.
+This command breaks down the PRD into discrete Feature items. It should be run after `/prd.create`.
 
 **IMPORTANT: Agent Collaboration**
 
-You MUST proactively invoke the following collaborating agents to ensure comprehensive RFE breakdown:
+You MUST proactively invoke the following collaborating agents to ensure comprehensive Feature breakdown:
 
 1. **@olivia-product_owner.md** (from bullpen) - For backlog management, story decomposition, and acceptance criteria definition
 2. **@stella-staff_engineer.md** - For technical scoping, effort estimation, and complexity assessment
 3. **@archie-architect.md** (from bullpen) - For system design, dependencies, and architectural coordination
 4. **@neil-test_engineer.md** (from bullpen) - For testability assessment, automation requirements, and cross-component impact analysis
 
-Invoke these agents at the start of the breakdown process. Work collaboratively with them to decompose the PRD into well-scoped, technically feasible RFEs with proper sizing and dependencies.
+Invoke these agents at the start of the breakdown process. Work collaboratively with them to decompose the PRD into well-scoped, technically feasible Features with proper sizing and dependencies.
 
 1. **Load Context**:
    - Read `prd.md`
    - Understand functional requirements, user stories, and features
    - Consider user input from $ARGUMENTS
 
-2. **Analyze PRD for RFE Extraction**:
+2. **Analyze PRD for Feature Extraction**:
    - Review all functional requirements
    - Review all user stories and epics
    - Identify discrete, implementable units of work
-   - Group related requirements into logical RFEs
+   - Group related requirements into logical Features
 
-3. **Create RFE Master List**: Generate `rfes.md`:
+3. **Create Feature Master List**: Generate `features.md`:
 
    ```markdown
-   # Request for Enhancement (RFE) List
+   # Feature List
 
    **Source PRD**: [Link to prd.md]
    **Date**: [Current Date]
-   **Total RFEs**: [Count]
+   **Total Features**: [Count]
 
    ## Summary
 
-   This document breaks down the PRD into discrete, implementable RFE items. Each RFE represents a unit of work that can be independently developed, tested, and delivered.
+   This document breaks down the PRD into discrete, implementable Feature items. Each Feature represents a unit of work that can be independently developed, tested, and delivered.
 
-   ## RFE Overview
+   ## Feature Overview
 
-   | RFE ID | Title | Epic | Priority | Size | Status |
-   |--------|-------|------|----------|------|--------|
-   | RFE-001 | [Title] | [Epic name] | High/Med/Low | S/M/L/XL | Not Started |
+   | Feature ID | Title | Epic | Priority | Size | Status |
+   |------------|-------|------|----------|------|--------|
+   | Feature-001 | [Title] | [Epic name] | High/Med/Low | S/M/L/XL | Not Started |
 
-   ## Detailed RFEs
+   ## Detailed Features
 
-   ### RFE-001: [Title]
+   ### Feature-001: [Title]
 
    **Epic**: [Parent epic from PRD]
    **Priority**: High/Medium/Low
    **Estimated Size**: Small/Medium/Large/XLarge
-   **Dependencies**: [RFE-XXX, RFE-YYY]
+   **Dependencies**: [Feature-XXX, Feature-YYY]
    **Related User Stories**: [Story IDs from PRD]
 
    #### Description
-   [Clear description of what this RFE delivers]
+   [Clear description of what this Feature delivers]
 
    #### Scope
    **In Scope:**
@@ -99,50 +99,50 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 
    ---
 
-   [Repeat for each RFE]
+   [Repeat for each Feature]
 
-   ## RFE Grouping & Sequencing
+   ## Feature Grouping & Sequencing
 
    ### Phase 1: Foundation
-   - RFE-001: [Foundation item 1]
-   - RFE-002: [Foundation item 2]
+   - Feature-001: [Foundation item 1]
+   - Feature-002: [Foundation item 2]
 
    ### Phase 2: Core Features
-   - RFE-003: [Core feature 1]
-   - RFE-004: [Core feature 2]
+   - Feature-003: [Core feature 1]
+   - Feature-004: [Core feature 2]
 
    ### Phase 3: Enhancement
-   - RFE-005: [Enhancement 1]
+   - Feature-005: [Enhancement 1]
 
    ## Dependency Graph
 
    ```
-   RFE-001 (Foundation)
-   ├── RFE-003 (depends on 001)
-   └── RFE-004 (depends on 001)
-       └── RFE-006 (depends on 004)
+   Feature-001 (Foundation)
+   ├── Feature-003 (depends on 001)
+   └── Feature-004 (depends on 001)
+       └── Feature-006 (depends on 004)
    ```
 
    ## Effort Summary
 
-   | Size | Count | RFE IDs |
-   |------|-------|---------|
-   | Small | X | RFE-001, RFE-003 |
-   | Medium | X | RFE-002, RFE-005 |
-   | Large | X | RFE-004 |
-   | XLarge | X | RFE-006 |
+   | Size | Count | Feature IDs |
+   |------|-------|-------------|
+   | Small | X | Feature-001, Feature-003 |
+   | Medium | X | Feature-002, Feature-005 |
+   | Large | X | Feature-004 |
+   | XLarge | X | Feature-006 |
 
    **Total Estimated Effort**: [Sum of all sizes]
    ```
 
-4. **Generate Individual RFE Documents**:
-   - Create `rfe-tasks/` directory (if it doesn't exist)
-   - **IMPORTANT**: Create individual RFE files for ALL RFEs identified in the master list, not just a sample
-   - **TEMPLATE**: Use the Red Hat RFE format template at `.claude/templates/rfe-template.md` as a guide
-   - For EACH RFE in the breakdown, create `rfe-tasks/RFE-XXX-[slug].md` following the template structure:
+4. **Generate Individual Feature Documents**:
+   - Create `feature-tasks/` directory (if it doesn't exist)
+   - **IMPORTANT**: Create individual Feature files for ALL Features identified in the master list, not just a sample
+   - **TEMPLATE**: Use the Red Hat Feature format template at `.claude/templates/feature-template.md` as a guide
+   - For EACH Feature in the breakdown, create `feature-tasks/Feature-XXX-[slug].md` following the template structure:
 
    ```markdown
-   # RFE-XXX: [Title]
+   # Feature-XXX: [Title]
 
    **Status**: Not Started
    **Priority**: [High/Medium/Low]
@@ -169,7 +169,7 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 
    ## Problem Statement
 
-   [Clearly articulate the problem(s) this RFE addresses. Focus on user pain points and business impact. Use specific, measurable language when possible.]
+   [Clearly articulate the problem(s) this Feature addresses. Focus on user pain points and business impact. Use specific, measurable language when possible.]
 
    [Target User Persona] needs [capability/visibility/functionality] because [reason/impact]. The current [system/UI/feature] provides no indication of:
 
@@ -187,7 +187,7 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 
    ### UI/UX Enhancements
 
-   [If this RFE involves user interface changes, describe the enhancements in detail.]
+   [If this Feature involves user interface changes, describe the enhancements in detail.]
 
    #### New Components/Columns/Views
    - **[Component Name]**: [Description]
@@ -232,11 +232,11 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 
    ## Dependencies
 
-   ### Prerequisite RFEs
-   - RFE-XXX: [What must be done first]
+   ### Prerequisite Features
+   - Feature-XXX: [What must be done first]
 
-   ### Blocks RFEs
-   - RFE-YYY: [What depends on this]
+   ### Blocks Features
+   - Feature-YYY: [What depends on this]
 
    ### External Dependencies
    - [System/API/Team dependency]
@@ -265,7 +265,7 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 
    ## Success Criteria
 
-   [Measurable outcomes that indicate this RFE has achieved its goals. Should align with the problem statement and user stories.]
+   [Measurable outcomes that indicate this Feature has achieved its goals. Should align with the problem statement and user stories.]
 
    - **Visibility**: [What users can now see/understand]
    - **Performance**: [Performance requirements or improvements]
@@ -295,15 +295,15 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    | [Risk 1] | [High/Med/Low] | [How to address] |
    ```
 
-   **CRITICAL**: You MUST create individual RFE files for EVERY RFE identified in the master list. Do not create only a sample file. Each RFE from the master list must have its own corresponding file in the `rfe-tasks/` directory.
+   **CRITICAL**: You MUST create individual Feature files for EVERY Feature identified in the master list. Do not create only a sample file. Each Feature from the master list must have its own corresponding file in the `feature-tasks/` directory.
 
-5. **RFE Breakdown Principles**:
-   - **Atomic**: Each RFE should be independently deliverable
+5. **Feature Breakdown Principles**:
+   - **Atomic**: Each Feature should be independently deliverable
    - **Sized Appropriately**: Not too large (>2 weeks) or too small (<2 days)
    - **Testable**: Clear acceptance criteria
    - **Traceable**: Link back to PRD requirements
    - **Sequenced**: Dependencies identified
-   - **Valuable**: Each RFE delivers user/business value
+   - **Valuable**: Each Feature delivers user/business value
 
 6. **Size Estimation Guidelines**:
    - **Small (S)**: 1-3 days, simple feature, minimal dependencies
@@ -311,31 +311,31 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    - **Large (L)**: 5-10 days, complex feature, multiple integrations
    - **XLarge (XL)**: 10+ days, should consider breaking down further
 
-7. **Validate RFE Breakdown**:
-   - All PRD requirements are covered by RFEs
-   - No RFE is too large (consider splitting XL items)
+7. **Validate Feature Breakdown**:
+   - All PRD requirements are covered by Features
+   - No Feature is too large (consider splitting XL items)
    - Dependencies are acyclic (no circular dependencies)
-   - Each RFE has clear acceptance criteria
+   - Each Feature has clear acceptance criteria
    - Priorities align with business goals
-   - **VERIFY**: Every RFE in the master list has a corresponding individual file in `rfe-tasks/`
+   - **VERIFY**: Every Feature in the master list has a corresponding individual file in `feature-tasks/`
 
 8. **Report Completion**:
-   - Path to RFE master list (`rfes.md`)
-   - Path to individual RFE files directory (`rfe-tasks/`)
-   - Count of RFEs by priority and size
+   - Path to Feature master list (`features.md`)
+   - Path to individual Feature files directory (`feature-tasks/`)
+   - Count of Features by priority and size
    - Total estimated effort
    - Dependency summary
-   - Confirmation that ALL individual RFE files have been created (not just a sample)
-   - Next step: run `/rfe.prioritize`
+   - Confirmation that ALL individual Feature files have been created (not just a sample)
+   - Next step: run `/feature.prioritize`
 
 ## Guidelines
 
-- **Use the Red Hat RFE Template**: Reference `.claude/templates/rfe-template.md` when creating individual RFE files to ensure consistency with Red Hat's RFE format
+- **Use the Red Hat Feature Template**: Reference `.claude/templates/feature-template.md` when creating individual Feature files to ensure consistency with Red Hat's Feature format
 - Break down by value delivery, not technical layers
-- Each RFE should deliver something testable
-- Consider dependencies when creating RFEs
-- Keep RFEs focused and scoped
+- Each Feature should deliver something testable
+- Consider dependencies when creating Features
+- Keep Features focused and scoped
 - Include both functional and testing requirements
 - Make acceptance criteria specific and measurable
 - Follow the template structure: Summary → Background → Problem Statement → Proposed Solution → User Stories → Acceptance Criteria → Success Criteria
-- Adapt template sections as needed - not all sections are required for every RFE, but maintain the overall structure
+- Adapt template sections as needed - not all sections are required for every Feature, but maintain the overall structure

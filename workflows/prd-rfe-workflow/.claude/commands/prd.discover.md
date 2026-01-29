@@ -107,7 +107,7 @@ Given that initial input, do this:
 5. **Report Completion**:
    - Path to discovery document
    - Key insights summary
-   - Recommendation on next steps (run `/prd.requirements` if ready)
+   - Recommendation on next steps (run `/prd.rfe` if ready)
 
 ## Guidelines
 
