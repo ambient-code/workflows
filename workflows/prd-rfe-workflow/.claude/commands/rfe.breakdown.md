@@ -319,13 +319,34 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
    - Priorities align with business goals
    - **VERIFY**: Every RFE in the master list has a corresponding individual file in `rfe-tasks/`
 
-8. **Report Completion**:
+8. **Evaluate Each RFE**:
+
+   After creating all RFE files, evaluate each one against 5 quality criteria (score 1-5 each):
+
+   - **Clarity of Purpose and Stakeholder Alignment**: Does it clearly define the user role, pain point, and business outcome?
+   - **Structural Completeness and Organization**: Is it well-structured with logical headings and professional formatting?
+   - **Actionability and Testability**: Does it include precise, testable acceptance criteria?
+   - **Language Quality and Communicative Tone**: Is it concise, precise, and professionally written?
+   - **Role Consistency and Perspective**: Does it frame the request from the assigned role's unique priorities?
+
+   For each RFE, append an evaluation footer:
+
+   ```markdown
+   ---
+   ## Evaluation
+   **Score**: X/25 | Clarity: X | Structure: X | Actionability: X | Language: X | Role: X
+
+   [One sentence explaining the key factors that influenced the scores.]
+   ```
+
+9. **Report Completion**:
    - Path to RFE master list (`rfes.md`)
    - Path to individual RFE files directory (`rfe-tasks/`)
    - Count of RFEs by priority and size
    - Total estimated effort
    - Dependency summary
    - Confirmation that ALL individual RFE files have been created (not just a sample)
+   - Evaluation scores for each RFE (highlight any below 15/25)
    - Next step: run `/rfe.prioritize`
 
 ## Guidelines
@@ -339,3 +360,5 @@ Invoke these agents at the start of the breakdown process. Work collaboratively 
 - Make acceptance criteria specific and measurable
 - Follow the template structure: Summary → Background → Problem Statement → Proposed Solution → User Stories → Acceptance Criteria → Success Criteria
 - Adapt template sections as needed - not all sections are required for every RFE, but maintain the overall structure
+- **Evaluation**: Score each RFE objectively using the full 1-5 range; RFEs scoring below 15/25 should be flagged for revision
+- Users can re-evaluate RFEs later using `/rfe.evaluate`
