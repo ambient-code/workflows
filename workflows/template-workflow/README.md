@@ -42,13 +42,14 @@ The `ambient.json` file is the heart of your workflow configuration. It defines:
 - **startupPrompt**: Initial greeting and instructions shown to users
 - **results**: Output artifacts and where to find them
 
-The template includes extensive inline comments documenting:
+For comprehensive field documentation, see **[FIELD_REFERENCE.md](FIELD_REFERENCE.md)** which includes:
 - All required and optional fields
 - Best practices for each field
 - Multiple examples and use cases
 - Common patterns and anti-patterns
+- Validation checklist and tips
 
-**Important**: JSON doesn't natively support comments, so you'll need to remove the comment lines (`// ...`) before using the file in production, or use a JSON5/JSONC parser.
+The `ambient.json` file is valid JSON without comments and ready to use as-is.
 
 ### Slash Commands: `.claude/commands/`
 
@@ -132,7 +133,6 @@ Each agent file includes:
    ```
 
 2. **Edit `.ambient/ambient.json`**
-   - Remove the comment lines (or use a JSON5 parser)
    - Update `name` and `description` for your workflow
    - Customize `systemPrompt` to define your agent's role
    - Modify `startupPrompt` for your greeting
@@ -366,10 +366,10 @@ In your ACP session:
 
 **Problem**: ambient.json causes errors
 **Solutions**:
-- Remove all comment lines (`// ...`)
-- Validate JSON syntax
-- Check all required fields present
-- Use JSON validator/linter
+- Validate JSON syntax (use `jq` or online validator)
+- Check all required fields present (`name`, `description`, `systemPrompt`, `startupPrompt`)
+- Ensure no trailing commas
+- Verify string escaping is correct
 
 ### Outputs in Wrong Location
 

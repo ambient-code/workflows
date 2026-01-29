@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue Triage Report</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 40px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .simulation-banner {
+      display: none;
+      background: #fef3c7;
+      border-bottom: 2px solid #f59e0b;
+      padding: 12px 40px;
+      text-align: center;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    .simulation-banner.active {
+      display: block;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 25px 20px;
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .stat:last-child {
+      border-right: none;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 600;
+      color: #667eea;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #666;
+      letter-spacing: 0.5px;
+    }
+
+    .filters {
+      background: white;
+      padding: 20px 40px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    select, input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+      color: #333;
+      min-width: 140px;
+    }
+
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .actions {
+      background: white;
+      padding: 15px 40px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .table-container {
+      background: white;
+      margin: 0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #374151;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:first-child {
+      padding-left: 40px;
+      width: 40px;
+    }
+
+    th:hover {
+      background: #f3f4f6;
+    }
+
+    th.sortable::after {
+      content: ' ↕';
+      opacity: 0.3;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    th.sorted-asc::after {
+      content: ' ↑';
+      opacity: 1;
+      color: #667eea;
+    }
+
+    th.sorted-desc::after {
+      content: ' ↓';
+      opacity: 1;
+      color: #667eea;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #374151;
+    }
+
+    td:first-child {
+      padding-left: 40px;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+    }
+
+    tr.simulated {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    .issue-number {
+      color: #667eea;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .issue-number:hover {
+      text-decoration: underline;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-close { background: #fee2e2; color: #991b1b; }
+    .badge-fix-now { background: #fef3c7; color: #92400e; }
+    .badge-backlog { background: #dbeafe; color: #1e40af; }
+    .badge-needs-info { background: #fce7f3; color: #831843; }
+    .badge-duplicate { background: #f3f4f6; color: #1f2937; }
+    .badge-amber { background: #d1fae5; color: #065f46; }
+    .badge-amber-auto { background: #d1fae5; color: #065f46; }
+    .badge-assign { background: #e0e7ff; color: #3730a3; }
+    .badge-wont-fix { background: #f3f4f6; color: #6b7280; }
+
+    .type-bug {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .type-feature {
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .type-enhancement {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .type-documentation {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .priority-critical { color: #dc2626; font-weight: 600; }
+    .priority-high { color: #ea580c; font-weight: 600; }
+    .priority-medium { color: #ca8a04; }
+    .priority-low { color: #64748b; }
+
+    .date-cell {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .footer {
+      background: white;
+      padding: 20px 40px;
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #111827;
+      font-size: 20px;
+    }
+
+    .modal-content pre {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      border: 1px solid #e5e7eb;
+    }
+
+    .selected-count {
+      font-weight: 600;
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Issue Triage Report</h1>
+    <p>Repository: {REPO_URL} | Generated: {DATE} | Total Issues: {TOTAL_ISSUES}</p>
+  </div>
+
+  <div class="simulation-banner" id="simulation-banner">
+    🔮 SIMULATION MODE: Preview how recommendations will affect the backlog (no changes made)
+    <button class="btn btn-secondary" onclick="exitSimulation()" style="margin-left: 20px;">Exit Simulation</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="stat-close">{CLOSE_COUNT}</div>
+      <div class="stat-label">Close</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-fix-now">{FIX_NOW_COUNT}</div>
+      <div class="stat-label">Fix Now</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-backlog">{BACKLOG_COUNT}</div>
+      <div class="stat-label">Backlog</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-needs-info">{NEEDS_INFO_COUNT}</div>
+      <div class="stat-label">Needs Info</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-amber">{AMBER_AUTO_COUNT}</div>
+      <div class="stat-label">Amber Auto</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-assign">{ASSIGN_COUNT}</div>
+      <div class="stat-label">Assign</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">Filter:</span>
+    <select id="filter-recommendation">
+      <option value="">Amber Auto</option>
+      <option value="CLOSE">Close</option>
+      <option value="FIX_NOW">Fix Now</option>
+      <option value="BACKLOG">Backlog</option>
+      <option value="NEEDS_INFO">Needs Info</option>
+      <option value="DUPLICATE">Duplicate</option>
+      <option value="AMBER_AUTO" selected>Amber Auto</option>
+      <option value="ASSIGN">Assign</option>
+      <option value="WONT_FIX">Won't Fix</option>
+    </select>
+
+    <span class="filter-label">Type:</span>
+    <select id="filter-type">
+      <option value="">All Types</option>
+      <option value="bug">Bug</option>
+      <option value="feature">Feature</option>
+      <option value="enhancement">Enhancement</option>
+      <option value="documentation">Documentation</option>
+    </select>
+
+    <span class="filter-label">Priority:</span>
+    <select id="filter-priority">
+      <option value="">All Priorities</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+
+    <span class="filter-label">Search:</span>
+    <input type="text" id="search-box" placeholder="Search issues...">
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
+    <button class="btn btn-secondary" onclick="deselectAll()">Deselect All</button>
+    <button class="btn btn-primary" onclick="selectByRecommendation()">Select by Filter</button>
+    <button class="btn btn-success" onclick="generateScript()">Generate Operations Script (<span class="selected-count" id="selected-count">0</span> selected)</button>
+    <button class="btn btn-warning" onclick="simulateRecommendations()">🔮 Simulate</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="select-all-header" onclick="toggleAll()"></th>
+          <th class="sortable" data-sort="number">#</th>
+          <th class="sortable" data-sort="title">Title</th>
+          <th class="sortable" data-sort="type">Type</th>
+          <th class="sortable" data-sort="priority">Priority</th>
+          <th class="sortable" data-sort="status">Status</th>
+          <th class="sortable sorted-asc" data-sort="recommendation">Recommendation</th>
+          <th class="sortable" data-sort="reason">Reason</th>
+          <th class="sortable" data-sort="waitingOn">Waiting On</th>
+          <th class="sortable" data-sort="lastModifiedBy">Last Modified By</th>
+          <th class="sortable" data-sort="lastModifiedDate">Last Modified</th>
+          <th class="sortable" data-sort="nextAction">Next Action</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        {TABLE_ROWS}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Generated by Amber Triage Workflow | Template: workflows/triage/templates/report.html
+  </div>
+
+  <div class="modal" id="script-modal">
+    <div class="modal-content">
+      <h2>Bulk Operations Script</h2>
+      <p style="color: #6b7280; margin-bottom: 15px;">Copy this JSON to <code>operations.json</code> and run:</p>
+      <pre><code>./scripts/bulk-operations.sh --backend github --repo {REPO_NAME} --operations operations.json</code></pre>
+      <pre id="script-output"></pre>
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="copyScript()">Copy to Clipboard</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Issue data
+    let issues = {ISSUES_JSON};
+    const repoName = "{REPO_NAME}";
+    let currentSort = { field: 'recommendation', direction: 'asc' };
+    let simulationMode = false;
+
+    // Sort issues by default
+    sortIssues('recommendation', 'asc');
+
+    // Render table
+    function renderTable(filteredIssues = issues) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = filteredIssues.map(issue => `
+        <tr ${issue.simulated ? 'class="simulated"' : ''}>
+          <td><input type="checkbox" class="issue-checkbox" data-issue="${issue.number}"></td>
+          <td><a href="${issue.url}" target="_blank" class="issue-number">#${issue.number}</a></td>
+          <td>${issue.title}</td>
+          <td><span class="type-${issue.type}">${issue.type}</span></td>
+          <td class="priority-${issue.priority}">${issue.priority}</td>
+          <td>${issue.status || 'open'}</td>
+          <td><span class="badge badge-${issue.recommendation.toLowerCase().replace('_', '-')}">${issue.recommendation}</span></td>
+          <td>${issue.reason}</td>
+          <td>${issue.waitingOn || '-'}</td>
+          <td>${issue.lastModifiedBy || '-'}</td>
+          <td class="date-cell">${formatDate(issue.lastModifiedDate)}</td>
+          <td>${issue.nextAction}</td>
+        </tr>
+      `).join('');
+      updateSelectedCount();
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (days === 0) return 'Today';
+      if (days === 1) return 'Yesterday';
+      if (days < 7) return `${days} days ago`;
+      if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+      if (days < 365) return `${Math.floor(days / 30)} months ago`;
+      return date.toLocaleDateString();
+    }
+
+    function sortIssues(field, direction) {
+      issues.sort((a, b) => {
+        let aVal = a[field] || '';
+        let bVal = b[field] || '';
+        if (field === 'lastModifiedDate') {
+          aVal = new Date(aVal || 0);
+          bVal = new Date(bVal || 0);
+        }
+        if (field === 'number') {
+          aVal = parseInt(aVal);
+          bVal = parseInt(bVal);
+        }
+        if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+      currentSort = { field, direction };
+      applyFilters();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const field = th.dataset.sort;
+          let direction = 'asc';
+          if (currentSort.field === field) {
+            direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+          }
+          document.querySelectorAll('th.sortable').forEach(h => {
+            h.classList.remove('sorted-asc', 'sorted-desc');
+          });
+          th.classList.add(`sorted-${direction}`);
+          sortIssues(field, direction);
+        });
+      });
+    });
+
+    function applyFilters() {
+      const recommendation = document.getElementById('filter-recommendation').value;
+      const type = document.getElementById('filter-type').value;
+      const priority = document.getElementById('filter-priority').value;
+      const search = document.getElementById('search-box').value.toLowerCase();
+
+      const filtered = issues.filter(issue => {
+        if (recommendation && issue.recommendation !== recommendation) return false;
+        if (type && issue.type !== type) return false;
+        if (priority && issue.priority !== priority) return false;
+        if (search && !issue.title.toLowerCase().includes(search) && !issue.number.toString().includes(search)) return false;
+        return true;
+      });
+
+      renderTable(filtered);
+    }
+
+    document.getElementById('filter-recommendation').addEventListener('change', applyFilters);
+    document.getElementById('filter-type').addEventListener('change', applyFilters);
+    document.getElementById('filter-priority').addEventListener('change', applyFilters);
+    document.getElementById('search-box').addEventListener('input', applyFilters);
+
+    function updateSelectedCount() {
+      const count = document.querySelectorAll('.issue-checkbox:checked').length;
+      document.getElementById('selected-count').textContent = count;
+      document.querySelectorAll('.issue-checkbox').forEach(cb => {
+        cb.removeEventListener('change', updateSelectedCount);
+        cb.addEventListener('change', updateSelectedCount);
+      });
+    }
+
+    function toggleAll() {
+      const selectAll = document.getElementById('select-all-header').checked;
+      document.querySelectorAll('.issue-checkbox').forEach(cb => cb.checked = selectAll);
+      updateSelectedCount();
+    }
+
+    function selectAll() {
+      document.querySelectorAll('.issue-checkbox').forEach(cb => cb.checked = true);
+      updateSelectedCount();
+    }
+
+    function deselectAll() {
+      document.querySelectorAll('.issue-checkbox').forEach(cb => cb.checked = false);
+      document.getElementById('select-all-header').checked = false;
+      updateSelectedCount();
+    }
+
+    function selectByRecommendation() {
+      const recommendation = document.getElementById('filter-recommendation').value;
+      if (!recommendation) {
+        alert('Please select a recommendation filter first');
+        return;
+      }
+      document.querySelectorAll('.issue-checkbox').forEach(cb => {
+        const row = cb.closest('tr');
+        const issueNum = cb.dataset.issue;
+        const issue = issues.find(i => i.number == issueNum);
+        cb.checked = issue && issue.recommendation === recommendation;
+      });
+      updateSelectedCount();
+    }
+
+    function simulateRecommendations() {
+      if (simulationMode) {
+        alert('Already in simulation mode');
+        return;
+      }
+      simulationMode = true;
+      document.getElementById('simulation-banner').classList.add('active');
+      issues.forEach(issue => {
+        if (issue.recommendation === 'CLOSE' || issue.recommendation === 'WONT_FIX' || issue.recommendation === 'DUPLICATE') {
+          issue.simulated = true;
+        }
+      });
+      updateStats();
+      applyFilters();
+    }
+
+    function exitSimulation() {
+      simulationMode = false;
+      document.getElementById('simulation-banner').classList.remove('active');
+      issues.forEach(issue => {
+        issue.simulated = false;
+      });
+      updateStats();
+      applyFilters();
+    }
+
+    function updateStats() {
+      const activeIssues = issues.filter(i => !i.simulated);
+      const counts = {
+        close: activeIssues.filter(i => i.recommendation === 'CLOSE').length,
+        fixNow: activeIssues.filter(i => i.recommendation === 'FIX_NOW').length,
+        backlog: activeIssues.filter(i => i.recommendation === 'BACKLOG').length,
+        needsInfo: activeIssues.filter(i => i.recommendation === 'NEEDS_INFO').length,
+        amber: activeIssues.filter(i => i.recommendation === 'AMBER_AUTO').length,
+        assign: activeIssues.filter(i => i.recommendation === 'ASSIGN').length
+      };
+      document.getElementById('stat-close').textContent = counts.close;
+      document.getElementById('stat-fix-now').textContent = counts.fixNow;
+      document.getElementById('stat-backlog').textContent = counts.backlog;
+      document.getElementById('stat-needs-info').textContent = counts.needsInfo;
+      document.getElementById('stat-amber').textContent = counts.amber;
+      document.getElementById('stat-assign').textContent = counts.assign;
+    }
+
+    function generateScript() {
+      const selected = Array.from(document.querySelectorAll('.issue-checkbox:checked'))
+        .map(cb => {
+          const issueNum = cb.dataset.issue;
+          const issue = issues.find(i => i.number == issueNum);
+          return generateOperation(issue);
+        });
+
+      if (selected.length === 0) {
+        alert('Please select at least one issue');
+        return;
+      }
+
+      const script = JSON.stringify(selected, null, 2);
+      document.getElementById('script-output').textContent = script;
+      document.getElementById('script-modal').classList.add('active');
+    }
+
+    function generateOperation(issue) {
+      const op = { issue: issue.number, action: '', params: {} };
+      switch (issue.recommendation) {
+        case 'CLOSE':
+          op.action = 'CLOSE';
+          op.params.reason = issue.reason;
+          break;
+        case 'FIX_NOW':
+          op.action = 'ADD_LABEL';
+          op.params.labels = ['priority:high'];
+          break;
+        case 'BACKLOG':
+          op.action = 'ADD_LABEL';
+          op.params.labels = ['backlog'];
+          break;
+        case 'NEEDS_INFO':
+          op.action = 'ADD_LABEL';
+          op.params.labels = ['needs-info'];
+          break;
+        case 'DUPLICATE':
+          op.action = 'LINK_DUPLICATE';
+          op.params.original = issue.nextAction.match(/#(\d+)/)?.[1] || '';
+          break;
+        case 'AMBER_AUTO':
+          op.action = 'ADD_LABEL';
+          op.params.labels = ['amber:auto-fix'];
+          break;
+        case 'ASSIGN':
+          op.action = 'ADD_LABEL';
+          op.params.labels = ['ready'];
+          break;
+        case 'WONT_FIX':
+          op.action = 'CLOSE';
+          op.params.reason = 'Won\'t fix: ' + issue.reason;
+          break;
+      }
+      return op;
+    }
+
+    function copyScript() {
+      const script = document.getElementById('script-output').textContent;
+      navigator.clipboard.writeText(script).then(() => {
+        alert('Copied to clipboard!');
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('script-modal').classList.remove('active');
+    }
+
+    // Initialize
+    renderTable();
+  </script>
+</body>
+</html>

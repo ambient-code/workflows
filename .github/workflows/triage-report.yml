@@ -1,0 +1,294 @@
+name: Backlog Triage
+
+on:
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC (midnight GMT)
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Repository to triage (e.g., owner/repo or opendatahub-io/opendatahub-operator)'
+        required: false
+        default: ''
+
+permissions:
+  issues: read
+  contents: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout workflows repo
+        uses: actions/checkout@v4
+        with:
+          repository: ambient-code/workflows
+          path: workflows
+
+      - name: Set target repository
+        id: repo
+        run: |
+          INPUT_REPO="${{ github.event.inputs.repository }}"
+
+          # If no input provided, use current repository
+          if [ -z "$INPUT_REPO" ]; then
+            echo "TARGET_REPO=${{ github.repository }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Parse repository from various input formats
+          # Handle full GitHub URLs (https://github.com/owner/repo or https://github.com/owner/repo/issues)
+          if [[ "$INPUT_REPO" =~ ^https?://github\.com/([^/]+/[^/]+) ]]; then
+            REPO="${BASH_REMATCH[1]}"
+            # Remove trailing /issues, /pulls, etc.
+            REPO="${REPO%%/issues*}"
+            REPO="${REPO%%/pulls*}"
+            REPO="${REPO%%/actions*}"
+            echo "TARGET_REPO=$REPO" >> $GITHUB_OUTPUT
+          # Handle owner/repo format directly
+          elif [[ "$INPUT_REPO" =~ ^[^/]+/[^/]+$ ]]; then
+            echo "TARGET_REPO=$INPUT_REPO" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Invalid repository format. Expected 'owner/repo' or GitHub URL"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install gh
+
+      - name: Fetch all open issues
+        id: fetch_issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_REPO: ${{ steps.repo.outputs.TARGET_REPO }}
+        run: |
+          mkdir -p artifacts/triage
+
+          echo "Fetching issues from $TARGET_REPO"
+          gh issue list \
+            --repo "$TARGET_REPO" \
+            --limit 1000 \
+            --state open \
+            --json number,title,labels,state,createdAt,updatedAt,author,assignees,url,body \
+            > artifacts/triage/issues.json
+
+          ISSUE_COUNT=$(jq length artifacts/triage/issues.json)
+          echo "Fetched $ISSUE_COUNT issues"
+          echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Generate triage report
+        env:
+          TARGET_REPO: ${{ steps.repo.outputs.TARGET_REPO }}
+          ISSUE_COUNT: ${{ steps.fetch_issues.outputs.issue_count }}
+        run: |
+          # Simple triage logic (this would normally use Claude/AI for analysis)
+          # For now, we'll create a basic report structure
+
+          python3 << 'EOF'
+          import json
+          import os
+          from datetime import datetime
+
+          # Read issues
+          with open('artifacts/triage/issues.json', 'r') as f:
+              issues = json.load(f)
+
+          # Simple triage logic
+          triaged_issues = []
+          for issue in issues:
+              # Extract metadata
+              labels = [l['name'] for l in issue.get('labels', [])]
+              assignees = [a['login'] for a in issue.get('assignees', [])]
+
+              # Determine type
+              if 'bug' in labels:
+                  issue_type = 'bug'
+              elif 'enhancement' in labels or 'feature' in labels:
+                  issue_type = 'enhancement'
+              elif 'documentation' in labels:
+                  issue_type = 'documentation'
+              else:
+                  issue_type = 'feature'
+
+              # Determine priority
+              if 'priority:critical' in labels or 'critical' in labels:
+                  priority = 'critical'
+              elif 'priority:high' in labels or 'high' in labels:
+                  priority = 'high'
+              elif 'priority:low' in labels or 'low' in labels:
+                  priority = 'low'
+              else:
+                  priority = 'medium'
+
+              # Simple recommendation logic
+              if 'amber:auto-fix' in labels:
+                  recommendation = 'AMBER_AUTO'
+                  reason = 'Already marked for Amber automation'
+              elif 'needs-info' in labels or 'waiting-for-response' in labels:
+                  recommendation = 'NEEDS_INFO'
+                  reason = 'Waiting for more information'
+              elif priority == 'critical':
+                  recommendation = 'FIX_NOW'
+                  reason = 'Critical priority issue'
+              elif len(assignees) > 0:
+                  recommendation = 'ASSIGN'
+                  reason = f'Already assigned to {assignees[0]}'
+              else:
+                  recommendation = 'BACKLOG'
+                  reason = 'Valid issue for backlog'
+
+              # Get last update info
+              updated_at = issue.get('updatedAt', '')
+              author = issue.get('author', {}).get('login', 'unknown')
+
+              triaged_issues.append({
+                  'number': issue['number'],
+                  'title': issue['title'],
+                  'type': issue_type,
+                  'priority': priority,
+                  'status': issue['state'],
+                  'recommendation': recommendation,
+                  'reason': reason,
+                  'waitingOn': assignees[0] if assignees else '-',
+                  'lastModifiedBy': author,
+                  'lastModifiedDate': updated_at,
+                  'nextAction': f"Review and take action on #{issue['number']}",
+                  'url': issue['url']
+              })
+
+          # Write triaged issues
+          with open('artifacts/triage/triaged_issues.json', 'w') as f:
+              json.dump(triaged_issues, f, indent=2)
+
+          print(f"Triaged {len(triaged_issues)} issues")
+          EOF
+
+      - name: Generate HTML report
+        env:
+          TARGET_REPO: ${{ steps.repo.outputs.TARGET_REPO }}
+        run: |
+          python3 << 'EOF'
+          import json
+          from datetime import datetime
+
+          # Read template
+          with open('workflows/workflows/triage/templates/report.html', 'r') as f:
+              template = f.read()
+
+          # Read triaged issues
+          with open('artifacts/triage/triaged_issues.json', 'r') as f:
+              issues = json.load(f)
+
+          # Calculate stats
+          counts = {
+              'CLOSE': sum(1 for i in issues if i['recommendation'] == 'CLOSE'),
+              'FIX_NOW': sum(1 for i in issues if i['recommendation'] == 'FIX_NOW'),
+              'BACKLOG': sum(1 for i in issues if i['recommendation'] == 'BACKLOG'),
+              'NEEDS_INFO': sum(1 for i in issues if i['recommendation'] == 'NEEDS_INFO'),
+              'AMBER_AUTO': sum(1 for i in issues if i['recommendation'] == 'AMBER_AUTO'),
+              'ASSIGN': sum(1 for i in issues if i['recommendation'] == 'ASSIGN'),
+          }
+
+          # Replace placeholders
+          template = template.replace('{REPO_URL}', 'https://github.com/${{ steps.repo.outputs.TARGET_REPO }}')
+          template = template.replace('{REPO_NAME}', '${{ steps.repo.outputs.TARGET_REPO }}')
+          template = template.replace('{DATE}', datetime.now().strftime('%Y-%m-%d'))
+          template = template.replace('{TOTAL_ISSUES}', str(len(issues)))
+          template = template.replace('{CLOSE_COUNT}', str(counts['CLOSE']))
+          template = template.replace('{FIX_NOW_COUNT}', str(counts['FIX_NOW']))
+          template = template.replace('{BACKLOG_COUNT}', str(counts['BACKLOG']))
+          template = template.replace('{NEEDS_INFO_COUNT}', str(counts['NEEDS_INFO']))
+          template = template.replace('{AMBER_AUTO_COUNT}', str(counts['AMBER_AUTO']))
+          template = template.replace('{ASSIGN_COUNT}', str(counts['ASSIGN']))
+          template = template.replace('{ISSUES_JSON}', json.dumps(issues))
+          template = template.replace('{TABLE_ROWS}', '')  # Table is rendered by JavaScript
+
+          # Write report
+          with open('artifacts/triage/report.html', 'w') as f:
+              f.write(template)
+
+          print(f"Generated HTML report with {len(issues)} issues")
+          EOF
+
+      - name: Generate markdown report
+        env:
+          TARGET_REPO: ${{ steps.repo.outputs.TARGET_REPO }}
+        run: |
+          python3 -c "
+          import json, os
+          from datetime import datetime
+
+          with open('artifacts/triage/triaged_issues.json') as f:
+              issues = json.load(f)
+
+          counts = {
+              'CLOSE': sum(1 for i in issues if i['recommendation'] == 'CLOSE'),
+              'FIX_NOW': sum(1 for i in issues if i['recommendation'] == 'FIX_NOW'),
+              'BACKLOG': sum(1 for i in issues if i['recommendation'] == 'BACKLOG'),
+              'NEEDS_INFO': sum(1 for i in issues if i['recommendation'] == 'NEEDS_INFO'),
+              'AMBER_AUTO': sum(1 for i in issues if i['recommendation'] == 'AMBER_AUTO'),
+              'ASSIGN': sum(1 for i in issues if i['recommendation'] == 'ASSIGN'),
+          }
+
+          target_repo = os.environ.get('TARGET_REPO', 'unknown/repo')
+          md = f'''# Issue Triage Report
+
+          Repository: https://github.com/{target_repo}
+          Date: {datetime.now().strftime(\"%Y-%m-%d\")}
+          Total Issues: {len(issues)}
+
+          ## Summary
+          - Close: {counts[\"CLOSE\"]} issues
+          - Fix Now: {counts[\"FIX_NOW\"]} issues
+          - Backlog: {counts[\"BACKLOG\"]} issues
+          - Needs Info: {counts[\"NEEDS_INFO\"]} issues
+          - Amber Auto: {counts[\"AMBER_AUTO\"]} issues
+          - Assign: {counts[\"ASSIGN\"]} issues
+
+          ## Triage Table
+
+          | # | Title | Type | Priority | Status | Recommendation | Reason | Waiting On | Last Modified By | Last Modified | Next Action |
+          |---|-------|------|----------|--------|----------------|--------|------------|------------------|---------------|-------------|
+          '''
+
+          issues.sort(key=lambda x: x['recommendation'])
+          for issue in issues:
+              md += f\"| {issue['number']} | {issue['title'][:50]}... | {issue['type']} | {issue['priority']} | {issue['status']} | {issue['recommendation']} | {issue['reason'][:30]}... | {issue['waitingOn']} | {issue['lastModifiedBy']} | {issue['lastModifiedDate'][:10]} | {issue['nextAction'][:30]}... |\n\"
+
+          md += '\n---\n\nGenerated by: Amber Triage Workflow (GitHub Actions)\n'
+
+          with open('artifacts/triage/triage-report.md', 'w') as f:
+              f.write(md)
+
+          print('Generated markdown report')
+          "
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: triage-report-${{ github.run_number }}
+          path: artifacts/triage/
+          retention-days: 90
+
+      - name: Create summary
+        run: |
+          echo "## Triage Report Generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ steps.repo.outputs.TARGET_REPO }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Issues Analyzed:** ${{ steps.fetch_issues.outputs.issue_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Reports Generated:" >> $GITHUB_STEP_SUMMARY
+          echo "- HTML Report (interactive): \`report.html\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Markdown Report: \`triage-report.md\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Raw Data: \`triaged_issues.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the artifact to view the reports." >> $GITHUB_STEP_SUMMARY
