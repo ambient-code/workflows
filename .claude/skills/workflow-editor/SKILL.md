@@ -89,7 +89,7 @@ Operations to perform when requested:
 ### Phase 5 — Validation & Linting
 
 After edits:
-- Validate JSON files (`.ambient/ambient.json`) parse successfully using `cat .ambient/ambient.json | jq` (jq is available on the path and outputs to stdout).
+- Validate JSON files (`.ambient/ambient.json`) parse successfully using `cat .ambient/ambient.json | jq` (jq is available on the path; valid JSON outputs to stdout with exit code 0, invalid JSON outputs errors to stderr with non-zero exit code).
 - Ensure all new filenames conform to validation rules.
 - Check that `results` paths in `.ambient/ambient.json` match the `artifacts/{workflow}/...` layout.
 - Run a shallow grep to confirm no leftover temporary markers (e.g., `TODO_EDIT`) remain.
