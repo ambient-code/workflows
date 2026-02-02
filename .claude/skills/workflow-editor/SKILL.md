@@ -13,10 +13,11 @@ Help users edit existing workflows through an interactive, validated process. Yo
 
 1. Ask targeted questions one at a time to gather exactly what to change
 2. Validate the target workflow and file names
-3. Create backups of files to be modified
-4. Apply minimal, focused edits (agents, commands, `.ambient/ambient.json`, README, FIELD_REFERENCE)
-5. Validate JSON, naming, and file structure after edits
-6. Produce a concise summary and next steps
+3. Apply minimal, focused edits (agents, commands, `.ambient/ambient.json`, README)
+4. Validate JSON, naming, and file structure after edits
+5. Produce a concise summary and next steps
+
+Note: Git provides version history, so no separate backup is needed. Users can revert changes with `git checkout` or `git restore` if needed.
 
 ## Workflow Types Reference
 
@@ -55,17 +56,13 @@ For changes that add or update files, follow-up with specific prompts (agent nam
 ### Phase 2 — Validation
 
 - Validate workflow name format when renaming, workflow naming must match the following regular expression: `^[a-z][a-z0-9-]*$` (no leading/trailing hyphens, no consecutive hyphens).
-- Validate agent filenames: `{name}-{role}.md` (lowercase, hyphen only between name and role).
-- Validate command filenames: `{workflow-prefix}.{phase}.md` (lowercase, period separator).
-- Validate `.ambient/ambient.json` is valid JSON (no comments) and required fields present: `name`, `description`, `systemPrompt`, `startupPrompt`.
+- Agent filenames: recommend `{name}-{role}.md` pattern (e.g., `stella-staff_engineer.md`), but simpler names like `amber.md` are also acceptable. Follow existing patterns in the workflow.
+- Command filenames: some workflows use prefixes (e.g., `prd.create.md`, `speckit.plan.md`) while others use simple names (e.g., `diagnose.md`, `fix.md`). Follow the existing pattern in the target workflow.
+- Validate `.ambient/ambient.json` is valid JSON (no comments) and required fields present: `name`, `description`, `systemPrompt`.
 
 If validation fails, present a clear error and ask whether to correct the input or cancel.
 
-### Phase 3 — Backup
-
-Before any change, create backups in `workflows/{workflow}/.backup/YYYYMMDD-HHMMSS/` and copy only files to be changed. Show a short list of files backed up and their locations.
-
-### Phase 4 — Apply Changes
+### Phase 3 — Apply Changes
 
 Editing rules:
 
@@ -73,34 +70,33 @@ Editing rules:
 - Preserve existing content structure and style.
 - For agent files: use the agent template and preserve existing responsibilities or merge changes when updating.
 - For command files: update the `## Process`, `## Output`, and `## Usage Examples` sections as requested.
-- For `.ambient/ambient.json`: produce a final, production-ready JSON (no comments) that is compliant with the schema in `./AMBIENT_CODE_JSON_SCHEMA.md` and update `results` paths if artifact locations change.
+- For `.ambient/ambient.json`: produce a final, production-ready JSON (no comments) that is compliant with the schema in `AMBIENT_JSON_SCHEMA.md`.
 
 Operations to perform when requested:
 
-- Add agent: create `.claude/agents/{name}-{role}.md` using the agent template.
+- Add agent: create `.claude/agents/{name}.md` using the agent template. Follow existing naming patterns in the workflow.
 - Update agent: open file, apply textual edits or replace sections per user instructions.
-- Add command: create `.claude/commands/{prefix}.{phase}.md` with the command template.
+- Add command: create `.claude/commands/{command-name}.md` with the command template. Follow existing naming patterns in the workflow.
 - Update command: edit sections as requested and update `Output` paths if needed.
 - Add skill: create `.claude/skills/{name}/SKILL.md` using the skill template.
 - Update skill: edit sections as requested by the user.
-- Update README.md and FIELD_REFERENCE.md: insert or modify phase descriptions and output artifact trees.
+- Update README.md: insert or modify phase descriptions and output artifact trees. Update FIELD_REFERENCE.md if present.
 - Rename workflow: validate new name, update ambient.json `name`, move directory, and update any internal references in README and commands.
 
-### Phase 5 — Validation & Linting
+### Phase 4 — Validation & Linting
 
 After edits:
 - Validate JSON files (`.ambient/ambient.json`) parse successfully using `cat .ambient/ambient.json | jq` (jq is available on the path; valid JSON outputs to stdout with exit code 0, invalid JSON outputs errors to stderr with non-zero exit code).
 - Ensure all new filenames conform to validation rules.
-- Check that `results` paths in `.ambient/ambient.json` match the `artifacts/{workflow}/...` layout.
 - Run a shallow grep to confirm no leftover temporary markers (e.g., `TODO_EDIT`) remain.
 
-If a validation step fails, automatically restore the backups and report the failure with guidance.
+If a validation step fails, report the failure with guidance. Users can revert changes using git if needed.
 
-### Phase 6 — Documentation and FIELD_REFERENCE
+### Phase 5 — Documentation
 
-When commands or outputs change, update `README.md` and `FIELD_REFERENCE.md` sections that reference phases, commands, or output paths. Keep the documentation concise and consistent with templates provided in the repository.
+When commands or outputs change, update `README.md` sections that reference phases, commands, or output paths. If the workflow has a `FIELD_REFERENCE.md` file, update it as well. Keep the documentation concise and consistent with templates provided in the repository.
 
-### Phase 7 — Summary & Next Steps
+### Phase 6 — Summary & Next Steps
 
 Provide a comprehensive summary using this format:
 
@@ -124,16 +120,11 @@ Provide a comprehensive summary using this format:
    │   └── commands/
    │       ├── {command1}.md    {✓ modified | + added | unchanged}
    │       └── {command2}.md
-   ├── README.md                {✓ modified | unchanged}
-   └── FIELD_REFERENCE.md       {✓ modified | unchanged}
-
-💾 Backup Location:
-   workflows/{workflow-name}/.backup/{YYYYMMDD-HHMMSS}/
+   └── README.md                {✓ modified | unchanged}
 
 ✅ Validation Results:
    ✓ JSON syntax valid
    ✓ File names conform to conventions
-   ✓ Results paths match artifact layout
    ✓ No temporary markers found
 
 🚀 Next Steps:
@@ -141,7 +132,7 @@ Provide a comprehensive summary using this format:
    2. Run /{first-command} to verify changes
    3. Commit: git add workflows/{workflow-name}/ && git commit -m "Update {workflow-name}"
 
-💡 Tip: To undo changes, restore from the backup directory.
+💡 Tip: To undo changes, use git: git checkout -- workflows/{workflow-name}/
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -374,39 +365,24 @@ When editing `.ambient/ambient.json`, use this field reference:
 | `name` | string | Display name shown in ACP UI (2-5 words, title case) |
 | `description` | string | Explains workflow purpose in UI (1-3 sentences) |
 | `systemPrompt` | string | Defines AI agent's role, responsibilities, commands, and output locations |
-| `startupPrompt` | string | Initial greeting message when workflow activates |
-
-### Optional Fields
-
-| Field | Type | Purpose |
-|-------|------|---------|
-| `results` | object | Maps artifact types to file paths (use glob patterns) |
-| `version` | string | Track workflow configuration version (e.g., "1.0.0") |
-| `author` | string/object | Identify workflow creator |
-| `tags` | array | Categorize workflow for discovery |
-| `icon` | string | Visual identifier emoji in UI |
 
 ### Example Structure
+
 ```json
 {
   "name": "Feature Planner",
   "description": "Guides feature development from specification to documentation.",
-  "systemPrompt": "You are a feature development assistant...",
-  "startupPrompt": "Welcome! I'm your Feature Development assistant...",
-  "results": {
-    "Specifications": "artifacts/feature-planner/specs/**/*.md",
-    "Implementation": "artifacts/feature-planner/code/**/*"
-  }
+  "systemPrompt": "You are a feature development assistant..."
 }
 ```
 
-For complete field documentation, see `FIELD_REFERENCE.md` in the workflow directory or the schema in `./AMBIENT_CODE_JSON_SCHEMA.md`.
+For complete field documentation, see `AMBIENT_JSON_SCHEMA.md`.
 
 ## Validation Rules (summary)
 
 - Workflow dir: `workflows/{workflow}/` must contain `.ambient` or `.claude`.
-- Agent file name: lowercase letters and hyphen only, format `{name}-{role}.md`.
-- Command file name: lowercase letters, hyphens, and a single period between prefix and phase.
+- Agent file name: lowercase letters and hyphens. Recommend `{name}-{role}.md` but simpler names acceptable.
+- Command file name: lowercase letters, hyphens. Some workflows use prefixes (e.g., `prd.create.md`), others don't (e.g., `diagnose.md`). Follow existing patterns.
 - Skill directory name: lowercase letters and hyphens only.
 - JSON: valid syntax, required keys present, no comments.
 
@@ -421,7 +397,7 @@ What to check:
 - Disk space
 - Path validity
 
-Would you like to retry, restore backups, or cancel?
+Would you like to retry or cancel? (Use git to revert if needed)
 ```
 
 ## Usage examples (interactive)
@@ -430,7 +406,7 @@ User: "I want to add an agent called `maya-engineer` to `workflows/feature-plann
 
 Skill: (ask confirm) "I'll add `.claude/agents/maya-engineer.md`. Proceed? (yes/no)"
 
-On confirmation: create backup, write new agent file from template, update README `Available Agents` section, validate JSON if needed, and return a summary with backup path.
+On confirmation: write new agent file from template, update README `Available Agents` section, validate JSON if needed, and return a summary.
 
 ## Educational Notes
 
@@ -440,9 +416,9 @@ As you make edits, explain key concepts to help users understand the workflow st
 ```
 ★ Insight ─────────────────────────────────────
 This configuration file controls how Claude behaves in your workflow:
+- name: Display name shown in the ACP UI
+- description: Brief explanation of the workflow
 - systemPrompt: Defines Claude's role and capabilities
-- startupPrompt: The greeting message users see
-- results: Maps output types to file locations
 
 Changes here affect the entire workflow experience.
 ─────────────────────────────────────────────────
@@ -474,9 +450,9 @@ Keep command names consistent with the workflow prefix.
 
 ## Safety Notes
 
-- Always backup before changing files.
 - Keep edits minimal and reversible.
 - Prefer updating documentation immediately after code/config edits.
+- Git provides version history — use `git checkout` or `git restore` to revert changes if needed.
 
 ---
 
