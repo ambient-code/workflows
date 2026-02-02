@@ -54,7 +54,7 @@ For changes that add or update files, follow-up with specific prompts (agent nam
 
 ### Phase 2 — Validation
 
-- Validate workflow name format when renaming: `^[a-z][a-z0-9-]*$` (no leading/trailing hyphens, no consecutive hyphens).
+- Validate workflow name format when renaming, workflow naming must match the following regular expression: `^[a-z][a-z0-9-]*$` (no leading/trailing hyphens, no consecutive hyphens).
 - Validate agent filenames: `{name}-{role}.md` (lowercase, hyphen only between name and role).
 - Validate command filenames: `{workflow-prefix}.{phase}.md` (lowercase, period separator).
 - Validate `.ambient/ambient.json` is valid JSON (no comments) and required fields present: `name`, `description`, `systemPrompt`, `startupPrompt`.
@@ -82,14 +82,14 @@ Operations to perform when requested:
 - Add command: create `.claude/commands/{prefix}.{phase}.md` with the command template.
 - Update command: edit sections as requested and update `Output` paths if needed.
 - Add skill: create `.claude/skills/{name}/SKILL.md` using the skill template.
-- Update skill: edit sections as requested.
+- Update skill: edit sections as requested by the user.
 - Update README.md and FIELD_REFERENCE.md: insert or modify phase descriptions and output artifact trees.
 - Rename workflow: validate new name, update ambient.json `name`, move directory, and update any internal references in README and commands.
 
 ### Phase 5 — Validation & Linting
 
 After edits:
-- Validate JSON files (`.ambient/ambient.json`) parse successfully.
+- Validate JSON files (`.ambient/ambient.json`) parse successfully using `cat .ambient/ambient.json | jq` (jq is available on the path and outputs to stdout).
 - Ensure all new filenames conform to validation rules.
 - Check that `results` paths in `.ambient/ambient.json` match the `artifacts/{workflow}/...` layout.
 - Run a shallow grep to confirm no leftover temporary markers (e.g., `TODO_EDIT`) remain.
