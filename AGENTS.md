@@ -317,6 +317,53 @@ Use the "Custom Workflow" feature to test without merging to main:
 
 ---
 
+## Submitting Pull Requests
+
+### Use a Fork
+
+Always push branches to your personal fork rather than directly to the main repository. This keeps the main repository clean and ensures proper review processes.
+
+```bash
+# Add your fork as a remote
+git remote add fork https://github.com/YOUR-USERNAME/workflows.git
+
+# Push to your fork
+git push -u fork feature/my-changes
+```
+
+### Submit as Draft First
+
+When creating a pull request, submit it as a **draft** initially. This signals that the work may still be in progress and invites early feedback without triggering full review.
+
+```bash
+gh pr create --draft --title "Add new workflow" --body "..."
+```
+
+Convert to "Ready for Review" once all changes are complete and tests pass.
+
+### Add Changes as New Commits
+
+When making additional changes to an open pull request, **always add new commits** rather than amending or rebasing existing commits. This:
+
+- Preserves review history and comments
+- Makes it easy for reviewers to see what changed
+- Avoids force-push complications
+
+```bash
+# ✅ DO: Add a new commit
+git add .
+git commit -m "Address review feedback: fix typo in systemPrompt"
+git push
+
+# ❌ DON'T: Amend and force push
+git commit --amend
+git push --force
+```
+
+Squashing commits can happen at merge time if the repository is configured for it.
+
+---
+
 ## Common Mistakes to Avoid
 
 ### JSON Errors
