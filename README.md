@@ -1,384 +1,123 @@
-# OOTB Workflow Templates
+# ACP Workflow Templates
 
-Out-of-the-box workflow templates for the Ambient Code Platform (vTeam). These workflows provide structured processes for AI agents to follow when working on complex tasks.
+Out-of-the-box workflow templates for the Ambient Code Platform (ACP). These workflows provide structured processes for AI agents to follow when working on complex tasks.
+
+> **For workflow developers:** See the [Workflow Development Guide](WORKFLOW_DEVELOPMENT_GUIDE.md) for comprehensive documentation on creating and modifying workflows.
 
 ## Overview
 
-Workflows are Git repositories containing scripts, templates, agent configurations, and slash commands that guide Claude and other AI agents through multi-step processes. They help maintain consistency, quality, and best practices across your development workflow.
+Workflows are structured configurations that guide Claude through multi-step processes. Each workflow defines:
+
+- **System prompt**: Core instructions defining Claude's behavior and methodology
+- **Startup prompt**: Initial greeting when the workflow activates
+- **Commands**: Slash commands (e.g., `/diagnose`, `/fix`) for specific workflow phases
+- **Artifacts**: Output locations for generated files
+
+The platform automatically discovers workflows from this repository. Any directory under `workflows/` with a valid `.ambient/ambient.json` file appears in the UI.
 
 ## Available Workflows
 
-### Spec Kit Workflow (Default)
+| Workflow | Description | Commands |
+|----------|-------------|----------|
+| [**bugfix**](workflows/bugfix/) | Systematic bug resolution with reproduction, diagnosis, fix, and testing phases | `/reproduce`, `/diagnose`, `/fix`, `/test`, `/document` |
+| [**triage**](workflows/triage/) | Issue backlog triage with actionable reports and bulk operations | Conversational |
+| [**spec-kit**](workflows/spec-kit/) | Spec-driven development for feature planning and implementation | `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement` |
+| [**prd-rfe-workflow**](workflows/prd-rfe-workflow/) | Create Product Requirements Documents and break them into RFE tasks | `/prd.discover`, `/prd.create`, `/rfe.breakdown`, `/rfe.prioritize` |
+| [**amber-interview**](workflows/amber-interview/) | Collect user feedback through guided conversations | `/feedback`, `/interview` |
+| [**template-workflow**](workflows/template-workflow/) | Starter template demonstrating workflow structure | `/init`, `/analyze`, `/plan`, `/execute`, `/verify` |
 
-A comprehensive workflow for planning and implementing features using a specification-first approach.
+### Bug Fix Workflow
 
-**Default Configuration:**
+A systematic 5-phase workflow for resolving software bugs:
 
-- **Repository:** `https://github.com/Gkrumbach07/spec-kit-template.git`
-- **Branch:** `main`
-- **Path:** `workflows/spec-kit`
+1. **Reproduce** - Confirm and document the bug behavior
+2. **Diagnose** - Perform root cause analysis
+3. **Fix** - Implement the solution
+4. **Test** - Verify with regression tests
+5. **Document** - Create release notes and update issues
 
-*Note: These defaults can be overridden via environment variables in the ACP backend deployment. See Configuration section below.*
+Automatically invokes specialized agents (Stella for complex debugging, Neil for testing strategy) when needed.
 
-**Structure:**
-
-```
-workflows/default/
-├── .specify/               # Workflow configuration
-│   ├── scripts/           # Automation scripts
-│   │   └── bash/         # Shell scripts for workflow steps
-│   ├── templates/        # Document templates
-│   │   ├── spec-template.md
-│   │   ├── plan-template.md
-│   │   ├── tasks-template.md
-│   │   └── checklist-template.md
-│   └── memory/           # Workflow knowledge base
-│       └── constitution.md
-└── .claude/              # Claude AI configuration
-    ├── agents/           # Agent personas and instructions
-    │   ├── archie-architect.md
-    │   ├── parker-product_manager.md
-    │   ├── stella-staff_engineer.md
-    │   └── [20+ other agents]
-    └── commands/         # Slash commands
-        ├── /specify.md   # Create feature specifications
-        ├── /plan.md      # Generate implementation plans
-        ├── /tasks.md     # Break down into tasks
-        └── /implement.md # Execute implementation
-
-```
-
-**Workflow Phases:**
-
-1. **Specify** (`/specify`) - Create detailed feature specifications
-2. **Plan** (`/plan`) - Generate technical implementation plans
-3. **Tasks** (`/tasks`) - Break down plans into actionable tasks
-4. **Implement** (`/implement`) - Execute the implementation
-5. **Analyze** (`/analyze`) - Review and analyze outcomes
-
-**Best For:**
-
-- Feature development
-- Complex implementations
-- Teams needing structured planning
-- Documentation-first approaches
+### Triage Workflow
 
-### Bug Fix Workflow (Coming Soon)
+Efficiently triage repository issue backlogs:
 
-A streamlined workflow optimized for bug triage, reproduction, and fixes.
+- Analyzes all open issues
+- Generates recommendations (CLOSE, FIX_NOW, BACKLOG, NEEDS_INFO, etc.)
+- Produces an interactive HTML report with accept/reject checkboxes
+- Creates bulk operation scripts for executing approved actions
 
-**Planned Features:**
+### Spec Kit Workflow
 
-- Bug analysis and reproduction
-- Root cause identification
-- Fix implementation and validation
-- Regression test generation
+Specification-driven development workflow:
 
-## Using Workflows in ACP
+- Create detailed feature specifications
+- Generate technical implementation plans
+- Break down plans into actionable tasks
+- Guide implementation with checklists
 
-### 1. Via Session UI
+### PRD/RFE Workflow
 
-When creating or working with a session:
+Product requirements documentation workflow:
 
-1. Navigate to your session detail page
-2. Open the **Workflows** accordion
-3. Select a workflow:
-   - **Spec Kit Workflow (OOTB)** - The default specification workflow
-   - **Bug Fix Workflow** - (Coming soon)
-   - **Custom Workflow...** - Load your own workflow
+- Discovery phase for understanding needs
+- Requirements gathering
+- PRD creation with structured templates
+- Breakdown into Request for Enhancement (RFE) items
+- Prioritization matrix
 
-The workflow will be cloned into your session's workspace and set as Claude's working directory.
+## Using Workflows
 
-### 2. Via API
-
-```bash
-POST /api/projects/{project}/agentic-sessions/{session}/workflow
-
-{
-  "gitUrl": "https://github.com/Gkrumbach07/spec-kit-template.git",
-  "branch": "main",
-  "path": "workflows/spec-kit"
-}
-```
-
-### 3. Via Session Creation
-
-Workflows can be pre-configured when creating sessions through automation or templates.
-
-## Workspace Structure
-
-When a workflow is activated, your session workspace is organized as:
-
-```
-/workspace/sessions/{session-name}/
-├── workflows/
-│   ├── default/           # Empty unless workflow selected
-│   └── spec-kit/          # Active workflow (when selected)
-│       ├── .specify/      # Scripts, templates, memory
-│       └── .claude/       # Agents and commands
-└── artifacts/             # Output directory for generated files
-    ├── spec/             # Generated specifications
-    ├── plans/            # Implementation plans
-    ├── tasks/            # Task breakdowns
-    └── implementation/   # Code and artifacts
-```
-
-**Key Concepts:**
-
-- **Working Directory**: Claude works from `workflows/{workflow-name}/`
-- **Artifacts Directory**: All outputs go to `artifacts/` (kept separate from workflow logic)
-- **Workflow Switching**: You can switch workflows mid-session without losing your artifacts
-
-## Creating Custom Workflows
-
-### Basic Structure
-
-```
-my-workflow/
-├── .ambient/              # Workflow configuration (REQUIRED)
-│   └── ambient.json      # Workflow metadata and prompts
-├── .specify/              # (Optional) Specify framework integration
-│   ├── scripts/
-│   ├── templates/
-│   └── memory/
-├── .claude/               # (Optional) Claude-specific config
-│   ├── agents/
-│   └── commands/
-└── README.md             # Workflow documentation
-```
-
-### Configuration File
+### In the ACP UI
 
-All workflows require an `ambient.json` configuration file at `.ambient/ambient.json`. This file defines:
-
-- Workflow name and description
-- System prompt (agent behavior and methodology)
-- Startup prompt (greeting message)
-- Expected output artifacts
+1. Navigate to your session
+2. Open the **Workflows** panel
+3. Select a workflow from the list
+4. The workflow loads and displays its startup prompt
 
-**See [AMBIENT_JSON_SCHEMA.md](AMBIENT_JSON_SCHEMA.md) for complete schema documentation.**
+### Custom Workflows
 
-### Requirements
+To test a workflow from a branch or external repository:
 
-1. **Git Repository**: Must be accessible via HTTPS or SSH
-2. **Branch**: Specify which branch to use (default: `main`)
-3. **Path**: Optionally specify a subdirectory within the repo
+1. Select **"Custom Workflow..."** in the UI
+2. Enter the Git URL, branch, and path
+3. Click **"Load Workflow"**
 
-### Best Practices
+This is useful for:
 
-1. **Keep workflows focused** - One workflow per process type
-2. **Document commands** - Provide clear instructions for each slash command
-3. **Include templates** - Help agents maintain consistency
-4. **Version control** - Use branches for workflow versions
-5. **Test iteratively** - Validate workflows in real sessions
-6. **Add workspace navigation guidance** - Include file location rules in systemPrompt to reduce Claude's file-finding fumbles (see [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md))
+- Testing changes before merging to main
+- Using workflows from other repositories
+- Development and iteration
 
-### Example: Minimal Custom Workflow
+## Creating or Modifying Workflows
 
-```bash
-# Create a new workflow repo
-mkdir my-custom-workflow
-cd my-custom-workflow
-git init
+See the **[Workflow Development Guide](WORKFLOW_DEVELOPMENT_GUIDE.md)** for complete instructions on:
 
-# Add Claude commands
-mkdir -p .claude/commands
-cat > .claude/commands/review.md << 'EOF'
-# /review - Code Review
+- Workflow structure and required files
+- Creating workflows from scratch or template
+- Using the `workflow-creator` skill
+- Testing with "Custom Workflow..."
+- Best practices for commands, skills, and system prompts
 
-Review the code in the artifacts directory:
-1. Check for common issues
-2. Verify best practices
-3. Suggest improvements
-4. Document findings in artifacts/review.md
-EOF
+## Reference Documentation
 
-# Commit and push
-git add .
-git commit -m "Initial workflow"
-git remote add origin https://github.com/your-org/my-custom-workflow.git
-git push -u origin main
-```
-
-Load it in ACP:
-
-1. Select "Custom Workflow..." in the UI
-2. Enter Git URL: `https://github.com/your-org/my-custom-workflow.git`
-3. Branch: `main`
-4. Path: (leave empty if workflow is at repo root)
-5. Click "Load Workflow"
-
-## Workflow Development Guide
-
-### Agent Personas
-
-Agents provide specialized expertise and perspectives. Each agent should have:
-
-```markdown
-# Agent Name - Role
-
-## Expertise
-- Key area 1
-- Key area 2
-
-## Responsibilities
-- What this agent does
-- When to invoke this agent
-
-## Communication Style
-- How this agent communicates
-```
-
-### Slash Commands
-
-Commands guide Claude through specific tasks:
-
-```markdown
-# /command-name - Short Description
-
-## Purpose
-What this command accomplishes
-
-## Prerequisites
-- File or state required before running
-
-## Process
-1. Step one
-2. Step two
-3. Step three
-
-## Output
-- What files/artifacts are created
-- Where they are stored (always in artifacts/)
-```
-
-### Templates
-
-Provide structure for consistency:
-
-```markdown
-# [Template Name]
-
-## Section 1
-Instructions for this section...
-
-## Section 2
-Instructions for this section...
-```
-
-## Configuration
-
-### Environment Variables
-
-The ACP backend supports configuring OOTB workflows via environment variables. This allows organizations to fork and customize workflows without changing code.
-
-**Spec Kit Workflow:**
-
-- `OOTB_SPEC_KIT_REPO` - Git repository URL (default: `https://github.com/Gkrumbach07/spec-kit-template.git`)
-- `OOTB_SPEC_KIT_BRANCH` - Branch to use (default: `main`)
-- `OOTB_SPEC_KIT_PATH` - Path within repository (default: `workflows/spec-kit`)
-
-**Bug Fix Workflow:**
-
-- `OOTB_BUG_FIX_REPO` - Git repository URL (required to enable)
-- `OOTB_BUG_FIX_BRANCH` - Branch to use (default: `main`)
-- `OOTB_BUG_FIX_PATH` - Path within repository (optional)
-
-**Example Deployment:**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend
-spec:
-  template:
-    spec:
-      containers:
-      - name: backend
-        env:
-        - name: OOTB_SPEC_KIT_REPO
-          value: "https://github.com/your-org/custom-spec-kit.git"
-        - name: OOTB_SPEC_KIT_BRANCH
-          value: "production"
-```
-
-### Backend API
-
-The backend provides a public endpoint to list available OOTB workflows:
-
-```bash
-GET /api/workflows/ootb
-
-Response:
-{
-  "workflows": [
-    {
-      "id": "spec-kit",
-      "name": "Spec Kit Workflow",
-      "description": "Comprehensive workflow for planning and implementing features...",
-      "gitUrl": "https://github.com/Gkrumbach07/spec-kit-template.git",
-      "branch": "main",
-      "path": "workflows/spec-kit",
-      "enabled": true
-    },
-    {
-      "id": "bug-fix",
-      "name": "Bug Fix Workflow",
-      "description": "Streamlined workflow for bug triage...",
-      "gitUrl": "",
-      "branch": "main",
-      "path": "",
-      "enabled": false
-    }
-  ]
-}
-```
-
-The frontend automatically fetches and displays configured workflows.
-
-## Troubleshooting
-
-### Workflow Not Cloning
-
-- **Check URL**: Ensure the Git URL is accessible
-- **Check Branch**: Verify the branch exists
-- **Check Permissions**: Private repos need authentication configured
-
-### Commands Not Working
-
-- **Check Path**: Ensure `.claude/commands/` directory exists
-- **Check Format**: Commands must be markdown files
-- **Check Session**: Workflow must be activated in the session
-
-### Artifacts in Wrong Location
-
-- **Workflow scripts should always write to `/workspace/artifacts/`**
-- Check that scripts use absolute paths or `$WORKSPACE/artifacts/`
-- The workflows directory is for logic only, not outputs
+| Document | Purpose |
+|----------|---------|
+| [WORKFLOW_DEVELOPMENT_GUIDE.md](WORKFLOW_DEVELOPMENT_GUIDE.md) | Complete guide for workflow developers |
+| [AMBIENT_JSON_SCHEMA.md](AMBIENT_JSON_SCHEMA.md) | ambient.json field reference |
+| [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md) | Best practices for file navigation in systemPrompts |
+| [AGENTS.md](AGENTS.md) | Guidelines for AI agents modifying this repository |
 
 ## Contributing
 
-To contribute a new OOTB workflow:
+To contribute a workflow:
 
 1. Fork this repository
-2. Create a new directory under `workflows/`
-3. Follow the structure guidelines above
-4. Submit a pull request with documentation
-5. Include example usage and test results
-
-## Support
-
-- **Documentation**: [ACP User Guide](https://ambient-code.github.io/vteam)
-- **Issues**: [GitHub Issues](https://github.com/Gkrumbach07/spec-kit-template/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Gkrumbach07/spec-kit-template/discussions)
+2. Create a new workflow directory under `workflows/`
+3. Follow the structure guidelines
+4. Test using the "Custom Workflow" feature
+5. Submit a pull request with documentation
 
 ## License
 
-This repository and all OOTB workflows are provided under the MIT License. See LICENSE file for details.
-
----
-
-**Repository:** [Gkrumbach07/spec-kit-template](https://github.com/Gkrumbach07/spec-kit-template)  
-**Default Workflow:** Spec Kit (`workflows/spec-kit`)  
-**Platform:** Ambient Code Platform (vTeam)
+This repository is provided under the MIT License. See LICENSE for details.
