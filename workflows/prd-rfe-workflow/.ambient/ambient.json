@@ -9,4 +9,22 @@
     "RFE Tasks": "artifacts/rfe-tasks/*.md",
     "Prioritization Matrix": "artifacts/prioritization.md"
   }
+  "rubric": {
+    "activationPrompt": "After creating rfe.md, evaluate the quality of the RFEs. Utilize the evaluator.md to better understand the criteria of a quality RFE. Utilize that rubric to rate the RFEs and produce a score out of 25, an aggregate of each score for each criteria.",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "completeness": {"type": "number", "description": "Structural Completeness and Organization score (1-5)"},
+        "professionalism": {"type": "number", "description": "Professional Perspective and Strategic Depth score (1-5)"},
+        "tone": {"type": "number", "description": "Language Quality and Communicative Tone score (1-5)"},
+        "purpose": {"type": "number", "description": "Clarity of Purpose and Stakeholder Alignment score (1-5)"},
+        "actionability": {"type": "number", "description": "Actionability and Testability score (1-5)"},
+        "criteria": {"type": "string", "description": "The criteria that was scored"},
+        "rfe_count": {"type": "integer", "description": "Number of RFEs produced"}
+      }
+    }
+  }
+  
 }
+
+
