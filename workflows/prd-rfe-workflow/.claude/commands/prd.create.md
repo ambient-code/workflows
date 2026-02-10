@@ -14,7 +14,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-This command creates the final PRD document. It should be run after `/prd.requirements`.
+This command creates the final PRD document. It should be run after `/prd.rfe`.
 
 **IMPORTANT: Agent Collaboration**
 
@@ -29,7 +29,7 @@ Invoke these agents throughout the PRD creation process. Work collaboratively wi
 
 1. **Load Context**:
    - Read `discovery.md` if it exists
-   - Read `requirements.md` if it exists
+   - Read `rfe.md` if it exists
    - Consider user input from $ARGUMENTS
 
 2. **Create PRD**: Generate `prd.md` with comprehensive structure:
@@ -278,12 +278,12 @@ Invoke these agents throughout the PRD creation process. Work collaboratively wi
    ## Stakeholder Readiness
    - [ ] PRD is ready for review
    - [ ] All open questions are resolved
-   - [ ] Document is comprehensive enough for RFE breakdown
+   - [ ] Document is comprehensive enough for Feature breakdown
 
    ## Next Steps
    - [ ] Review PRD with stakeholders
    - [ ] Get PRD approval
-   - [ ] Proceed to RFE breakdown (/rfe.breakdown)
+   - [ ] Proceed to Feature breakdown (/feature.breakdown)
    ```
 
 6. **Report Completion**:

@@ -29,7 +29,7 @@ Invoke these agents at the start of the review process. Work collaboratively wit
 
 1. **Load PRD Artifacts**:
    - Read `discovery.md` (if exists)
-   - Read `requirements.md` (if exists)
+   - Read `rfe.md` (if exists)
    - Read `prd.md` (required)
    - Consider user input from $ARGUMENTS
 
@@ -241,7 +241,7 @@ Invoke these agents at the start of the review process. Work collaboratively wit
 
    ## Overall Assessment
 
-   **Readiness Status**: [Ready for RFE Breakdown / Needs Minor Revisions / Needs Major Revisions]
+   **Readiness Status**: [Ready for Feature Breakdown / Needs Minor Revisions / Needs Major Revisions]
 
    **Summary**: [Overall assessment of PRD completeness and readiness]
 
@@ -281,7 +281,7 @@ Invoke these agents at the start of the review process. Work collaboratively wit
    - Provide specific recommendations for addressing each gap
 
 6. **Assess Readiness**:
-   - Determine if PRD is ready for RFE breakdown
+   - Determine if PRD is ready for Feature breakdown
    - Score threshold: >80% = Ready, 60-80% = Needs Minor Revisions, <60% = Needs Major Revisions
    - Provide clear next steps
 
@@ -294,7 +294,7 @@ Invoke these agents at the start of the review process. Work collaboratively wit
 
 8. **Interactive Follow-up**:
    - If gaps found, ask if user wants to address them now
-   - Suggest which commands to re-run (e.g., `/prd.discover`, `/prd.requirements`, `/prd.create`)
+   - Suggest which commands to re-run (e.g., `/prd.discover`, `/prd.rfe`, `/prd.create`)
    - Offer to help fill specific gaps
 
 ## Guidelines
