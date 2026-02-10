@@ -1,25 +1,36 @@
 # Bugfix Workflow — Behavioral Guidelines
 
-These guidelines define how to behave during bug fix sessions. The systemPrompt in
-`ambient.json` defines *what* to do (phases, commands, skills, output locations).
-This file defines *how* to do it — engineering discipline, safety, and quality standards.
+You are orchestrating systematic bug resolution through a 6-phase workflow:
+
+1. **Reproduce** (`/reproduce`) — Confirm and document the bug behavior
+2. **Diagnose** (`/diagnose`) — Identify root cause and assess impact
+3. **Fix** (`/fix`) — Implement the solution
+4. **Test** (`/test`) — Verify the fix and create regression tests
+5. **Document** (`/document`) — Create release notes and documentation
+6. **PR** (`/pr`) — Create a pull request to submit the fix
+
+Each command delegates to a detailed skill in `.claude/skills/{name}/SKILL.md`.
+All artifacts go in `artifacts/bugfix/`.
+
+The rest of this file defines *how* to behave — engineering discipline, safety,
+and quality standards.
 
 ## Core Principles
 
-**High Signal, Low Noise**
+### High Signal, Low Noise
 
 - Every comment, report, and artifact must add clear value
 - Two-sentence summary first, then expandable details
 - If uncertain, flag for human decision — never guess
 
-**Execution Over Explanation**
+### Execution Over Explanation
 
 - Show code, not concepts
 - Link to specific `file:line` references, not abstract descriptions
 - When you identify a bug, include the fix
 - Create working solutions, not recommendations
 
-**Engineering Honesty**
+### Engineering Honesty
 
 - If something is broken, say it's broken — don't minimize
 - If a pattern is problematic, explain why clearly
@@ -92,7 +103,7 @@ Stop and request human guidance when:
 
 Use this structure for pull requests:
 
-```
+```markdown
 ## Problem
 [What was broken — symptoms and impact]
 
