@@ -1,46 +1,53 @@
 # Bug Fix Workflow for Ambient Code Platform
 
-A systematic, comprehensive workflow for analyzing, fixing, and verifying software bugs with thorough documentation. Guides developers through the complete bug resolution lifecycle from reproduction to release.
+A systematic workflow for analyzing, fixing, and verifying software bugs. Guides developers through the complete bug resolution lifecycle from reproduction to release.
 
 ## Overview
 
 This workflow provides a structured approach to fixing software bugs:
+
 - **Systematic Process**: Five-phase methodology from reproduction to documentation
 - **Root Cause Focus**: Emphasizes understanding *why* bugs occur, not just *what* happens
 - **Comprehensive Testing**: Ensures fixes work and prevents regression
 - **Complete Documentation**: Creates all artifacts needed for release and future reference
-- **Agent Collaboration**: Leverages specialized agents for complex scenarios
+- **Agent Collaboration**: Leverages ACP platform agents for complex scenarios
 
-## What's Included
+## Directory Structure
 
-### Directory Structure
-
-```
+```text
 bugfix/
 ├── .ambient/
-│   ├── ambient.json           # Workflow configuration
-│   └── ambient.clean.json     # Clean version without comments
+│   └── ambient.json          # Workflow configuration
 ├── .claude/
-│   ├── agents/                # Specialized agent personas
-│   │   ├── stella-staff_engineer.md    # Complex debugging & root cause
-│   │   ├── neil-test_engineer.md       # Testing strategy & verification
-│   │   └── taylor-team_member.md       # Implementation support
-│   └── commands/              # Workflow phase commands
-│       ├── reproduce.md       # Phase 1: Bug reproduction
-│       ├── diagnose.md        # Phase 2: Root cause analysis
-│       ├── fix.md             # Phase 3: Implementation
-│       ├── test.md            # Phase 4: Testing & verification
-│       └── document.md        # Phase 5: Documentation
-├── FIELD_REFERENCE.md         # Complete field documentation
-└── README.md                  # This file
+│   ├── commands/             # Slash commands (thin wrappers → skills)
+│   │   ├── reproduce.md
+│   │   ├── diagnose.md
+│   │   ├── fix.md
+│   │   ├── test.md
+│   │   └── document.md
+│   └── skills/               # Detailed process definitions
+│       ├── reproduce/SKILL.md
+│       ├── diagnose/SKILL.md
+│       ├── fix/SKILL.md
+│       ├── test/SKILL.md
+│       └── document/SKILL.md
+├── CLAUDE.md                 # Behavioral guidelines
+└── README.md                 # This file
 ```
 
-### Workflow Phases
+### How Commands and Skills Work Together
+
+Each **command** is a thin wrapper that invokes a corresponding **skill**. When you run `/diagnose`, the command file tells the agent to read the Diagnose skill from `.claude/skills/diagnose/SKILL.md` and apply it — passing along any arguments you provided plus existing session context.
+
+This separation keeps commands simple and consistent while the skills contain the full process details.
+
+## Workflow Phases
 
 The Bug Fix Workflow follows a systematic 5-phase approach:
 
-#### Phase 1: Reproduce (`/reproduce`)
-**Purpose**: Systematically reproduce the bug and document observable behavior
+### Phase 1: Reproduce (`/reproduce`)
+
+**Purpose**: Systematically reproduce the bug and document observable behavior.
 
 - Parse bug reports and extract key information
 - Set up environment matching bug conditions
@@ -50,10 +57,11 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 
 **Output**: `artifacts/bugfix/reports/reproduction.md`
 
-**When to use**: Start here if you have a bug report, issue URL, or symptom description
+**When to use**: Start here if you have a bug report, issue URL, or symptom description.
 
-#### Phase 2: Diagnose (`/diagnose`)
-**Purpose**: Perform root cause analysis and assess impact
+### Phase 2: Diagnose (`/diagnose`)
+
+**Purpose**: Perform root cause analysis and assess impact.
 
 - Review reproduction report and understand failure conditions
 - Analyze code paths and trace execution flow
@@ -64,12 +72,11 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 
 **Output**: `artifacts/bugfix/analysis/root-cause.md`
 
-**When to use**: After successful reproduction, or skip here if you know the symptoms
+**When to use**: After successful reproduction, or skip here if you know the symptoms.
 
-**Agent Recommendation**: Invoke **Stella (Staff Engineer)** for complex architectural issues, race conditions, or system-level debugging
+### Phase 3: Fix (`/fix`)
 
-#### Phase 3: Fix (`/fix`)
-**Purpose**: Implement the bug fix following best practices
+**Purpose**: Implement the bug fix following best practices.
 
 - Review fix strategy from diagnosis phase
 - Create feature branch (`bugfix/issue-{number}-{description}`)
@@ -80,14 +87,11 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 
 **Output**: Modified code files + `artifacts/bugfix/fixes/implementation-notes.md`
 
-**When to use**: After diagnosis phase, or jump here if you already know the root cause
+**When to use**: After diagnosis phase, or jump here if you already know the root cause.
 
-**Agent Recommendation**:
-- **Taylor (Team Member)** for straightforward fixes
-- **Stella (Staff Engineer)** for complex or architectural changes
+### Phase 4: Test (`/test`)
 
-#### Phase 4: Test (`/test`)
-**Purpose**: Verify the fix and create regression tests
+**Purpose**: Verify the fix and create regression tests.
 
 - Create regression test that fails without fix, passes with fix
 - Write comprehensive unit tests for modified code
@@ -96,37 +100,23 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 - Perform manual verification of original reproduction steps
 - Check for performance or security impacts
 
-**Output**:
-- New test files in repository
-- `artifacts/bugfix/tests/verification.md`
+**Output**: New test files + `artifacts/bugfix/tests/verification.md`
 
-**When to use**: After implementing the fix
+**When to use**: After implementing the fix.
 
-**Agent Recommendation**: Invoke **Neil (Test Engineer)** for:
-- Comprehensive test strategy design
-- Complex integration test setup
-- Performance testing guidance
-- Security testing recommendations
+### Phase 5: Document (`/document`)
 
-#### Phase 5: Document (`/document`)
-**Purpose**: Create complete documentation for the fix
+**Purpose**: Create complete documentation for the fix.
 
 - Update issue/ticket with root cause and fix summary
 - Create release notes entry
 - Write CHANGELOG addition
 - Update code comments with issue references
-- Draft team announcements
-- Write PR description
+- Draft PR description
 
-**Output**: `artifacts/bugfix/docs/`:
-- `issue-update.md` - Issue comment text
-- `release-notes.md` - Release notes entry
-- `changelog-entry.md` - CHANGELOG addition
-- `team-announcement.md` - Internal communication
-- `pr-description.md` - PR description (optional)
-- `user-announcement.md` - Customer communication (optional)
+**Output**: `artifacts/bugfix/docs/` containing issue updates, release notes, changelog entries, and PR description.
 
-**When to use**: After testing is complete
+**When to use**: After testing is complete.
 
 ## Getting Started
 
@@ -140,8 +130,9 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 
 ### Example Usage
 
-**Scenario 1: You have a bug report**
-```
+#### Scenario 1: You have a bug report
+
+```text
 User: "Fix bug https://github.com/org/repo/issues/425 - session status updates failing"
 
 Workflow: Starts with /reproduce to confirm the bug
@@ -151,8 +142,9 @@ Workflow: Starts with /reproduce to confirm the bug
 → /document to create release notes
 ```
 
-**Scenario 2: You know the symptoms**
-```
+#### Scenario 2: You know the symptoms
+
+```text
 User: "Sessions are failing to update status in the operator"
 
 Workflow: Jumps to /diagnose for root cause analysis
@@ -161,8 +153,9 @@ Workflow: Jumps to /diagnose for root cause analysis
 → /document
 ```
 
-**Scenario 3: You already know the fix**
-```
+#### Scenario 3: You already know the fix
+
+```text
 User: "Missing retry logic in UpdateStatus call at operator/handlers/sessions.go:334"
 
 Workflow: Jumps to /fix to implement
@@ -173,55 +166,30 @@ Workflow: Jumps to /fix to implement
 ### Prerequisites
 
 - Access to the codebase where the bug exists
-- Ability to run and test code locally or in appropriate environment
-- Understanding of project coding standards and conventions
+- Ability to run and test code locally or in an appropriate environment
 - Git access for creating branches and reviewing history
 
 ## Agent Orchestration
 
-This workflow is orchestrated by **Amber**, the Ambient Code Platform's expert colleague and codebase intelligence agent.
+This workflow is orchestrated by **Amber**, who serves as your single point of contact. Rather than manually selecting agents, Amber automatically coordinates the right specialists from the ACP platform based on the complexity and nature of the task.
 
-### Amber - Workflow Orchestrator
-**Codebase Illuminati, Pair Programmer, Proactive Maintenance**
+**Specialists Amber may engage:**
 
-Amber serves as your single point of contact throughout the bug fix workflow. Rather than manually selecting agents, Amber automatically coordinates the right specialists from the complete ACP agent ecosystem based on the complexity and nature of the task.
+- **Stella (Staff Engineer)** — Complex debugging, root cause analysis, architectural issues
+- **Neil (Test Engineer)** — Comprehensive test strategies, integration testing, automation
+- **Taylor (Team Member)** — Straightforward implementations, documentation
+- **secure-software-braintrust** — Security vulnerability assessment
+- **sre-reliability-engineer** — Performance and reliability issues
+- **frontend-performance-debugger** — Frontend-specific performance bugs
+- And any other platform agents as the situation warrants
 
-**Amber's Role:**
-- **Intelligent Orchestration**: Automatically invokes appropriate specialists when needed
-- **Proactive Engagement**: Brings in experts without requiring explicit requests
-- **Adaptive Complexity Handling**: Scales from simple bugs to complex system-level issues
-- **Complete Ecosystem Access**: Can engage any ACP platform agent as appropriate
-
-**Specialists Amber May Engage:**
-
-- **Stella (Staff Engineer)** - Complex debugging, root cause analysis, architectural issues, performance problems
-- **Neil (Test Engineer)** - Comprehensive test strategies, integration testing, automation, security testing
-- **Taylor (Team Member)** - Straightforward implementations, code quality, documentation
-- **secure-software-braintrust** - Security vulnerability assessment and mitigation
-- **sre-reliability-engineer** - Performance tuning, reliability issues, infrastructure debugging
-- **frontend-performance-debugger** - Frontend-specific performance bugs
-- **Terry (Technical Writer)** - Complex technical documentation, user-facing content
-- **Tessa (Writing Manager)** - Documentation strategy, content coordination
-- **And any other platform agents** as the situation warrants
-
-**How It Works:**
-You interact only with Amber. Amber assesses each phase of the workflow and automatically brings in the right expertise:
-- Complex architectural bug? Amber engages Stella
-- Need comprehensive testing? Amber consults Neil
-- Security implications? Amber invokes the security braintrust
-- Straightforward fix? Amber handles it directly or with Taylor
-
-**Benefits:**
-- **Simplified Workflow**: One interface (Amber) for all complexity levels
-- **Expertise On-Demand**: Right specialist at the right time, automatically
-- **No Agent Selection Burden**: Trust Amber to coordinate appropriately
-- **Flexible and Adaptive**: Handles edge cases and unusual scenarios
+You interact with Amber. Amber assesses each phase and brings in the right expertise automatically.
 
 ## Artifacts Generated
 
 All workflow artifacts are organized in the `artifacts/bugfix/` directory:
 
-```
+```text
 artifacts/bugfix/
 ├── reports/                  # Bug reproduction reports
 │   └── reproduction.md
@@ -235,7 +203,6 @@ artifacts/bugfix/
 │   ├── issue-update.md
 │   ├── release-notes.md
 │   ├── changelog-entry.md
-│   ├── team-announcement.md
 │   └── pr-description.md
 └── logs/                     # Execution logs
     └── *.log
@@ -244,108 +211,89 @@ artifacts/bugfix/
 ## Best Practices
 
 ### Reproduction
-- Take time to reproduce reliably - flaky reproduction leads to incomplete diagnosis
-- Document even failed attempts - inability to reproduce is valuable information
+
+- Take time to reproduce reliably — flaky reproduction leads to incomplete diagnosis
+- Document even failed attempts — inability to reproduce is valuable information
 - Create minimal reproduction steps that others can follow
 
 ### Diagnosis
+
 - Understand the *why*, not just the *what*
 - Document your reasoning process for future developers
 - Use `file:line` notation when referencing code (e.g., `handlers.go:245`)
 - Consider similar patterns elsewhere in the codebase
 
 ### Implementation
-- Keep fixes minimal - only change what's necessary
+
+- Keep fixes minimal — only change what's necessary
 - Don't combine refactoring with bug fixes
 - Reference issue numbers in code comments
 - Consider backward compatibility
 
 ### Testing
-- Regression tests are mandatory - every fix must include a test
-- Test the test - verify it fails without the fix
+
+- Regression tests are mandatory — every fix must include a test
+- Test the test — verify it fails without the fix
 - Run the full test suite, not just new tests
 - Manual verification matters
 
 ### Documentation
+
 - Be clear and specific for future developers
 - Link issues, PRs, and commits for easy navigation
 - Consider your audience (technical vs. user-facing)
-- Don't skip this step - documentation is as important as code
+- Don't skip this step — documentation is as important as code
+
+## Behavioral Guidelines
+
+The `CLAUDE.md` file defines engineering discipline, safety, and quality standards for bug fix sessions. Key points:
+
+- **Confidence levels**: Every action is tagged High/Medium/Low confidence
+- **Safety guardrails**: No direct commits to main, no force-push, no secret logging
+- **Escalation criteria**: When to stop and request human guidance
+- **Project respect**: The workflow adapts to the target project's conventions
+
+See `CLAUDE.md` for full details.
 
 ## Customization
 
-### For Your Project
-
 You can customize this workflow by:
 
-1. **Adding project-specific linting commands** in `/fix` command
-2. **Customizing test commands** in `/test` for your stack (Go, Python, JS, etc.)
-3. **Adding custom agents** for domain-specific expertise
-4. **Extending phases** with additional steps for your workflow
-5. **Modifying artifact paths** to match your project structure
+1. **Adding project-specific linting commands** in the Fix skill
+2. **Customizing test commands** in the Test skill for your stack
+3. **Extending phases** with additional steps for your workflow
+4. **Modifying artifact paths** to match your project structure
 
 ### Environment-Specific Adjustments
 
-Adjust the workflow for different environments:
-
-- **Microservices**: Add service dependency analysis to `/diagnose`
-- **Frontend**: Include browser testing in `/test`
-- **Backend**: Add database migration checks to `/fix`
-- **Infrastructure**: Include deployment validation in `/test`
+- **Microservices**: Add service dependency analysis to Diagnose
+- **Frontend**: Include browser testing in Test
+- **Backend**: Add database migration checks to Fix
+- **Infrastructure**: Include deployment validation in Test
 
 ## Troubleshooting
 
-### Common Issues
+### "I can't reproduce the bug"
 
-**"I can't reproduce the bug"**
 - Document what you tried and what was different
 - Check environment differences (versions, config, data)
 - Ask the reporter for more details
 - Consider it may be fixed or non-reproducible
 
-**"Multiple potential root causes"**
+### "Multiple potential root causes"
+
 - Document all hypotheses in `/diagnose`
 - Test each systematically
 - May need multiple fixes if multiple issues
 
-**"Tests are failing after fix"**
+### "Tests are failing after fix"
+
 - Check if tests were wrong or your fix broke something
 - Review test assumptions
 - Consider if behavior change was intentional
 
-**"Fix is too complex"**
-- Invoke Stella for complex scenarios
+### "Fix is too complex"
+
+- Amber will engage Stella for complex scenarios
 - Consider breaking into smaller fixes
-- May indicate architectural issue
-
-## Integration with ACP
-
-This workflow integrates seamlessly with the Ambient Code Platform:
-
-- **Workflow Selection**: Choose "Bug Fix Workflow" when creating AgenticSession
-- **Multi-repo Support**: Works with single or multiple repositories
-- **Artifact Management**: All outputs saved to `artifacts/bugfix/`
-- **Agent Invocation**: Automatically suggests agents based on complexity
-- **Progressive Disclosure**: Jump to any phase based on your context
-
-## Contributing
-
-Found issues with the workflow or have improvements?
-
-- **Report issues**: [ootb-ambient-workflows issues](https://github.com/ambient-code/ootb-ambient-workflows/issues)
-- **Suggest improvements**: Create a PR with your enhancements
-- **Share learnings**: Document what worked well for your team
-
-## License
-
-This workflow is part of the Ambient Code Platform OOTB Workflows collection.
-
-## Support
-
-- **Documentation**: See [Ambient Code Platform docs](https://ambient-code.github.io/platform/)
-- **Issues**: [File a bug](https://github.com/ambient-code/ootb-ambient-workflows/issues)
-- **Questions**: Ask in the ACP community channels
-
----
-
-**Happy Bug Fixing! 🐛→✅**
+- May indicate an underlying architectural issue
