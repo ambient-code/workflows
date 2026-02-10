@@ -6,7 +6,7 @@ A systematic workflow for analyzing, fixing, and verifying software bugs. Guides
 
 This workflow provides a structured approach to fixing software bugs:
 
-- **Systematic Process**: Five-phase methodology from reproduction to documentation
+- **Systematic Process**: Six-phase methodology from reproduction to PR submission
 - **Root Cause Focus**: Emphasizes understanding *why* bugs occur, not just *what* happens
 - **Comprehensive Testing**: Ensures fixes work and prevents regression
 - **Complete Documentation**: Creates all artifacts needed for release and future reference
@@ -24,13 +24,15 @@ bugfix/
 │   │   ├── diagnose.md
 │   │   ├── fix.md
 │   │   ├── test.md
-│   │   └── document.md
+│   │   ├── document.md
+│   │   └── pr.md
 │   └── skills/               # Detailed process definitions
 │       ├── reproduce/SKILL.md
 │       ├── diagnose/SKILL.md
 │       ├── fix/SKILL.md
 │       ├── test/SKILL.md
-│       └── document/SKILL.md
+│       ├── document/SKILL.md
+│       └── pr/SKILL.md
 ├── CLAUDE.md                 # Behavioral guidelines
 └── README.md                 # This file
 ```
@@ -43,7 +45,7 @@ This separation keeps commands simple and consistent while the skills contain th
 
 ## Workflow Phases
 
-The Bug Fix Workflow follows a systematic 5-phase approach:
+The Bug Fix Workflow follows a systematic 6-phase approach:
 
 ### Phase 1: Reproduce (`/reproduce`)
 
@@ -118,6 +120,20 @@ The Bug Fix Workflow follows a systematic 5-phase approach:
 
 **When to use**: After testing is complete.
 
+### Phase 6: PR (`/pr`)
+
+**Purpose**: Create a pull request to submit the bug fix.
+
+- Run pre-flight checks (authentication, remotes, git config)
+- Ensure a fork exists and is configured as a remote
+- Create a branch, stage changes, and commit with conventional format
+- Push to fork and create a draft PR targeting upstream
+- Handle common failures (no push access, no fork permission) with clear fallbacks
+
+**Output**: A draft pull request URL (or manual creation instructions if automation fails).
+
+**When to use**: After all prior phases are complete, or whenever you're ready to submit.
+
 ## Getting Started
 
 ### Quick Start
@@ -140,6 +156,7 @@ Workflow: Starts with /reproduce to confirm the bug
 → /fix to implement solution
 → /test to verify fix
 → /document to create release notes
+→ /pr to submit the fix
 ```
 
 #### Scenario 2: You know the symptoms
@@ -151,6 +168,7 @@ Workflow: Jumps to /diagnose for root cause analysis
 → /fix to implement
 → /test to verify
 → /document
+→ /pr
 ```
 
 #### Scenario 3: You already know the fix
@@ -161,6 +179,7 @@ User: "Missing retry logic in UpdateStatus call at operator/handlers/sessions.go
 Workflow: Jumps to /fix to implement
 → /test to verify
 → /document
+→ /pr
 ```
 
 ### Prerequisites
