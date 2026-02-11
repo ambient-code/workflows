@@ -86,6 +86,18 @@ Create comprehensive test report at `artifacts/bugfix/tests/verification.md` con
 - **Known Limitations**: Any edge cases not fully addressed
 - **Recommendations**: Follow-up work or monitoring needed
 
+### Step 9: Report Results to the User
+
+After writing `artifacts/bugfix/tests/verification.md`:
+
+1. **Tell the user where the file was written** — include the full path
+2. **Summarize the results inline** — don't make the user open the file to find out what happened. Include at minimum:
+   - Overall pass/fail status
+   - Number of tests run, passed, and failed
+   - Any new regression tests added (file and test name)
+   - Any failures or concerns that need attention
+   - Recommended next steps (proceed to `/document`, revisit `/fix`, etc.)
+
 ## Output
 
 - New test files in the project repository

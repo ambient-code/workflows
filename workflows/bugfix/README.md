@@ -6,7 +6,7 @@ A systematic workflow for analyzing, fixing, and verifying software bugs. Guides
 
 This workflow provides a structured approach to fixing software bugs:
 
-- **Systematic Process**: Six-phase methodology from reproduction to PR submission
+- **Systematic Process**: Structured methodology from reproduction to PR submission
 - **Root Cause Focus**: Emphasizes understanding *why* bugs occur, not just *what* happens
 - **Comprehensive Testing**: Ensures fixes work and prevents regression
 - **Complete Documentation**: Creates all artifacts needed for release and future reference
@@ -24,6 +24,7 @@ bugfix/
 │   │   ├── diagnose.md
 │   │   ├── fix.md
 │   │   ├── test.md
+│   │   ├── review.md
 │   │   ├── document.md
 │   │   └── pr.md
 │   └── skills/               # Detailed process definitions
@@ -31,6 +32,7 @@ bugfix/
 │       ├── diagnose/SKILL.md
 │       ├── fix/SKILL.md
 │       ├── test/SKILL.md
+│       ├── review/SKILL.md
 │       ├── document/SKILL.md
 │       └── pr/SKILL.md
 ├── CLAUDE.md                 # Behavioral guidelines
@@ -45,7 +47,7 @@ This separation keeps commands simple and consistent while the skills contain th
 
 ## Workflow Phases
 
-The Bug Fix Workflow follows a systematic 6-phase approach:
+The Bug Fix Workflow follows this approach:
 
 ### Phase 1: Reproduce (`/reproduce`)
 
@@ -106,7 +108,26 @@ The Bug Fix Workflow follows a systematic 6-phase approach:
 
 **When to use**: After implementing the fix.
 
-### Phase 5: Document (`/document`)
+### Phase 5: Review (`/review`) — Optional
+
+**Purpose**: Critically evaluate the fix and its tests before proceeding.
+
+- Re-read all evidence (reproduction report, root cause analysis, code changes, test results)
+- Critique the fix: Does it address the root cause or just suppress the symptom?
+- Critique the tests: Do they prove the bug is fixed, or do mocks hide real problems?
+- Classify into a verdict and recommend next steps
+
+**Verdicts**:
+
+- **Fix is inadequate** → Recommend going back to `/fix` with specific guidance
+- **Fix is adequate, tests are incomplete** → Provide instructions for what additional testing is needed (including manual steps for the user)
+- **Fix and tests are solid** → Recommend proceeding to `/document` and `/pr`
+
+**Output**: Review findings reported inline to the user (not a file).
+
+**When to use**: After `/test`, especially for complex or high-risk fixes.
+
+### Phase 6: Document (`/document`)
 
 **Purpose**: Create complete documentation for the fix.
 
@@ -120,7 +141,7 @@ The Bug Fix Workflow follows a systematic 6-phase approach:
 
 **When to use**: After testing is complete.
 
-### Phase 6: PR (`/pr`)
+### Phase 7: PR (`/pr`)
 
 **Purpose**: Create a pull request to submit the bug fix.
 

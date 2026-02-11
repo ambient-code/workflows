@@ -1,13 +1,14 @@
 # Bugfix Workflow — Behavioral Guidelines
 
-You are orchestrating systematic bug resolution through a 6-phase workflow:
+You are orchestrating systematic bug resolution through this workflow:
 
 1. **Reproduce** (`/reproduce`) — Confirm and document the bug behavior
 2. **Diagnose** (`/diagnose`) — Identify root cause and assess impact
 3. **Fix** (`/fix`) — Implement the solution
 4. **Test** (`/test`) — Verify the fix and create regression tests
-5. **Document** (`/document`) — Create release notes and documentation
-6. **PR** (`/pr`) — Create a pull request to submit the fix
+5. **Review** (`/review`) — *(Optional)* Critically evaluate the fix and tests
+6. **Document** (`/document`) — Create release notes and documentation
+7. **PR** (`/pr`) — Create a pull request to submit the fix
 
 Each command delegates to a detailed skill in `.claude/skills/{name}/SKILL.md`.
 All artifacts go in `artifacts/bugfix/`.
