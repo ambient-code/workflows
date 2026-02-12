@@ -1,5 +1,10 @@
-Using the Diagnose skill from .claude/skills/diagnose/SKILL.md, perform root cause analysis on the following:
+# /diagnose
+
+Read the file .claude/skills/diagnose/SKILL.md now and follow it step by step.
+
+Perform root cause analysis on the following:
 
 $ARGUMENTS
 
-Apply the skill as needed, incorporating any relevant context already established in this session (prior conversation, reproduction reports, existing artifacts, and workspace state).
+Combine these arguments with existing session context (prior conversation,
+reproduction reports, existing artifacts, and workspace state).

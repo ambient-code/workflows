@@ -10,6 +10,13 @@ systematic, failure-resistant process for getting code from the working director
 into a PR. It handles the common obstacles: authentication, fork workflows,
 remote configuration, and cross-repo PR creation.
 
+## IMPORTANT: Follow This Skill Exactly
+
+This skill exists because ad-hoc PR creation fails in predictable ways.
+**Do not improvise.** Follow the numbered steps in order. Do not skip steps.
+Do not invent alternative approaches when a step fails — use the documented
+fallback ladder at the bottom of this file.
+
 ## Your Role
 
 Get the bug fix changes submitted as a draft pull request. Handle the full
@@ -23,6 +30,8 @@ the documented recovery paths instead of guessing.
 - **Never skip pre-flight checks.** They prevent every common failure.
 - **Always create a draft PR.** Let the author mark it ready after review.
 - **Always work in the project repo directory**, not the workflow directory.
+- **Never attempt `gh repo fork` without asking the user first.**
+- **Never fall back to patch files without exhausting all other options.**
 
 ## Process
 
@@ -124,6 +133,10 @@ git diff --stat
 Confirm there are actual changes to commit. If there are no changes, stop
 and tell the user.
 
+**Pre-flight summary:** Before moving on, you should now know: `GH_USER`,
+`UPSTREAM_OWNER/REPO`, which remotes exist, and whether there are changes to
+commit. If any of these are missing, do not proceed — go back and get them.
+
 ### Step 2: Ensure a Fork Exists
 
 You almost certainly do NOT have push access to the upstream repo. Use a fork.
@@ -145,28 +158,38 @@ Replace `UPSTREAM_OWNER/REPO` with the value from Step 1d. The output will be
 
 **If a fork exists:** use it — skip ahead to Step 3.
 
-**If NO fork exists — STOP and ask the user.** Do not silently skip ahead or
-fall back to a patch file. Say something like:
+**If NO fork exists — HARD STOP.** You cannot continue without a fork.
+Do not try to push to upstream. Do not create a patch file. Do not try
+API workarounds. Ask the user:
 
-> I don't see a fork of UPSTREAM_OWNER/REPO under your GitHub account.
-> To create a PR, you'll need a fork. Would you like me to try creating one?
-> If that doesn't work in this environment, you can create one at:
+> I don't see a fork of `UPSTREAM_OWNER/REPO` under your GitHub account
+> (`GH_USER`). I need a fork to push the branch and create a PR.
+>
+> Would you like me to try creating one? If that doesn't work in this
+> environment, you can create one yourself at:
 > `https://github.com/UPSTREAM_OWNER/REPO/fork`
+>
+> Let me know when you're ready and I'll continue.
 
-Wait for the user to respond. Once they confirm:
+**Then stop. Do not proceed until the user responds.**
 
-1. Try creating the fork:
+Once the user confirms, try creating the fork:
 
 ```bash
 gh repo fork UPSTREAM_OWNER/REPO --clone=false
 ```
 
-1. If this succeeds, continue to Step 3.
-1. If this fails (sandbox/permission issue), tell the user to create the fork
-   manually using the URL above and to let you know when it's ready. **Wait
-   for the user to confirm before continuing.**
+- If this succeeds: continue to Step 3.
+- If this fails (sandbox/permission issue): tell the user to create the fork
+  manually using the URL above. **Stop again and wait for the user to confirm
+  the fork exists before continuing.**
 
-Only proceed to Step 3 once a fork actually exists.
+Do not proceed to Step 3 until a fork actually exists and you have confirmed
+it with:
+
+```bash
+gh repo view GH_USER/REPO --json nameWithOwner --jq .nameWithOwner
+```
 
 ### Step 3: Configure the Fork Remote
 

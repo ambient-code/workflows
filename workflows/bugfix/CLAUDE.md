@@ -10,7 +10,9 @@ Systematic bug resolution through these phases:
 6. **Document** (`/document`) — Release notes and documentation
 7. **PR** (`/pr`) — Submit a pull request
 
-Each command delegates to `.claude/skills/{name}/SKILL.md`.
+Each phase has a detailed skill file at `.claude/skills/{name}/SKILL.md`.
+**Always read the skill file before executing a phase** — whether the user
+invokes a slash command or asks in natural language. Do not improvise.
 All artifacts go in `artifacts/bugfix/`.
 
 ## Flow Control

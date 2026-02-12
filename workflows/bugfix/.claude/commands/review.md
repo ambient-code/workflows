@@ -1,5 +1,10 @@
-Using the Review skill from .claude/skills/review/SKILL.md, critically evaluate the bug fix and its tests:
+# /review
+
+Read the file .claude/skills/review/SKILL.md now and follow it step by step.
+
+Critically evaluate the bug fix and its tests:
 
 $ARGUMENTS
 
-Apply the skill as needed, incorporating any relevant context already established in this session (prior conversation, reproduction reports, existing artifacts, and workspace state).
+Combine these arguments with existing session context (prior conversation,
+reproduction reports, existing artifacts, and workspace state).

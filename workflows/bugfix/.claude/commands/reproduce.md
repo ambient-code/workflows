@@ -1,5 +1,10 @@
-Using the Reproduce skill from .claude/skills/reproduce/SKILL.md, systematically reproduce and document the following bug:
+# /reproduce
+
+Read the file .claude/skills/reproduce/SKILL.md now and follow it step by step.
+
+Systematically reproduce and document the following bug:
 
 $ARGUMENTS
 
-Apply the skill as needed, incorporating any relevant context already established in this session (prior conversation, existing artifacts, and workspace state).
+Combine these arguments with existing session context (prior conversation,
+existing artifacts, and workspace state).
