@@ -26,6 +26,18 @@ the documented recovery paths instead of guessing.
 
 ## Process
 
+### Placeholders Used in This Skill
+
+These are determined during pre-flight checks. Record each value as you go.
+
+| Placeholder | Source | Example |
+| --- | --- | --- |
+| `GH_USER` | Step 1a: `gh api user --jq .login` | `jsmith` |
+| `UPSTREAM_OWNER/REPO` | Step 1d: `gh repo view --json nameWithOwner` | `acme/myproject` |
+| `FORK_OWNER` | Step 2: owner portion of fork's `nameWithOwner`, or `GH_USER` if newly created | `jsmith` |
+| `REPO` | The repository name (without owner) | `myproject` |
+| `BRANCH_NAME` | Step 4: the branch you create | `bugfix/issue-42-null-check` |
+
 ### Step 0: Locate the Project Repository
 
 The bugfix workflow runs from the workflow directory, but the code changes live
@@ -52,7 +64,13 @@ Run ALL of these before doing anything else. Do not skip any.
 gh auth status
 ```
 
-- If authenticated: note the username and what scopes/permissions are available.
+- If authenticated: **record the GitHub username** — you will need it later as
+  `GH_USER`. You can also extract it reliably with:
+
+```bash
+gh api user --jq .login
+```
+
 - If not authenticated: STOP. Tell the user `gh auth login` is required and
   explain why. Do not attempt workarounds.
 
@@ -81,7 +99,7 @@ Note which remote points to the upstream repo and which (if any) points to
 the user's fork. Common patterns:
 
 | Remote Name | URL Contains | Likely Role |
-|---|---|---|
+| --- | --- | --- |
 | `origin` | upstream org | Upstream (read-only) |
 | `origin` | user's name | Fork (read-write) |
 | `fork` | user's name | Fork (read-write) |
@@ -110,23 +128,45 @@ and tell the user.
 
 You almost certainly do NOT have push access to the upstream repo. Use a fork.
 
+**Determining FORK_OWNER:** The fork owner is almost always `GH_USER` (the
+authenticated GitHub username from Step 1a). When the `gh repo list` command
+below returns a fork, its `nameWithOwner` will be in `FORK_OWNER/REPO` format —
+use the owner portion. If the user creates a new fork, `FORK_OWNER` = `GH_USER`.
+
 **Check if a fork already exists:**
 
 ```bash
 gh repo list --fork --json nameWithOwner,parent --jq '.[] | select(.parent.nameWithOwner == "UPSTREAM_OWNER/REPO") | .nameWithOwner'
 ```
 
-Replace `UPSTREAM_OWNER/REPO` with the value from Step 1d.
+Replace `UPSTREAM_OWNER/REPO` with the value from Step 1d. The output will be
+`FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record the owner portion as
+`FORK_OWNER`.
 
-- If a fork exists: use it.
-- If no fork exists: ask the user to create one. Provide the command:
+**If a fork exists:** use it — skip ahead to Step 3.
+
+**If NO fork exists — STOP and ask the user.** Do not silently skip ahead or
+fall back to a patch file. Say something like:
+
+> I don't see a fork of UPSTREAM_OWNER/REPO under your GitHub account.
+> To create a PR, you'll need a fork. Would you like me to try creating one?
+> If that doesn't work in this environment, you can create one at:
+> `https://github.com/UPSTREAM_OWNER/REPO/fork`
+
+Wait for the user to respond. Once they confirm:
+
+1. Try creating the fork:
 
 ```bash
 gh repo fork UPSTREAM_OWNER/REPO --clone=false
 ```
 
-Do NOT attempt to fork on behalf of the user — this often fails due to
-permission restrictions in sandboxed environments.
+1. If this succeeds, continue to Step 3.
+1. If this fails (sandbox/permission issue), tell the user to create the fork
+   manually using the URL above and to let you know when it's ready. **Wait
+   for the user to confirm before continuing.**
+
+Only proceed to Step 3 once a fork actually exists.
 
 ### Step 3: Configure the Fork Remote
 
@@ -251,6 +291,15 @@ WHAT_THIS_PR_CHANGES
 ## Testing
 HOW_THE_FIX_WAS_VERIFIED
 
+## Confidence
+HIGH_MEDIUM_LOW — BRIEF_JUSTIFICATION
+
+## Rollback
+HOW_TO_REVERT_IF_SOMETHING_GOES_WRONG
+
+## Risk Assessment
+LOW_MEDIUM_HIGH — WHAT_COULD_BE_AFFECTED
+
 Fixes #ISSUE_NUMBER"
 ```
 
@@ -258,9 +307,11 @@ Fixes #ISSUE_NUMBER"
 
 - **"permission denied" or "403"**: The bot cannot create PRs on the upstream
   repo. Provide the user with the direct URL instead:
-  ```
+
+  ```text
   https://github.com/FORK_OWNER/REPO/pull/new/bugfix/BRANCH_NAME
   ```
+
   And give them the PR title and body to paste.
 - **"branch not found"**: The push in Step 6 may have failed silently.
   Verify with `git ls-remote fork bugfix/BRANCH_NAME`.
@@ -274,19 +325,42 @@ After the PR is created (or the URL is provided), summarize:
 - What branch it targets
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
-## Fallback: Manual PR Creation
+## Fallback Ladder
 
-If automated PR creation fails completely, provide the user with everything
-they need to create it manually:
+When something goes wrong, work down this list. **Do not skip to lower
+rungs** — always try the higher options first.
 
-1. **Ensure the branch is pushed**: Confirm the branch exists on the fork
-2. **Provide the URL**: `https://github.com/FORK_OWNER/REPO/pull/new/BRANCH`
-3. **Provide the PR title**
-4. **Provide the PR body** (from artifacts or session context)
-5. **Note the base branch** (usually `main`)
+### Rung 1: Fix and Retry (preferred)
 
-Never dump a raw patch file and walk away. At minimum, the branch should be
-pushed and the user should have a one-click URL.
+Most failures have a specific cause (wrong remote, auth scope, branch name).
+Diagnose it using the Error Recovery table and retry.
+
+### Rung 2: Manual PR URL
+
+If `gh pr create` fails but the branch is pushed to the fork:
+
+1. **Provide the URL**: `https://github.com/FORK_OWNER/REPO/pull/new/BRANCH`
+2. **Provide the PR title and body** so the user can paste them in
+3. **Note the base branch** (usually `main`)
+
+### Rung 3: User creates fork, you push and PR
+
+If no fork exists and automated forking fails:
+
+1. Give the user the fork URL: `https://github.com/UPSTREAM_OWNER/REPO/fork`
+2. **Wait for the user to confirm the fork exists**
+3. Add the fork remote, push the branch, create the PR
+
+### Rung 4: Patch file (absolute last resort)
+
+Only if ALL of the above fail — for example, the user has no GitHub account,
+or network access is completely blocked:
+
+1. Generate a patch: `git diff > bugfix.patch`
+2. Write it to `artifacts/bugfix/bugfix.patch`
+3. Explain to the user how to apply it: `git apply bugfix.patch`
+4. **Acknowledge this is a degraded experience** and explain what prevented
+   the normal flow
 
 ## Output
 
@@ -298,26 +372,26 @@ pushed and the user should have a one-click URL.
 
 **After completing the workflow:**
 
-```
+```text
 /pr
 ```
 
 **With a specific issue reference:**
 
-```
+```text
 /pr Fixes #47 - include all documented tool types in OpenAPI spec
 ```
 
 **When the fork is already set up:**
 
-```
+```text
 /pr --repo openresponses/openresponses
 ```
 
 ## Error Recovery Quick Reference
 
 | Symptom | Cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `gh auth status` fails | Not logged in | User must run `gh auth login` |
 | `git push` permission denied | Pushing to upstream, not fork | Verify remote URL, switch to fork |
 | `gh pr create` 403 | Bot can't create PRs upstream | Give user the manual PR URL |
