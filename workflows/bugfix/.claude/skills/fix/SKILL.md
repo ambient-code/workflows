@@ -127,4 +127,8 @@ Summarize the implementation to the user:
 
 **Recommended next step:** `/test` to verify the fix and create regression tests.
 
+Remaining phases after test: `/review` (optional but recommended) → `/document` → `/pr`.
+
+**Present these recommendations if they make sense in this case.**
+
 **Stop and wait for the user to decide what to do next.**
