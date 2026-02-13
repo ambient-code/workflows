@@ -80,8 +80,10 @@ gh auth status
 gh api user --jq .login
 ```
 
-- If not authenticated: STOP. Tell the user `gh auth login` is required and
-  explain why. Do not attempt workarounds.
+- If not authenticated: note this — several later steps depend on `gh`. But
+  do NOT dump all manual instructions yet. Continue the remaining pre-flight
+  checks (1b–1e) to gather as much information as possible from git alone.
+  After pre-flight, you will present options to the user.
 
 **1b. Check git configuration:**
 
@@ -91,12 +93,15 @@ git config user.email
 ```
 
 - If both are set: proceed.
-- If missing: set them from the `gh` auth context:
+- If missing and `gh` is authenticated: set them from `gh`:
 
 ```bash
 git config user.name "$(gh api user --jq .login)"
 git config user.email "$(gh api user --jq '.email // (.login + "@users.noreply.github.com")')"
 ```
+
+- If missing and `gh` is NOT authenticated: set reasonable defaults so commits
+  work. Use `"bugfix-workflow"` / `"bugfix@workflow.local"` as placeholders.
 
 **1c. Inventory existing remotes:**
 
@@ -116,12 +121,19 @@ the user's fork. Common patterns:
 
 **1d. Identify the upstream repo:**
 
+If `gh` is authenticated:
+
 ```bash
-# Get the upstream repo in owner/repo format
 gh repo view --json nameWithOwner --jq .nameWithOwner
 ```
 
-Record this — you'll need it for `gh pr create --repo`.
+If `gh` is NOT authenticated, extract from the git remote URL:
+
+```bash
+git remote get-url origin | sed -E 's#.*/([^/]+/[^/]+?)(\.git)?$#\1#'
+```
+
+Record the result as `UPSTREAM_OWNER/REPO` — you'll need it later.
 
 **1e. Check current branch and changes:**
 
@@ -133,9 +145,38 @@ git diff --stat
 Confirm there are actual changes to commit. If there are no changes, stop
 and tell the user.
 
-**Pre-flight summary:** Before moving on, you should now know: `GH_USER`,
+**Pre-flight summary:** Before moving on, you should now know:
 `UPSTREAM_OWNER/REPO`, which remotes exist, and whether there are changes to
-commit. If any of these are missing, do not proceed — go back and get them.
+commit. You may also know `GH_USER` (if auth is available).
+
+**If `gh` is authenticated:** Continue to Step 2.
+
+**If `gh` is NOT authenticated — STOP and ask the user.** Present their
+options clearly:
+
+> GitHub CLI authentication is not available in this environment, which means
+> I can't push branches or create PRs directly.
+>
+> I can still prepare everything (branch, commit, PR description). To get it
+> submitted, you have a few options:
+>
+> 1. **Set up `gh auth`** in this environment (`gh auth login`) and I'll
+>    handle the rest
+> 2. **Tell me your fork URL** if you already have one — I may be able to
+>    push to it
+> 3. **I'll prepare the branch and PR description**, and give you the exact
+>    commands to push and create the PR from your own machine
+>
+> Which would you prefer?
+
+**Wait for the user to respond.** Then proceed accordingly:
+
+- Option 1: User sets up auth → re-run Step 1a, continue normally
+- Option 2: User provides fork → set `FORK_OWNER` from it, skip to Step 3
+- Option 3: Continue through Steps 2–5 (branch, commit, PR description) but
+  skip Steps 6–7 (push, PR creation). At the end, provide the user with
+  the exact push and PR creation commands — but only ONE set of clear
+  instructions, not a wall of text
 
 ### Step 2: Ensure a Fork Exists
 
