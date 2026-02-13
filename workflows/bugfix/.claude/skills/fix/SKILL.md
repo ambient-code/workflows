@@ -116,3 +116,15 @@ If implementation encounters issues:
 - Check if the root cause analysis needs revision
 - Consider if a different fix approach is needed
 - Flag any risks or uncertainties for review
+
+## When This Phase Is Done
+
+Summarize the implementation to the user:
+
+- What was changed (files, approach)
+- What quality checks passed
+- Where the implementation notes were written
+
+**Recommended next step:** `/test` to verify the fix and create regression tests.
+
+**Stop and wait for the user to decide what to do next.**

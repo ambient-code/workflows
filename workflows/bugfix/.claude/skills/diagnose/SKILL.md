@@ -104,3 +104,15 @@ If root cause cannot be determined:
 - Identify what additional information or access would be needed
 - Recommend next steps for further investigation
 - Consider if the bug is environment-specific or requires live debugging
+
+## When This Phase Is Done
+
+Summarize your findings to the user:
+
+- The identified root cause (or top hypotheses if uncertain)
+- Confidence level in the diagnosis
+- Where the root cause analysis was written
+
+**Recommended next step:** `/fix` to implement the solution.
+
+**Stop and wait for the user to decide what to do next.**

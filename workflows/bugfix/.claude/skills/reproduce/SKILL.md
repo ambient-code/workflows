@@ -81,3 +81,15 @@ If reproduction fails:
 - Check environment differences (versions, config, data)
 - Consider the bug may be environment-specific, intermittent, or already fixed
 - Record findings in the reproduction report with a "Could Not Reproduce" status
+
+## When This Phase Is Done
+
+Summarize your findings to the user:
+
+- Whether the bug was successfully reproduced
+- Key observations and environment details
+- Where the reproduction report was written
+
+**Recommended next step:** `/diagnose` to identify the root cause.
+
+**Stop and wait for the user to decide what to do next.**

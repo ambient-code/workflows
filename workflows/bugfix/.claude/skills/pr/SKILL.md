@@ -474,3 +474,13 @@ or network access is completely blocked:
   session context (conversation history, prior artifacts).
 - The fork workflow is the standard for open source contributions. Even if the
   user has write access to upstream, using a fork keeps the upstream clean.
+
+## When This Phase Is Done
+
+Summarize the PR to the user:
+
+- PR URL (or manual creation URL if automated creation wasn't possible)
+- What was included
+- Any follow-up actions needed (mark ready for review, add reviewers, etc.)
+
+This is typically the final phase. **Stop and wait for the user.**

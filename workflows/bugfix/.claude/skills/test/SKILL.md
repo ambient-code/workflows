@@ -146,3 +146,16 @@ If tests fail unexpectedly:
 - Check if the fix introduced a regression
 - Document all failures with details for investigation
 - Consider if the fix approach needs revision
+
+## When This Phase Is Done
+
+Summarize the test results to the user:
+
+- How many tests were added and their results
+- Whether the full test suite passes
+- Where the verification report was written
+
+**Recommended next step:** `/review` to critically evaluate the fix and tests
+before proceeding, or `/document` if you're confident in the results.
+
+**Stop and wait for the user to decide what to do next.**

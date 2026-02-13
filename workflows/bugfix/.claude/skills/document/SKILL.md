@@ -157,3 +157,14 @@ If prior artifacts are missing (reproduction report, root cause analysis, implem
 - Work with whatever context is available in the session
 - Note any gaps in the documentation
 - Flag missing information that should be filled in later
+
+## When This Phase Is Done
+
+Summarize the documentation to the user:
+
+- What documents were created and where
+- Any gaps flagged for later
+
+**Recommended next step:** `/pr` to create the pull request.
+
+**Stop and wait for the user to decide what to do next.**
