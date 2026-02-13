@@ -13,6 +13,8 @@ Systematic bug resolution through these phases:
 Each phase has a detailed skill file at `.claude/skills/{name}/SKILL.md`.
 **Always read the skill file before executing a phase** — whether the user
 invokes a slash command or asks in natural language. Do not improvise.
+**Always announce which skill you are using** before starting — this lets the
+user confirm or redirect you.
 All artifacts go in `artifacts/bugfix/`.
 
 ## Flow Control
