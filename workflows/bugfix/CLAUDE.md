@@ -2,13 +2,14 @@
 
 Systematic bug resolution through these phases:
 
-1. **Reproduce** (`/reproduce`) — Confirm and document the bug
-2. **Diagnose** (`/diagnose`) — Identify root cause and impact
-3. **Fix** (`/fix`) — Implement the solution
-4. **Test** (`/test`) — Verify the fix, create regression tests
-5. **Review** (`/review`) — *(Optional)* Critically evaluate fix and tests
-6. **Document** (`/document`) — Release notes and documentation
-7. **PR** (`/pr`) — Submit a pull request
+1. **Assess** (`/assess`) — Read the bug report, explain understanding, propose a plan
+2. **Reproduce** (`/reproduce`) — Confirm and document the bug
+3. **Diagnose** (`/diagnose`) — Identify root cause and impact
+4. **Fix** (`/fix`) — Implement the solution
+5. **Test** (`/test`) — Verify the fix, create regression tests
+6. **Review** (`/review`) — *(Optional)* Critically evaluate fix and tests
+7. **Document** (`/document`) — Release notes and documentation
+8. **PR** (`/pr`) — Submit a pull request
 
 Each phase has a detailed skill file at `.claude/skills/{name}/SKILL.md`.
 **Always read the skill file before executing a phase** — whether the user

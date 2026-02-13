@@ -26,7 +26,9 @@ the documented recovery paths instead of guessing.
 ## Critical Rules
 
 - **Never ask the user for git credentials.** Use `gh auth status` to check.
-- **Never push directly to upstream.** Always use a fork remote.
+- **Never push directly to upstream.** Always use a fork remote. This applies
+  even if you are authenticated as an org bot or app — do not assume any
+  account has push access to upstream. Always go through a fork.
 - **Never skip pre-flight checks.** They prevent every common failure.
 - **Always create a draft PR.** Let the author mark it ready after review.
 - **Always work in the project repo directory**, not the workflow directory.
@@ -149,7 +151,8 @@ and tell the user.
 `UPSTREAM_OWNER/REPO`, which remotes exist, and whether there are changes to
 commit. You may also know `GH_USER` (if auth is available).
 
-**If `gh` is authenticated:** Continue to Step 2.
+**If `gh` is authenticated:** Continue to Step 2. Do NOT skip Step 2 based on
+the account type — even org bots and GitHub Apps need a fork.
 
 **If `gh` is NOT authenticated — STOP and ask the user.** Present their
 options clearly:
