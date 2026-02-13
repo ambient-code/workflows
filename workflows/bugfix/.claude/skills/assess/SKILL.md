@@ -19,7 +19,8 @@ user correct you before you invest effort in the wrong direction.
 
 - **Do not start reproducing, diagnosing, or fixing.** This phase is analysis
   and planning only.
-- **Do not clone repositories or run code.** You are reading and thinking.
+- **Do not run the project's code or tests.** You may clone and read code, but
+  do not execute it yet.
 - **Be honest about uncertainty.** If the report is vague, say so.
 
 ## Process
@@ -37,7 +38,29 @@ gh issue view NUMBER --repo OWNER/REPO --json title,body,labels,comments,state
 - If the user described the bug in conversation, use that context
 - Check if any prior artifacts exist (from a previous session or phase)
 
-### Step 2: Summarize Your Understanding
+### Step 2: Ensure the Repository Is Available
+
+Check if the project repository is already accessible:
+
+```bash
+# Check common locations
+ls /workspace/repos/ 2>/dev/null
+ls /workspace/artifacts/ 2>/dev/null
+```
+
+- If the repo is already present (e.g., mounted via `add_dirs`), note its path
+- If not, clone it:
+
+```bash
+gh repo clone OWNER/REPO /workspace/repos/REPO
+```
+
+- If the issue references specific PRs, files, or code paths, read them now
+  to inform your assessment
+
+This is read-only exploration — understand the code, don't change it.
+
+### Step 3: Summarize Your Understanding
 
 Present a clear, concise summary to the user covering:
 
@@ -50,7 +73,7 @@ Present a clear, concise summary to the user covering:
 - **Severity/impact:** Your assessment of how serious this is, based on the
   information available
 
-### Step 3: Identify What You Know vs. What's Missing
+### Step 4: Identify What You Know vs. What's Missing
 
 Be explicit about gaps:
 
@@ -62,7 +85,7 @@ Be explicit about gaps:
 - **Assumptions:** Any assumptions you're making — call them out so the user
   can confirm or correct them
 
-### Step 4: Propose a Reproduction Plan
+### Step 5: Propose a Reproduction Plan
 
 Based on your understanding, outline how you would approach reproduction:
 
@@ -74,7 +97,7 @@ Based on your understanding, outline how you would approach reproduction:
 If the bug seems straightforward, the plan can be brief. If it's complex or
 ambiguous, be thorough.
 
-### Step 5: Present to the User
+### Step 6: Present to the User
 
 Deliver your assessment in this structure:
 
@@ -111,7 +134,8 @@ missing critical details, say that too.
 ## Output
 
 - Assessment presented directly to the user (inline, not a file artifact)
-- No code is run, no files are created
+- The project repository cloned and available for subsequent phases
+- No code is executed, no files in the project are modified
 
 ## When This Phase Is Done
 
