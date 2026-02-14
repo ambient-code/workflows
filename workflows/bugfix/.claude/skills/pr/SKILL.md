@@ -332,6 +332,15 @@ access. Please run: `git push -u fork BRANCH_NAME`"
 
 ### Step 7: Create the Draft PR
 
+**Important context on bot permissions:** If you are running as a GitHub App
+bot (e.g., `ambient-code[bot]`), `gh pr create --repo UPSTREAM_OWNER/REPO`
+will almost certainly fail with `Resource not accessible by integration`.
+This is because the bot is installed on the **user's** account, not the
+upstream org — so it can push to the fork but cannot create PRs on upstream.
+This is expected, not an error to debug. Go directly to the fallback below.
+
+**Try `gh pr create` first** (it works for normal user tokens):
+
 ```bash
 gh pr create \
   --draft \
@@ -384,18 +393,31 @@ LOW_MEDIUM_HIGH — WHAT_COULD_BE_AFFECTED
 Fixes #ISSUE_NUMBER"
 ```
 
-**If `gh pr create` fails:**
+**If `gh pr create` fails (403, "Resource not accessible by integration", etc.):**
 
-- **"permission denied" or "403"**: The bot cannot create PRs on the upstream
-  repo. Provide the user with the direct URL instead:
+This is the expected outcome when running as a GitHub App bot. Do NOT retry,
+do NOT debug further, do NOT fall back to a patch file. Instead:
 
-  ```text
-  https://github.com/FORK_OWNER/REPO/pull/new/bugfix/BRANCH_NAME
-  ```
+1. **Write the PR description** to `artifacts/bugfix/docs/pr-description.md`
+   (if not already written). This ensures the user has the body ready to paste.
 
-  And give them the PR title and body to paste.
-- **"branch not found"**: The push in Step 6 may have failed silently.
-  Verify with `git ls-remote fork bugfix/BRANCH_NAME`.
+2. **Give the user a pre-filled GitHub compare URL:**
+
+   ```text
+   https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:bugfix/BRANCH_NAME?expand=1
+   ```
+
+   This URL opens GitHub's "Open a pull request" form with the branches
+   pre-selected and the description field ready to fill in.
+
+3. **Provide the PR title and body** so the user can paste them in. Show the
+   title as a single line and the body as a code block for easy copying.
+
+4. **Remind the user** to check "Create draft pull request" if they want
+   it as a draft.
+
+**If "branch not found"**: The push in Step 6 may have failed silently.
+Verify with `git ls-remote fork bugfix/BRANCH_NAME`.
 
 ### Step 8: Confirm and Report
 
@@ -416,13 +438,15 @@ rungs** — always try the higher options first.
 Most failures have a specific cause (wrong remote, auth scope, branch name).
 Diagnose it using the Error Recovery table and retry.
 
-### Rung 2: Manual PR URL
+### Rung 2: Manual PR via GitHub Compare URL
 
-If `gh pr create` fails but the branch is pushed to the fork:
+If `gh pr create` fails but the branch is pushed to the fork (this is the
+**expected** outcome when running as a GitHub App bot):
 
-1. **Provide the URL**: `https://github.com/FORK_OWNER/REPO/pull/new/BRANCH`
-2. **Provide the PR title and body** so the user can paste them in
-3. **Note the base branch** (usually `main`)
+1. **Write the PR body** to `artifacts/bugfix/docs/pr-description.md`
+2. **Provide the compare URL**: `https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:BRANCH?expand=1`
+3. **Show the PR title and body** for the user to paste in
+4. **Note**: this is a good outcome — the user gets a pre-filled PR form
 
 ### Rung 3: User creates fork, you push and PR
 
@@ -475,7 +499,7 @@ or network access is completely blocked:
 | --- | --- | --- |
 | `gh auth status` fails | Not logged in | User must run `gh auth login` |
 | `git push` permission denied | Pushing to upstream, not fork | Verify remote URL, switch to fork |
-| `gh pr create` 403 | Bot can't create PRs upstream | Give user the manual PR URL |
+| `gh pr create` 403 / "Resource not accessible" | Bot installed on user, not upstream org | Give user the compare URL (Rung 2) — this is expected |
 | `gh repo fork` fails | Sandbox blocks forking | User creates fork manually |
 | Branch not found on remote | Push failed silently | Re-run `git push`, check network |
 | No changes to commit | Changes already committed or not staged | Check `git status`, `git log` |

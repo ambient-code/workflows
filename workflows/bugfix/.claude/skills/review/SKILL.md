@@ -95,14 +95,14 @@ Ask these questions honestly:
 
 Based on Steps 2 and 3, classify the situation into one of these categories:
 
-#### Verdict A: Fix is inadequate
+#### Verdict: Fix is inadequate
 
 The fix does not actually resolve the root cause, or it introduces new problems.
 
 **Recommendation**: Go back to `/fix`. Explain specifically what's wrong and
 what a better fix would look like.
 
-#### Verdict B: Fix is adequate, but tests are incomplete
+#### Verdict: Fix is adequate, but tests are incomplete
 
 The fix looks correct, but the tests don't sufficiently prove it. Common reasons:
 
@@ -116,7 +116,7 @@ is needed. If automated tests can't cover it (e.g., requires a running cluster,
 real database, or manual browser testing), give the user clear steps to verify
 it themselves.
 
-#### Verdict C: Fix and tests are solid
+#### Verdict: Fix and tests are solid
 
 The fix addresses the root cause, the tests prove it works, edge cases are
 covered, and you don't see meaningful gaps.
@@ -148,7 +148,7 @@ Present your findings clearly. Use this structure:
 ### Gaps
 - [What's missing or insufficient — be specific]
 
-## Verdict: [A/B/C — one-line summary]
+## Verdict: [one-line summary]
 
 ## Recommendation
 

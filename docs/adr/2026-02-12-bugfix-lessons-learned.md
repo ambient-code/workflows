@@ -269,7 +269,28 @@ couldn't find it.
 schema against real output. Don't assume field names from documentation or
 other API endpoints — run the actual command and inspect the JSON.
 
-### 14. Don't give up too early on environment discovery
+### 14. GitHub App on user ≠ permission on upstream
+
+A GitHub App installed on the user's account can push to the user's fork, but
+**cannot create PRs on the upstream repo** via `gh pr create --repo upstream`.
+The `createPullRequest` GraphQL mutation runs against the upstream repo, which
+requires the app to be installed there — not just on the user's account.
+
+The model's instinct when `gh pr create` fails is to debug and retry. But this
+isn't a fixable error — it's a fundamental permission boundary. The skill
+wasted cycles trying workarounds before falling back to an unsatisfying patch
+file experience.
+
+The fix: mark this as an **expected** outcome (not an error) when running as
+a bot, and go directly to providing a GitHub compare URL that pre-fills the PR
+creation form. The user clicks the link, pastes the title and body, and
+submits — a much better experience than a patch file.
+
+**Guideline:** When a failure is structural (not transient), treat it as a
+known path, not an error to debug. Design the fallback as a first-class
+experience, not a degraded one.
+
+### 15. Don't give up too early on environment discovery
 
 The model tried to run tests requiring Python 3.12, found that `python3.12`
 wasn't on the PATH, and declared it couldn't run the tests. When prompted, it
@@ -283,7 +304,7 @@ report failure. It doesn't automatically check for version managers (`uv`,
 **Guideline:** Add a brief note in `CLAUDE.md` or relevant skills: "Check for
 version managers before concluding a runtime isn't available."
 
-### 15. Patch files should be a last resort, not a fallback
+### 16. Patch files should be a last resort, not a fallback
 
 The original PR skill fell back to generating a patch file when push failed.
 This was a bad user experience — the user expected help creating a PR, not a

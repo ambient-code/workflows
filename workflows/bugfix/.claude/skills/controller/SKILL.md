@@ -38,7 +38,8 @@ Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
 
-1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase."
+1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase.".
+   This is very important so the user knows that the workflow is working and learns about the commands.
 2. **Read** the skill file from the table above
 3. **Execute** the skill's steps directly — the user should see your progress
 4. When the skill is done, it will tell you to report your findings.
@@ -46,8 +47,7 @@ Phases can be skipped or reordered at the user's discretion.
    (`.claude/skills/controller/SKILL.md`) so the transition rules below
    are fresh in your context
 5. Present the skill's results to the user
-6. **Use the "Recommending Next Steps" section below** to offer options —
-   do NOT use any next-step suggestions from the skill itself
+6. **Use the "Recommending Next Steps" section below** to offer options.
 7. **Stop and wait** for the user to tell you what to do next
 
 **Important:** Step 4 is critical. Re-reading this file after each phase
@@ -67,7 +67,9 @@ assess → reproduce → diagnose → fix → test → review → document → p
 
 ### What to Recommend
 
-Consider what just happened, then offer options that make sense:
+After presenting results, consider what just happened, then offer options that make sense:
+
+**Continuing to the next step** — often the next phase in the flow is the best option
 
 **Skipping forward** — sometimes phases aren't needed:
 
