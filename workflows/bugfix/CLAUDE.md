@@ -12,9 +12,10 @@ Systematic bug resolution through these phases:
 8. **PR** (`/pr`) — Submit a pull request
 
 The workflow controller lives at `.claude/skills/controller/SKILL.md`.
-Read it and follow it. It defines how to dispatch phases, interpret user
-responses, and manage transitions. Phase skills are at
-`.claude/skills/{name}/SKILL.md`. Artifacts go in `artifacts/bugfix/`.
+Read it and follow it. It defines how to execute phases, interpret user
+responses, and manage transitions. **Re-read it after every phase completes.**
+Phase skills are at `.claude/skills/{name}/SKILL.md`.
+Artifacts go in `artifacts/bugfix/`.
 
 ## Principles
 
