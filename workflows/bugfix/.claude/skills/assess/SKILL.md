@@ -144,5 +144,3 @@ Summarize your assessment to the user:
 - Your understanding of the bug
 - Key gaps or risks identified
 - Your proposed plan and recommended next step
-
-**Stop and wait for the user to decide what to do next.**
