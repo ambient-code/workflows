@@ -139,16 +139,10 @@ missing critical details, say that too.
 
 ## When This Phase Is Done
 
-You've presented your assessment and plan. **Stop and wait for the user.**
+Summarize your assessment to the user:
 
-They may:
+- Your understanding of the bug
+- Key gaps or risks identified
+- Your proposed plan and recommended next step
 
-- Confirm your understanding and say to proceed → recommend `/reproduce`
-- Correct a misunderstanding → update your assessment
-- Provide missing information → incorporate it
-- Ask you to skip ahead (e.g., "I already know the root cause, just fix it")
-  → adapt accordingly
-
-**Recommended next step:** `/reproduce` to confirm the bug behavior.
-
-**Do not proceed until the user responds.**
+**Stop and wait for the user to decide what to do next.**
