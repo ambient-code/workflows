@@ -154,4 +154,3 @@ Report your results:
 - How many tests were added and their results
 - Whether the full test suite passes
 - Where the verification report was written
-- Recommended next step (`/review`, `/document`, or `/pr` depending on confidence)

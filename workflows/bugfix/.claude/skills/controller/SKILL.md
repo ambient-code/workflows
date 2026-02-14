@@ -32,11 +32,62 @@ Phases can be skipped or reordered at the user's discretion.
    **Before responding to the user, re-read this controller file**
    (`.claude/skills/controller/SKILL.md`) so the transition rules below
    are fresh in your context
-5. Present results and the skill's recommended next step to the user
-6. **Stop and wait** for the user to tell you what to do next
+5. Present the skill's results to the user
+6. **Use the "Recommending Next Steps" section below** to offer options —
+   do NOT use any next-step suggestions from the skill itself
+7. **Stop and wait** for the user to tell you what to do next
 
 **Important:** Step 4 is critical. Re-reading this file after each phase
 prevents you from staying stuck in the previous skill's context.
+
+## Recommending Next Steps
+
+After each phase completes, present the user with **options** — not just one
+next step. Use the typical flow as a baseline, but adapt to what actually
+happened.
+
+### Typical Flow
+
+```text
+assess → reproduce → diagnose → fix → test → review → document → pr
+```
+
+### What to Recommend
+
+Consider what just happened, then offer options that make sense:
+
+**Skipping forward** — sometimes phases aren't needed:
+
+- Assess found an obvious root cause → offer `/fix` alongside `/reproduce`
+- The bug is a test coverage gap, not a runtime issue → skip `/reproduce`
+  and `/diagnose`
+- Review says everything is solid → offer `/pr` directly
+
+**Going back** — sometimes earlier work needs revision:
+
+- Test failures → offer `/fix` to rework the implementation
+- Review finds the fix is inadequate → offer `/fix`
+- Diagnosis was wrong → offer `/diagnose` again with new information
+
+**Ending early** — not every bug needs the full pipeline:
+
+- A trivial fix might go straight from `/fix` → `/test` → `/pr`
+- If the user already has their own PR process, they may stop after `/test`
+
+### How to Present Options
+
+Lead with your top recommendation, then list alternatives briefly:
+
+```text
+Recommended next step: /test — verify the fix with regression tests.
+
+Other options:
+- /review — critically evaluate the fix before testing
+- /pr — if you've already tested manually and want to submit
+```
+
+The user picks. If they say "yes" or "go ahead," execute your top
+recommendation.
 
 ## How to Interpret User Responses
 
@@ -45,15 +96,14 @@ After presenting phase results, the user will respond. Match their intent:
 | User says | Action |
 | --- | --- |
 | A phase name or command (e.g., "reproduce", `/fix`) | Execute that phase |
-| "yes", "let's do that", "proceed", "go ahead", etc. | Execute whatever the **last phase recommended** |
+| "yes", "let's do that", "proceed", "go ahead", etc. | Execute the phase you just **recommended** |
 | "skip to X" | Execute phase X, skipping intermediate phases |
 | A question or request for clarification | Answer it — do not execute anything |
 | New information about the bug | Incorporate it, then ask what to do next |
 
-**Critical:** When the user agrees to proceed, execute the **recommended**
-phase — the one the skill just suggested. Do NOT re-run the phase that just
-finished. Do NOT default to the next sequential phase if the skill
-recommended something different.
+**Critical:** When the user agrees to proceed, execute the phase you
+**recommended** — not the phase that just finished. Do NOT re-run the
+current phase.
 
 ## Starting the Workflow
 
@@ -68,5 +118,6 @@ directly — don't force them through earlier phases.
 ## Rules
 
 - **Never auto-advance.** Always wait for the user between phases.
-- **Track the last recommendation.** You need it to interpret "yes."
+- **Recommendations come from this file, not from skills.** Skills report
+  findings; this controller decides what to recommend next.
 - **Re-read this file between phases.** This is how you stay in control.

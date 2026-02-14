@@ -164,4 +164,3 @@ Report your results:
 
 - What documents were created and where
 - Any gaps flagged for later
-- Recommended next step (typically `/pr`)

@@ -89,4 +89,3 @@ Report your findings:
 - Whether the bug was successfully reproduced
 - Key observations and environment details
 - Where the reproduction report was written
-- Recommended next step (typically `/diagnose`, or `/fix` if root cause is obvious)

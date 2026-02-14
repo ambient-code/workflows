@@ -493,5 +493,3 @@ Report your results:
 - PR URL (or manual creation URL if automated creation wasn't possible)
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
-
-This is typically the final phase.

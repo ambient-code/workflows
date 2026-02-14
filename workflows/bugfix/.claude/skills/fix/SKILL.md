@@ -124,5 +124,3 @@ Report your results:
 - What was changed (files, approach)
 - What quality checks passed
 - Where the implementation notes were written
-- Recommended next step (typically `/test`)
-- Remaining phases after test: `/review` (optional) → `/document` → `/pr`

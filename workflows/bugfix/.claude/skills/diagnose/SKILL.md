@@ -112,4 +112,3 @@ Report your findings:
 - The identified root cause (or top hypotheses if uncertain)
 - Confidence level in the diagnosis
 - Where the root cause analysis was written
-- Recommended next step (typically `/fix`)

@@ -143,4 +143,4 @@ Report your assessment:
 
 - Your understanding of the bug
 - Key gaps or risks identified
-- Your proposed plan and recommended next step
+- Your proposed plan
