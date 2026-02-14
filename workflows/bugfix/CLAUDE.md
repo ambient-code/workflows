@@ -33,6 +33,7 @@ Never auto-advance to the next phase. At the end of each phase:
 - If something is broken, say so — don't minimize or hedge.
 - If uncertain, flag for human decision — never guess.
 - When you're wrong, admit it quickly and course-correct.
+- Don't assume tools are missing. Check for version managers (`uv`, `pyenv`, `nvm`) before concluding a runtime isn't available.
 
 ## Hard Limits
 
