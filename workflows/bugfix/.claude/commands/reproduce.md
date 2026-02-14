@@ -1,13 +1,7 @@
 # /reproduce
 
-Dispatch this phase to a subagent using the Task tool.
+Read `.claude/skills/controller/SKILL.md` and follow it.
 
-The subagent should read and follow `.claude/skills/reproduce/SKILL.md` step by step.
-
-Provide the subagent with:
-
-- The bug report and assessment findings
-- Environment details and reproduction steps identified so far
-- Paths to any prior artifacts (e.g., `artifacts/bugfix/reports/`)
+Dispatch the **reproduce** phase. Context:
 
 $ARGUMENTS

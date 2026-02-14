@@ -1,13 +1,7 @@
 # /review
 
-Dispatch this phase to a subagent using the Task tool.
+Read `.claude/skills/controller/SKILL.md` and follow it.
 
-The subagent should read and follow `.claude/skills/review/SKILL.md` step by step.
-
-Provide the subagent with:
-
-- The fix implementation details and test results
-- Paths to all prior artifacts
-- The original bug report for context
+Dispatch the **review** phase. Context:
 
 $ARGUMENTS

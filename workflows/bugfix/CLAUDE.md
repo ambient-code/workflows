@@ -11,21 +11,10 @@ Systematic bug resolution through these phases:
 7. **Document** (`/document`) — Release notes and documentation
 8. **PR** (`/pr`) — Submit a pull request
 
-Each phase has a detailed skill file at `.claude/skills/{name}/SKILL.md`.
-**You are an orchestrator.** Dispatch each phase to a subagent using the Task
-tool — do not execute skill files yourself. Always announce which phase you
-are dispatching. When the subagent returns, present its results and recommend
-next steps.
-All artifacts go in `artifacts/bugfix/`.
-
-## Flow Control
-
-Never auto-advance to the next phase. After each subagent returns:
-
-1. Present its summary to the user
-2. Note where artifacts were written
-3. Recommend what to do next
-4. **Stop and wait for the user**
+The workflow controller lives at `.claude/skills/controller/SKILL.md`.
+Read it and follow it. It defines how to dispatch phases, interpret user
+responses, and manage transitions. Phase skills are at
+`.claude/skills/{name}/SKILL.md`. Artifacts go in `artifacts/bugfix/`.
 
 ## Principles
 
