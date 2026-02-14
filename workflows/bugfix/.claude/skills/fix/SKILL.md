@@ -123,4 +123,6 @@ Report your results:
 
 - What was changed (files, approach)
 - What quality checks passed
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the implementation notes were written

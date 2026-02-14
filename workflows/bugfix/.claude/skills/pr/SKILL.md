@@ -523,3 +523,5 @@ Report your results:
 - PR URL (or manual creation URL if automated creation wasn't possible)
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.

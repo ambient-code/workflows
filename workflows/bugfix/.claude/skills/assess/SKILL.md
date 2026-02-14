@@ -143,4 +143,6 @@ Report your assessment:
 
 - Your understanding of the bug
 - Key gaps or risks identified
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Your proposed plan

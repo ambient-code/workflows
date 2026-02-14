@@ -190,3 +190,5 @@ are insufficient, say what's missing.
 ## When This Phase Is Done
 
 Your verdict and recommendation (from Step 5) serve as the phase summary.
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.

@@ -38,20 +38,15 @@ Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
 
-1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase.".
+1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase."
    This is very important so the user knows that the workflow is working and learns about the commands.
-2. **Read** the skill file from the table above
+2. **Read** the skill file from the list above
 3. **Execute** the skill's steps directly — the user should see your progress
-4. When the skill is done, it will tell you to report your findings.
-   **Before responding to the user, re-read this controller file**
-   (`.claude/skills/controller/SKILL.md`) so the transition rules below
-   are fresh in your context
-5. Present the skill's results to the user
-6. **Use the "Recommending Next Steps" section below** to offer options.
-7. **Stop and wait** for the user to tell you what to do next
-
-**Important:** Step 4 is critical. Re-reading this file after each phase
-prevents you from staying stuck in the previous skill's context.
+4. When the skill is done, it will tell you to report your findings and
+   re-read this controller. Do that — then use "Recommending Next Steps"
+   below to offer options.
+5. Present the skill's results and your recommendations to the user
+6. **Stop and wait** for the user to tell you what to do next
 
 ## Recommending Next Steps
 
@@ -116,4 +111,3 @@ directly — don't force them through earlier phases.
 - **Never auto-advance.** Always wait for the user between phases.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.
-- **Re-read this file between phases.** This is how you stay in control.

@@ -153,4 +153,6 @@ Report your results:
 
 - How many tests were added and their results
 - Whether the full test suite passes
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the verification report was written

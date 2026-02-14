@@ -111,4 +111,6 @@ Report your findings:
 
 - The identified root cause (or top hypotheses if uncertain)
 - Confidence level in the diagnosis
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the root cause analysis was written

@@ -164,3 +164,5 @@ Report your results:
 
 - What documents were created and where
 - Any gaps flagged for later
+
+Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
