@@ -43,7 +43,7 @@ These are determined during pre-flight checks. Record each value as you go.
 
 | Placeholder | Source | Example |
 | --- | --- | --- |
-| `GH_USER` | Step 1a: `gh api user --jq .login` | `jsmith` |
+| `GH_USER` | Step 1a: `gh api user` or `/installation/repositories` (for bots) | `jsmith` |
 | `UPSTREAM_OWNER/REPO` | Step 1d: `gh repo view --json nameWithOwner` | `acme/myproject` |
 | `FORK_OWNER` | Step 2: owner portion of fork's `nameWithOwner`, or `GH_USER` if newly created | `jsmith` |
 | `REPO` | The repository name (without owner) | `myproject` |
@@ -69,18 +69,26 @@ If the user provides a path or the repo is obvious from session context
 
 Run ALL of these before doing anything else. Do not skip any.
 
-**1a. Check GitHub CLI authentication:**
+**1a. Check GitHub CLI authentication and determine GH_USER:**
 
 ```bash
 gh auth status
 ```
 
-- If authenticated: **record the GitHub username** — you will need it later as
-  `GH_USER`. You can also extract it reliably with:
+- If authenticated, determine `GH_USER` — the **real user's** GitHub username
+  (not the bot). Try these in order:
 
 ```bash
-gh api user --jq .login
+# Works for normal user tokens:
+gh api user --jq .login 2>/dev/null
+
+# If that fails (403), you're running as a GitHub App/bot.
+# Get the real user from the app installation:
+gh api /installation/repositories --jq '.repositories[0].owner.login'
 ```
+
+  The `/installation/repositories` endpoint works because GitHub Apps are
+  installed on user accounts — the repo owner is the actual user.
 
 - If not authenticated: note this — several later steps depend on `gh`. But
   do NOT dump all manual instructions yet. Continue the remaining pre-flight
@@ -95,11 +103,11 @@ git config user.email
 ```
 
 - If both are set: proceed.
-- If missing and `gh` is authenticated: set them from `gh`:
+- If missing and `gh` is authenticated: set them using `GH_USER` from Step 1a:
 
 ```bash
-git config user.name "$(gh api user --jq .login)"
-git config user.email "$(gh api user --jq '.email // (.login + "@users.noreply.github.com")')"
+git config user.name "GH_USER"
+git config user.email "GH_USER@users.noreply.github.com"
 ```
 
 - If missing and `gh` is NOT authenticated: set reasonable defaults so commits
@@ -190,15 +198,15 @@ authenticated GitHub username from Step 1a). When the `gh repo list` command
 below returns a fork, its `nameWithOwner` will be in `FORK_OWNER/REPO` format —
 use the owner portion. If the user creates a new fork, `FORK_OWNER` = `GH_USER`.
 
-**Check if a fork already exists:**
+**Check if the user has a fork:**
 
 ```bash
-gh repo list --fork --json nameWithOwner,parent --jq '.[] | select(.parent.nameWithOwner == "UPSTREAM_OWNER/REPO") | .nameWithOwner'
+gh repo list GH_USER --fork --json nameWithOwner,parent --jq '.[] | select(.parent.nameWithOwner == "UPSTREAM_OWNER/REPO") | .nameWithOwner'
 ```
 
-Replace `UPSTREAM_OWNER/REPO` with the value from Step 1d. The output will be
-`FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record the owner portion as
-`FORK_OWNER`.
+Replace `GH_USER` and `UPSTREAM_OWNER/REPO` with the values from Steps 1a and
+1d. The output will be `FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record
+the owner portion as `FORK_OWNER`.
 
 **If a fork exists:** use it — skip ahead to Step 3.
 
