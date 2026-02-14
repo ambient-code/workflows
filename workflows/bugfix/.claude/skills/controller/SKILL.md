@@ -10,16 +10,29 @@ executing phases and handling transitions between them.
 
 ## Phases
 
-| # | Phase | Command | Skill Path |
-| --- | --- | --- | --- |
-| 1 | Assess | `/assess` | `.claude/skills/assess/SKILL.md` |
-| 2 | Reproduce | `/reproduce` | `.claude/skills/reproduce/SKILL.md` |
-| 3 | Diagnose | `/diagnose` | `.claude/skills/diagnose/SKILL.md` |
-| 4 | Fix | `/fix` | `.claude/skills/fix/SKILL.md` |
-| 5 | Test | `/test` | `.claude/skills/test/SKILL.md` |
-| 6 | Review | `/review` | `.claude/skills/review/SKILL.md` |
-| 7 | Document | `/document` | `.claude/skills/document/SKILL.md` |
-| 8 | PR | `/pr` | `.claude/skills/pr/SKILL.md` |
+1. **Assess** (`/assess`) — `.claude/skills/assess/SKILL.md`
+   Read the bug report, summarize your understanding, identify gaps, propose a plan.
+
+2. **Reproduce** (`/reproduce`) — `.claude/skills/reproduce/SKILL.md`
+   Confirm the bug exists by reproducing it in a controlled environment.
+
+3. **Diagnose** (`/diagnose`) — `.claude/skills/diagnose/SKILL.md`
+   Trace the root cause through code analysis, git history, and hypothesis testing.
+
+4. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
+   Implement the minimal code change that resolves the root cause.
+
+5. **Test** (`/test`) — `.claude/skills/test/SKILL.md`
+   Write regression tests, run the full suite, and verify the fix holds.
+
+6. **Review** (`/review`) — `.claude/skills/review/SKILL.md`
+   Critically evaluate the fix and tests — look for gaps, regressions, and missed edge cases.
+
+7. **Document** (`/document`) — `.claude/skills/document/SKILL.md`
+   Create release notes, changelog entries, and team communications.
+
+8. **PR** (`/pr`) — `.claude/skills/pr/SKILL.md`
+   Push the branch to a fork and create a draft pull request.
 
 Phases can be skipped or reordered at the user's discretion.
 
@@ -71,8 +84,8 @@ Consider what just happened, then offer options that make sense:
 
 **Ending early** — not every bug needs the full pipeline:
 
-- A trivial fix might go straight from `/fix` → `/test` → `/pr`
-- If the user already has their own PR process, they may stop after `/test`
+- A trivial fix might go straight from `/fix` → `/test` → `/review` → `/pr`
+- If the user already has their own PR process, they may stop after `/review`
 
 ### How to Present Options
 
@@ -85,25 +98,6 @@ Other options:
 - /review — critically evaluate the fix before testing
 - /pr — if you've already tested manually and want to submit
 ```
-
-The user picks. If they say "yes" or "go ahead," execute your top
-recommendation.
-
-## How to Interpret User Responses
-
-After presenting phase results, the user will respond. Match their intent:
-
-| User says | Action |
-| --- | --- |
-| A phase name or command (e.g., "reproduce", `/fix`) | Execute that phase |
-| "yes", "let's do that", "proceed", "go ahead", etc. | Execute the phase you just **recommended** |
-| "skip to X" | Execute phase X, skipping intermediate phases |
-| A question or request for clarification | Answer it — do not execute anything |
-| New information about the bug | Incorporate it, then ask what to do next |
-
-**Critical:** When the user agrees to proceed, execute the phase you
-**recommended** — not the phase that just finished. Do NOT re-run the
-current phase.
 
 ## Starting the Workflow
 
