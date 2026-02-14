@@ -38,7 +38,7 @@ Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
 
-1. **Announce** which phase you are about to run
+1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase."
 2. **Read** the skill file from the table above
 3. **Execute** the skill's steps directly — the user should see your progress
 4. When the skill is done, it will tell you to report your findings.
