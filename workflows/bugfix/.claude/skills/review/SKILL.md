@@ -190,10 +190,8 @@ are insufficient, say what's missing.
 ## When This Phase Is Done
 
 Your verdict and recommendation (from Step 5) serve as the phase summary.
-The recommended next step depends on the verdict:
+Include the recommended next step based on the verdict:
 
 - **Verdict A:** `/fix` — the fix needs rework
 - **Verdict B:** Additional testing (manual or automated) as described
 - **Verdict C:** `/document` and/or `/pr`
-
-**Stop and wait for the user to decide what to do next.**

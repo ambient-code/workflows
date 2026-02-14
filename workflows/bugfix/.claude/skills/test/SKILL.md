@@ -149,14 +149,9 @@ If tests fail unexpectedly:
 
 ## When This Phase Is Done
 
-Summarize the test results to the user:
+Report your results:
 
 - How many tests were added and their results
 - Whether the full test suite passes
 - Where the verification report was written
-
-**Recommended next step:** `/review` to critically evaluate the fix and tests before proceeding, `/document` if you're confident in the results, or `/pr` if you are ready to make a pull request to GitHub.
-
-**Present these recommendations if they make sense in this case.**
-
-**Stop and wait for the user to decide what to do next.**
+- Recommended next step (`/review`, `/document`, or `/pr` depending on confidence)

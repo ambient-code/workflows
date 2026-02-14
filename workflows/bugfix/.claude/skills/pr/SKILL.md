@@ -488,10 +488,10 @@ or network access is completely blocked:
 
 ## When This Phase Is Done
 
-Summarize the PR to the user:
+Report your results:
 
 - PR URL (or manual creation URL if automated creation wasn't possible)
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
-This is typically the final phase. **Stop and wait for the user.**
+This is typically the final phase.

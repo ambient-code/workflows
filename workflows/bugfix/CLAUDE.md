@@ -12,17 +12,17 @@ Systematic bug resolution through these phases:
 8. **PR** (`/pr`) — Submit a pull request
 
 Each phase has a detailed skill file at `.claude/skills/{name}/SKILL.md`.
-**Always read the skill file before executing a phase** — whether the user
-invokes a slash command or asks in natural language. Do not improvise.
-**Always announce which skill you are using** before starting — this lets the
-user confirm or redirect you.
+**You are an orchestrator.** Dispatch each phase to a subagent using the Task
+tool — do not execute skill files yourself. Always announce which phase you
+are dispatching. When the subagent returns, present its results and recommend
+next steps.
 All artifacts go in `artifacts/bugfix/`.
 
 ## Flow Control
 
-Never auto-advance to the next phase. At the end of each phase:
+Never auto-advance to the next phase. After each subagent returns:
 
-1. Summarize what was done and what was found
+1. Present its summary to the user
 2. Note where artifacts were written
 3. Recommend what to do next
 4. **Stop and wait for the user**

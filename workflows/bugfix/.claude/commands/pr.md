@@ -1,14 +1,18 @@
 # /pr
 
-Read the file .claude/skills/pr/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Do NOT improvise or skip steps. The skill handles authentication, forking, and
-PR creation in a specific order designed to avoid common failures. Follow the
+The subagent should read and follow `.claude/skills/pr/SKILL.md` step by step.
+
+**Important:** The PR skill has a specific multi-step process for handling
+authentication, forking, and PR creation. The subagent must follow the
 numbered steps exactly as written.
 
-User-provided context for this PR:
+Provide the subagent with:
+
+- The project repository path
+- What was fixed, tested, and documented
+- Paths to all prior artifacts (especially `artifacts/bugfix/docs/`)
+- The issue number and repository details
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (conversation history,
-prior artifacts, workspace state) when filling in the PR details.

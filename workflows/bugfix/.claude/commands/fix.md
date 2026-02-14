@@ -1,10 +1,13 @@
 # /fix
 
-Read the file .claude/skills/fix/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Implement a bug fix for the following:
+The subagent should read and follow `.claude/skills/fix/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The root cause analysis and diagnosis findings
+- Paths to prior artifacts (assessment, reproduction, analysis)
+- Any constraints or preferences the user has mentioned
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-root cause analysis, existing artifacts, and workspace state).

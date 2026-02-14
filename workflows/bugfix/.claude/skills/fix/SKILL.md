@@ -119,16 +119,10 @@ If implementation encounters issues:
 
 ## When This Phase Is Done
 
-Summarize the implementation to the user:
+Report your results:
 
 - What was changed (files, approach)
 - What quality checks passed
 - Where the implementation notes were written
-
-**Recommended next step:** `/test` to verify the fix and create regression tests.
-
-Remaining phases after test: `/review` (optional but recommended) → `/document` → `/pr`.
-
-**Present these recommendations if they make sense in this case.**
-
-**Stop and wait for the user to decide what to do next.**
+- Recommended next step (typically `/test`)
+- Remaining phases after test: `/review` (optional) → `/document` → `/pr`

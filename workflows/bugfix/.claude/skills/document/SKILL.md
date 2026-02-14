@@ -160,11 +160,8 @@ If prior artifacts are missing (reproduction report, root cause analysis, implem
 
 ## When This Phase Is Done
 
-Summarize the documentation to the user:
+Report your results:
 
 - What documents were created and where
 - Any gaps flagged for later
-
-**Recommended next step:** `/pr` to create the pull request.
-
-**Stop and wait for the user to decide what to do next.**
+- Recommended next step (typically `/pr`)

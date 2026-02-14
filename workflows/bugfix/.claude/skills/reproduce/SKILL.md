@@ -84,12 +84,9 @@ If reproduction fails:
 
 ## When This Phase Is Done
 
-Summarize your findings to the user:
+Report your findings:
 
 - Whether the bug was successfully reproduced
 - Key observations and environment details
 - Where the reproduction report was written
-
-**Recommended next step:** `/diagnose` to identify the root cause.
-
-**Stop and wait for the user to decide what to do next.**
+- Recommended next step (typically `/diagnose`, or `/fix` if root cause is obvious)

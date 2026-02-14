@@ -1,10 +1,12 @@
 # /assess
 
-Read the file .claude/skills/assess/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Review and assess the following bug report:
+The subagent should read and follow `.claude/skills/assess/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The bug report or issue context below
+- Any relevant prior findings from the session
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-existing artifacts, and workspace state).

@@ -107,12 +107,9 @@ If root cause cannot be determined:
 
 ## When This Phase Is Done
 
-Summarize your findings to the user:
+Report your findings:
 
 - The identified root cause (or top hypotheses if uncertain)
 - Confidence level in the diagnosis
 - Where the root cause analysis was written
-
-**Recommended next step:** `/fix` to implement the solution.
-
-**Stop and wait for the user to decide what to do next.**
+- Recommended next step (typically `/fix`)

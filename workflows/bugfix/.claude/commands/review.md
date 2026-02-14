@@ -1,10 +1,13 @@
 # /review
 
-Read the file .claude/skills/review/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Critically evaluate the bug fix and its tests:
+The subagent should read and follow `.claude/skills/review/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The fix implementation details and test results
+- Paths to all prior artifacts
+- The original bug report for context
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-reproduction reports, existing artifacts, and workspace state).

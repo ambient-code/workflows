@@ -139,7 +139,7 @@ missing critical details, say that too.
 
 ## When This Phase Is Done
 
-Summarize your assessment to the user:
+Report your assessment:
 
 - Your understanding of the bug
 - Key gaps or risks identified

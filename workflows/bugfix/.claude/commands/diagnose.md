@@ -1,10 +1,13 @@
 # /diagnose
 
-Read the file .claude/skills/diagnose/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Perform root cause analysis on the following:
+The subagent should read and follow `.claude/skills/diagnose/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The bug report and reproduction findings
+- Paths to prior artifacts (assessment, reproduction report)
+- Any hypotheses or observations from earlier phases
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-reproduction reports, existing artifacts, and workspace state).

@@ -1,11 +1,13 @@
 # /document
 
-Read the file .claude/skills/document/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Create comprehensive documentation for the following bug fix:
+The subagent should read and follow `.claude/skills/document/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The full bug fix story: report, diagnosis, fix, test results
+- Paths to all prior artifacts
+- The issue number and repository details
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-reproduction reports, root cause analysis, implementation notes, test results,
-and workspace state).

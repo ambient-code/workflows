@@ -1,10 +1,13 @@
 # /reproduce
 
-Read the file .claude/skills/reproduce/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Systematically reproduce and document the following bug:
+The subagent should read and follow `.claude/skills/reproduce/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- The bug report and assessment findings
+- Environment details and reproduction steps identified so far
+- Paths to any prior artifacts (e.g., `artifacts/bugfix/reports/`)
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-existing artifacts, and workspace state).

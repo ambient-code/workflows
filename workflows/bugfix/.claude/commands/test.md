@@ -1,10 +1,13 @@
 # /test
 
-Read the file .claude/skills/test/SKILL.md now and follow it step by step.
+Dispatch this phase to a subagent using the Task tool.
 
-Verify the bug fix and create regression tests for the following:
+The subagent should read and follow `.claude/skills/test/SKILL.md` step by step.
+
+Provide the subagent with:
+
+- What was fixed and how (implementation notes)
+- Paths to prior artifacts (assessment, analysis, fix notes)
+- The project's test framework and conventions
 
 $ARGUMENTS
-
-Combine these arguments with existing session context (prior conversation,
-implementation notes, existing artifacts, and workspace state).
