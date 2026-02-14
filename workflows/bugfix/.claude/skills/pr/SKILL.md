@@ -201,11 +201,17 @@ use the owner portion. If the user creates a new fork, `FORK_OWNER` = `GH_USER`.
 **Check if the user has a fork:**
 
 ```bash
-gh repo list GH_USER --fork --json nameWithOwner,parent --jq '.[] | select(.parent.nameWithOwner == "UPSTREAM_OWNER/REPO") | .nameWithOwner'
+gh repo list GH_USER --fork --json nameWithOwner,parent --jq '.[] | select(.parent.owner.login == "UPSTREAM_OWNER" and .parent.name == "REPO") | .nameWithOwner'
 ```
 
-Replace `GH_USER` and `UPSTREAM_OWNER/REPO` with the values from Steps 1a and
-1d. The output will be `FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record
+Replace `GH_USER` with the value from Step 1a. Replace `UPSTREAM_OWNER` and
+`REPO` with the two parts of `UPSTREAM_OWNER/REPO` from Step 1d (e.g., for
+`acme/myproject`, use `UPSTREAM_OWNER` = `acme` and `REPO` = `myproject`).
+
+**Note:** The GitHub API returns the parent as separate `.parent.owner.login`
+and `.parent.name` fields — it does NOT have a `.parent.nameWithOwner` field.
+
+The output will be `FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record
 the owner portion as `FORK_OWNER`.
 
 **If a fork exists:** use it — skip ahead to Step 3.
