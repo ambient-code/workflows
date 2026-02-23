@@ -57,6 +57,19 @@ Stop and request human guidance when:
 - A security or compliance concern arises
 - Confidence on the proposed solution is below 80%
 
+## Workspace Navigation
+
+Project repositories are located under `/workspace/repos/`. When a user says
+"the repo is at `repos/platform/`", resolve it immediately as
+`/workspace/repos/platform` — do not try relative paths first or run
+exploratory `ls`/`pwd` commands to locate it.
+
+Standard paths:
+
+- Repos: `/workspace/repos/{repo-name}/`
+- Artifacts: `/workspace/artifacts/bugfix/` (runtime output)
+- File uploads: `/workspace/file-uploads/`
+
 ## Working With the Project
 
 This workflow gets deployed into different projects. Respect the target project:
