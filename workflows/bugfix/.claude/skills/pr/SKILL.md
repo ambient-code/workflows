@@ -267,6 +267,79 @@ git remote add fork https://github.com/FORK_OWNER/REPO.git
 Use `fork` as the remote name. If `origin` already points to the fork, that's
 fine — just use `origin` in subsequent commands instead of `fork`.
 
+### Step 3a: Check Fork Sync Status
+
+**Why this check exists:** When a user's fork is out of sync with upstream,
+particularly when upstream has added workflow files (`.github/workflows/`) that
+don't exist in the fork, pushing a feature branch can fail with a confusing
+error like:
+
+```
+refusing to allow a GitHub App to create or update workflow `.github/workflows/foo.yml` without `workflows` permission
+```
+
+This happens because GitHub sees the push as "creating" workflow files (from
+the fork's perspective), even though the feature branch simply includes files
+that already exist in upstream. The GitHub App typically doesn't have `workflows`
+permission by design.
+
+**Detection:**
+
+```bash
+# Fetch the fork to get its current state
+git fetch fork
+
+# Check for workflow file differences between fork/main and local main
+# (local main should be synced with upstream)
+WORKFLOW_DIFF=$(git diff fork/main..main -- .github/workflows/ --name-only 2>/dev/null)
+
+if [ -n "$WORKFLOW_DIFF" ]; then
+  echo "Fork is out of sync with upstream (workflow files differ):"
+  echo "$WORKFLOW_DIFF"
+fi
+```
+
+**If workflow differences exist — attempt automated sync:**
+
+```bash
+# Try to sync the fork's main branch with upstream
+gh api --method POST repos/FORK_OWNER/REPO/merge-upstream -f branch=main
+```
+
+- If this succeeds: fetch the fork again (`git fetch fork`) and continue
+- If this fails (usually due to workflow permission restrictions): guide the
+  user to sync manually
+
+**If automated sync fails — STOP and guide the user:**
+
+> Your fork is out of sync with upstream and contains workflow file differences.
+> This prevents me from pushing because GitHub would interpret it as creating
+> workflow files, which requires special permissions.
+>
+> Please sync your fork by either:
+>
+> 1. **Via GitHub web UI:** Visit https://github.com/FORK_OWNER/REPO and click
+>    "Sync fork" → "Update branch"
+>
+> 2. **Via command line** (may require `gh auth refresh -s workflow` first):
+>    ```
+>    gh repo sync FORK_OWNER/REPO --branch main
+>    ```
+>
+> Let me know when the sync is complete and I'll continue with the PR.
+
+**After user confirms sync — rebase and continue:**
+
+```bash
+# Fetch the updated fork
+git fetch fork
+
+# Rebase the feature branch onto the synced fork/main
+git rebase fork/main
+
+# Continue to Step 4 (create branch)
+```
+
 ### Step 4: Create a Branch
 
 ```bash
@@ -499,6 +572,7 @@ or network access is completely blocked:
 | --- | --- | --- |
 | `gh auth status` fails | Not logged in | User must run `gh auth login` |
 | `git push` permission denied | Pushing to upstream, not fork | Verify remote URL, switch to fork |
+| `git push` "refusing to allow...without `workflows` permission" | Fork out of sync with upstream (missing workflow files) | Run Step 3a: sync fork, then rebase and retry push |
 | `gh pr create` 403 / "Resource not accessible" | Bot installed on user, not upstream org | Give user the compare URL (Rung 2) — this is expected |
 | `gh repo fork` fails | Sandbox blocks forking | User creates fork manually |
 | Branch not found on remote | Push failed silently | Re-run `git push`, check network |
