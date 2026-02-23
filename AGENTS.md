@@ -362,7 +362,17 @@ git push --force
 
 Squashing commits can happen at merge time if the repository is configured for it.
 
----
+### Sandbox Restrictions
+
+The following commands require `required_permissions: ['all']` to run outside the sandbox:
+
+| Command | Reason |
+|---------|--------|
+| `pip install .` | Needs network access and system SSL certificates |
+| `git push` | Needs network access and system SSL certificates |
+| `gh pr create` | Needs network access and system SSL certificates |
+
+> **Note:** The sandbox blocks access to files in `.gitignore` (like `.env`).
 
 ## Common Mistakes to Avoid
 

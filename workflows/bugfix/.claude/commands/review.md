@@ -1,7 +1,7 @@
-# /document
+# /review
 
 Read `.claude/skills/controller/SKILL.md` and follow it.
 
-Dispatch the **document** phase. Context:
+Dispatch the **review** phase. Context:
 
 $ARGUMENTS
