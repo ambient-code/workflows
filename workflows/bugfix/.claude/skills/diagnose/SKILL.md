@@ -58,11 +58,7 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 
 - Identify all code paths affected by this bug
 - Assess severity and blast radius
-- **Actively search for similar bug patterns across the codebase**: grep for
-  the same function calls, API patterns, or logic structures involved in the
-  root cause. Do not assume the bug is isolated to the single location you
-  found first. Document every similar instance and note whether each requires
-  a fix.
+- Determine if similar bugs exist elsewhere (pattern analysis)
 - Check if other features are impacted
 - Evaluate if fix requires breaking changes
 
@@ -72,11 +68,6 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 - Consider multiple solution approaches
 - Assess trade-offs (simplicity vs performance vs maintainability)
 - Document why the recommended approach is best
-- **Distinguish validated conclusions from assumptions.** If a design choice
-  (e.g., a timeout value, polling interval, cache TTL) cannot be justified by
-  measurement or data from the codebase, label it explicitly as an assumption
-  and recommend how to validate it (e.g., "assumed 2s is acceptable — should
-  be confirmed against observed latency data").
 
 ## Output
 

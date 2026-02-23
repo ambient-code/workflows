@@ -43,12 +43,7 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 
 ### Step 4: Address Related Code
 
-- **Search the codebase for the same pattern** that caused this bug before
-  narrowing to a single fix. Use grep/search to find other callers, similar
-  logic, or duplicated patterns. A bug that exists in one place often exists
-  in others.
-- Fix all similar instances identified — not just the one that surfaced in
-  the report
+- Fix similar patterns identified in root cause analysis
 - Update affected function signatures if necessary
 - Ensure consistency across the codebase
 - Consider adding defensive programming where appropriate

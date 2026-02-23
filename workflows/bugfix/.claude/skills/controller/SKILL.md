@@ -68,9 +68,7 @@ After presenting results, consider what just happened, then offer options that m
 
 **Skipping forward** — sometimes phases aren't needed:
 
-- Assess found a likely root cause → still offer `/reproduce` as the
-  recommended next step; offer `/diagnose` as an alternative only if
-  reproduction artifacts already exist
+- Assess found an obvious root cause → offer `/fix` alongside `/reproduce`
 - The bug is a test coverage gap, not a runtime issue → skip `/reproduce`
   and `/diagnose`
 - Review says everything is solid → offer `/pr` directly
@@ -113,13 +111,3 @@ directly — don't force them through earlier phases.
 - **Never auto-advance.** Always wait for the user between phases.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.
-- **Do not skip REPRODUCE before FIX on a fresh bug report.** When a user
-  provides a bug description and no prior reproduction or diagnosis exists,
-  follow the full flow: `assess → reproduce → diagnose → fix`. Jumping
-  directly to `/fix` based on an assumption about the root cause leads to
-  incomplete fixes. Only skip REPRODUCE when: (a) the user explicitly
-  requests it, or (b) prior reproduction artifacts already exist and you
-  have reviewed them.
-- **Treat "seems obvious" as a reason to reproduce, not to skip.** If the
-  root cause appears clear from the description, reproduce it anyway — this
-  validates the assumption before code is changed.

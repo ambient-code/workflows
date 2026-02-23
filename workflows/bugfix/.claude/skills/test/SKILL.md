@@ -129,17 +129,6 @@ npm run test:coverage               # With coverage
 npm test -- --watch                 # Watch mode
 ```
 
-## Critical Rules
-
-- **Actually run the tests.** Do not write "Manual Testing Recommended" as a
-  substitute for executing test commands. Run the commands, capture their
-  output, and report the real results. If the test environment is unavailable
-  or tests cannot be run for a concrete reason, state that explicitly as a
-  blocker — do not silently skip testing and consider the phase complete.
-- **Document actual results, not intentions.** The verification report must
-  contain real pass/fail counts and command output, not a plan for what someone
-  should test in the future.
-
 ## Best Practices
 
 - **Regression tests are mandatory** — every bug fix must include a test that would catch recurrence
