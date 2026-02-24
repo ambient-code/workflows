@@ -35,6 +35,16 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 
 ### Step 3: Implement Core Fix
 
+**Before writing code, find implementation patterns:**
+
+- Search the codebase for similar implementations (use Grep/Glob to find examples)
+- Check the project's documentation or README for technical patterns
+- Use WebSearch for official library/framework documentation when needed
+- **NEVER reference pattern files that don't exist** — verify paths with Read before citing them
+- If unsure about API usage, search for existing usage in the codebase first
+
+**Then implement the fix:**
+
 - Write the minimal code necessary to fix the bug
 - Follow project coding standards and conventions
 - Add appropriate error handling and validation
@@ -47,6 +57,13 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Update affected function signatures if necessary
 - Ensure consistency across the codebase
 - Consider adding defensive programming where appropriate
+
+**Be thorough with edge cases:**
+
+- List all possible states/phases/conditions explicitly (don't rely on default/fallthrough)
+- Consider feature interactions (e.g., if implementing polling + pagination, verify the interaction)
+- When dealing with enums or state machines, check the codebase for the complete set of values
+- Make implicit assumptions explicit in code comments
 
 ### Step 5: Update Documentation
 
