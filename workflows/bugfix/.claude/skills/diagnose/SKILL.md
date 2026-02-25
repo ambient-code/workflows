@@ -69,6 +69,13 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 - Assess trade-offs (simplicity vs performance vs maintainability)
 - Document why the recommended approach is best
 
+**When analyzing technical requirements:**
+
+- Identify the complete set of states/phases/conditions (search the codebase for enum definitions, constants, or similar usage)
+- Consider how features interact (e.g., polling + pagination, caching + real-time updates)
+- Verify assumptions against actual codebase usage patterns
+- Flag any technical details that need validation during implementation
+
 ## Output
 
 Create `artifacts/bugfix/analysis/root-cause.md` containing:
