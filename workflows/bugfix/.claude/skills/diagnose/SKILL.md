@@ -65,6 +65,7 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 ### Step 7: Solution Approach
 
 - Recommend fix strategy based on root cause
+- **Check `.claude/patterns/` for proven implementation patterns** when the fix involves specific libraries or frameworks
 - Consider multiple solution approaches
 - Assess trade-offs (simplicity vs performance vs maintainability)
 - Document why the recommended approach is best
@@ -94,6 +95,7 @@ Create `artifacts/bugfix/analysis/root-cause.md` containing:
 - **ALWAYS** use `file:line` notation when referencing code for easy navigation
 - If you identify multiple root causes, create separate analysis sections
 - Consider similar patterns elsewhere in the codebase
+- **Reference `.claude/patterns/` when diagnosing issues with specific libraries** (e.g., React Query, database ORMs) to understand correct usage patterns
 - Amber will automatically engage specialists (Stella for complex debugging, sre-reliability-engineer for infrastructure, etc.) based on the bug's nature and complexity
 
 ## Error Handling

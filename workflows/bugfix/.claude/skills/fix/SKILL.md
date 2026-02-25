@@ -81,6 +81,13 @@ Create `artifacts/bugfix/fixes/implementation-notes.md` containing:
 
 ## Project-Specific Guidelines
 
+**Technology-Specific Patterns:**
+
+Before implementing fixes involving specific libraries or frameworks, check `.claude/patterns/` for proven implementation patterns:
+
+- **React Query**: See `.claude/patterns/react-query-usage.md` for patterns on polling, pagination, mutations, and optimistic updates
+- More patterns will be added as needed
+
 **For Go projects:**
 
 - Run: `gofmt -w .` then `golangci-lint run`
