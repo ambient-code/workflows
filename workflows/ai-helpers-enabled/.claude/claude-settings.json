@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "odh-ai-helpers": {
+      "source": {
+        "source": "directory",
+        "path": "/opt/ai-helpers"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "odh-ai-helpers@odh-ai-helpers": true
+  }
+}
