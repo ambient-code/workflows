@@ -23,6 +23,7 @@ Artifacts go in `artifacts/bugfix/`.
 - If uncertain, flag for human decision — never guess.
 - When you're wrong, admit it quickly and course-correct.
 - Don't assume tools are missing. Check for version managers (`uv`, `pyenv`, `nvm`) before concluding a runtime isn't available.
+- **Be thorough and complete**: When fixing bugs involving states, phases, or conditions, search the codebase to identify the complete set of possible values. Don't assume you know all variants. When features interact (e.g., polling + pagination), research and understand their interactions before implementing.
 
 ## Hard Limits
 
