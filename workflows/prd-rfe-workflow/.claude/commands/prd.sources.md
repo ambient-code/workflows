@@ -19,7 +19,7 @@ This command generates a comprehensive list of all data sources that informed th
 1. **Load Context**:
    - Read `prd.md` (required)
    - Read `discovery.md` (if exists)
-   - Read `requirements.md` (if exists)
+   - Read `rfe.md` (if exists)
    - Read `prd-review-report.md` (if exists)
    - Scan for any references, citations, or links in these documents
 
@@ -61,7 +61,7 @@ This command generates a comprehensive list of all data sources that informed th
 
    ### Internal Documentation
    - Internal wiki pages
-   - Previous PRDs or RFEs referenced
+   - Previous PRDs or Features referenced
    - Design documents or specifications
    - Architecture documents
    - Process documentation

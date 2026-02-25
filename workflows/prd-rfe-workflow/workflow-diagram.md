@@ -5,7 +5,7 @@ flowchart LR
     UF[(User-uploaded files)] -.-> A
     CODE[(Code)] -.-> A
     
-    A[prd.discover] --> REQ[prd.requirements]
+    A[prd.discover] --> REQ[prd.rfe]
     REQ --> review_loop
     
     subgraph review_loop["PRD Review Loop"]
@@ -14,15 +14,15 @@ flowchart LR
         D --> B
     end
     
-    subgraph rfe_loop["RFE Review Loop"]
-        E[rfe.breakdown] --> F[rfe.review]
-        F --> G[rfe.revise]
+    subgraph feature_loop["Feature Review Loop"]
+        E[feature.breakdown] --> F[feature.review]
+        F --> G[feature.revise]
         G --> E
     end
-    
-    review_loop --> rfe_loop
-    rfe_loop --> PRIO[rfe.prioritize]
-    PRIO --> H[rfe.submit]
+
+    review_loop --> feature_loop
+    feature_loop --> PRIO[feature.prioritize]
+    PRIO --> H[feature.submit]
     H -.-> JIRA[Jira]
     
     style GD fill:#999,stroke:#666,color:#fff

@@ -1,11 +1,11 @@
-# RFE Template - Red Hat Format
+# Feature Template - Red Hat Format
 
-This template provides a standardized format for creating Request for Enhancement (RFE) documents that conform to Red Hat's RFE structure. Use this template when generating individual RFE files.
+This template provides a standardized format for creating Feature documents that conform to Red Hat's Feature structure. Use this template when generating individual Feature files.
 
 ## Template Structure
 
 ```markdown
-# RFE-XXX: [Title]
+# Feature-XXX: [Title]
 
 **Status**: Not Started
 **Priority**: [High/Medium/Low]
@@ -39,7 +39,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ## Problem Statement
 
-[Clearly articulate the problem(s) this RFE addresses. Focus on user pain points and business impact. Use specific, measurable language when possible.]
+[Clearly articulate the problem(s) this Feature addresses. Focus on user pain points and business impact. Use specific, measurable language when possible.]
 
 [Target User Persona] needs [capability/visibility/functionality] because [reason/impact]. The current [system/UI/feature] provides no indication of:
 
@@ -71,7 +71,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ### UI/UX Enhancements
 
-[If this RFE involves user interface changes, describe the enhancements in detail.]
+[If this Feature involves user interface changes, describe the enhancements in detail.]
 
 #### New Components/Columns/Views
 - **[Component Name]**: [Description]
@@ -125,7 +125,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ## Acceptance Criteria
 
-[Testable, measurable criteria that define when this RFE is complete. Use checkboxes for tracking.]
+[Testable, measurable criteria that define when this Feature is complete. Use checkboxes for tracking.]
 
 - [ ] [Criterion 1 - specific and testable]
 - [ ] [Criterion 2 - specific and testable]
@@ -140,19 +140,19 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 - [Deliverable 3]
 
 ### Out of Scope
-- [What is explicitly NOT included in this RFE]
-- [Future enhancements that may be separate RFEs]
+- [What is explicitly NOT included in this Feature]
+- [Future enhancements that may be separate Features]
 - [Related features that are handled elsewhere]
 
 ## Dependencies
 
-### Prerequisite RFEs
-- RFE-XXX: [What must be completed first]
-- RFE-YYY: [What must be completed first]
+### Prerequisite Features
+- Feature-XXX: [What must be completed first]
+- Feature-YYY: [What must be completed first]
 
-### Blocks RFEs
-- RFE-AAA: [What depends on this RFE]
-- RFE-BBB: [What depends on this RFE]
+### Blocks Features
+- Feature-AAA: [What depends on this Feature]
+- Feature-BBB: [What depends on this Feature]
 
 ### External Dependencies
 - [System/API/Service]: [Description of dependency]
@@ -161,7 +161,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ## Success Criteria
 
-[Measurable outcomes that indicate this RFE has achieved its goals. Should align with the problem statement and user stories.]
+[Measurable outcomes that indicate this Feature has achieved its goals. Should align with the problem statement and user stories.]
 
 - **Visibility**: [What users can now see/understand]
 - **Performance**: [Performance requirements or improvements]
@@ -218,7 +218,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ## Definition of Done
 
-[Checklist of items that must be complete for this RFE to be considered done]
+[Checklist of items that must be complete for this Feature to be considered done]
 
 - [ ] All acceptance criteria met
 - [ ] Unit tests written and passing
@@ -233,7 +233,7 @@ Example: "Extend the [component/feature] to [action], providing [target users] w
 
 ## Usage Guidelines
 
-When generating RFEs using this template:
+When generating Features using this template:
 
 1. **Summary**: Keep it concise (1-3 sentences). Focus on what's being extended/added and who benefits.
 
@@ -249,16 +249,15 @@ When generating RFEs using this template:
 
 7. **Success Criteria**: Should align with problem statement and be measurable.
 
-8. **Adapt as Needed**: Not all sections are required for every RFE. Omit sections that don't apply, but maintain the overall structure.
+8. **Adapt as Needed**: Not all sections are required for every Feature. Omit sections that don't apply, but maintain the overall structure.
 
 ## Extensions
 
 This template can be extended with additional sections as needed:
 
 - **Design Mockups**: Links to Figma, Miro, or design artifacts
-- **API Specifications**: If the RFE involves API changes
+- **API Specifications**: If the Feature involves API changes
 - **Database Schema**: If data model changes are required
 - **Migration Plan**: If existing data needs to be migrated
 - **Rollout Strategy**: If phased rollout is planned
 - **Monitoring & Observability**: What metrics/logs will be added
-

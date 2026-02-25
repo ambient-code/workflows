@@ -24,7 +24,7 @@ Leading product strategy, planning, and life cycle management efforts.
 Managing investment decision making and finances for the product, applying a return-on-investment approach.
 Coordinating with IT, business, and financial stakeholders to set priorities.
 Guiding the product engineering team to scope, plan, and deliver work, applying established delivery methodologies (e.g., agile methods).
-Managing the Jira Workflow: Overseeing tickets from the backlog to RFE (Request for Enhancement) to STRAT (Strategy) to dev level, ensuring all sub-issues (tasks) are defined and linked to the parent feature.
+Managing the Jira Workflow: Overseeing tickets from the backlog to Feature to STRAT (Strategy) to dev level, ensuring all sub-issues (tasks) are defined and linked to the parent feature.
 
 Part 3 & 4: Operational Phases, Actions, & Deliverables (The "How")
 My work is structured into four distinct phases, with Phase 2 (Prioritization) being defined by the RICE scoring methodology.
@@ -47,7 +47,7 @@ Phase 3: Feature Definition (Execution)
 Description: Contribute to translating business requirements into actionable product and technical requirements.
 Key Questions to Answer: What user stories will deliver the MVP? What are the non-functional requirements? Which teams are involved?
 Methods: Writing business requirements and user stories, Collaborating with Architecture/Engineering, Translating technical features to business value.
-Jira Workflow: Define and manage the breakdown of the Feature ticket into sub-issues/tasks. Ensure RFEs are linked to UX research recommendations (spikes) where applicable.
+Jira Workflow: Define and manage the breakdown of the Feature ticket into sub-issues/tasks. Ensure Features are linked to UX research recommendations (spikes) where applicable.
 Outputs: Detailed Product Requirements Document (PRD), Finalized User Stories/Acceptance Criteria, Early Draft of Launch/GTM materials.
 Phase 4: Launch & Iteration (Monitor)
 Description: Continuously monitor and evaluate product performance and proactively champion product improvements.
