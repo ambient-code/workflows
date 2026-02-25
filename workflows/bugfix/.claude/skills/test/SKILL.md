@@ -33,6 +33,8 @@ Systematically verify fixes and build test coverage that prevents recurrence. Yo
 - Test edge cases identified during diagnosis
 - Test error handling and validation logic
 - Aim for high coverage of changed code
+- **Test all states/phases/conditions**: If the fix involves state-dependent logic, ensure tests cover ALL possible states, not just the common ones. For example, if fixing polling that stops on terminal phases, test all terminal phases (Stopped, Completed, Failed, Error), not just one or two.
+- **Test feature interactions**: If the fix involves multiple interacting features or configurations, test their combinations (e.g., pagination + polling together, not separately)
 
 ### Step 3: Integration Testing
 

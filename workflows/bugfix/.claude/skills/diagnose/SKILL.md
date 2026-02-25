@@ -61,6 +61,11 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 - Determine if similar bugs exist elsewhere (pattern analysis)
 - Check if other features are impacted
 - Evaluate if fix requires breaking changes
+- **Enumerate complete state space**: If the bug involves states, phases, or conditions, search the codebase to identify ALL possible values. For example:
+  - If fixing session lifecycle bugs, find all session phases (not just the ones in the bug report)
+  - If fixing error handling, identify all error types/codes used in the system
+  - If fixing state machines, document all possible states and transitions
+- **Document feature interactions**: If the bug involves multiple interacting features or configurations, research and document how they interact (e.g., how pagination config affects polling behavior)
 
 ### Step 7: Solution Approach
 
