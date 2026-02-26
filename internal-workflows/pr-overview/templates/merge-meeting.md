@@ -1,7 +1,7 @@
 # Merge Meeting — {{REPO}}
 
 **Date:** {{DATE}}
-**Open PRs:** {{TOTAL_PRS}} | **Clean (no blockers):** {{CLEAN_COUNT}}
+**Open PRs:** {{TOTAL_PRS}} | **Clean (no blockers):** {{CLEAN_COUNT}} | **In Merge Queue:** {{MILESTONE_COUNT}}
 
 > PRs ranked by merge readiness — fewest blockers first, then by priority signals and size.
 
@@ -34,6 +34,7 @@
 ## Summary
 
 - **Ready now:** {{CLEAN_COUNT}} PRs with zero blockers
+- **In Merge Queue:** {{MILESTONE_COUNT}} PRs
 - **One blocker away:** {{NEAR_COUNT}} PRs
 - **Needs work:** {{WORK_COUNT}} PRs
 - **Recommend closing:** {{CLOSE_COUNT}} PRs (stale / superseded)

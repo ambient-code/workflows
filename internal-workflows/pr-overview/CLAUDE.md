@@ -146,9 +146,61 @@ Use the optional `{{NOTES}}` field for:
 - Diff overlap warnings with recommended merge order ("Overlaps with #789 on `handler.go:45-62` — merge this one first (smaller diff)")
 - Superseded warnings ("May be superseded by #101")
 
+## Phase 3: Milestone Management
+
+After generating the merge meeting report, manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run.
+
+### Step 1: Find or create the milestone
+
+```bash
+# Find existing milestone
+MILESTONE_NUM=$(gh api "repos/{owner}/{repo}/milestones" --jq '.[] | select(.title=="Merge Queue") | .number')
+
+# If not found, create it
+if [ -z "$MILESTONE_NUM" ]; then
+  MILESTONE_NUM=$(gh api "repos/{owner}/{repo}/milestones" \
+    -f title="Merge Queue" \
+    -f state=open \
+    -f description="Auto-managed by PR Overview workflow" \
+    --jq '.number')
+fi
+```
+
+### Step 2: Sync PRs to the milestone
+
+Determine which PRs belong in the milestone based on the analysis from Phase 2:
+
+- **Add** PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`): `gh pr edit {number} --repo {owner/repo} --milestone "Merge Queue"`
+- **Remove** PRs currently in the milestone that now have blockers, are drafts, or have been merged/closed: `gh pr edit {number} --repo {owner/repo} --milestone ""`
+- **Never** add draft PRs to the milestone.
+
+Use the `milestone` field from the fetched PR data (already included in `gh pr view` output) to identify which PRs are currently in the milestone without extra API calls.
+
+### Step 3: Update milestone description with the report
+
+Overwrite the milestone description with the full merge meeting report, prefixed with a timestamp:
+
+```bash
+REPORT=$(cat artifacts/pr-review/merge-meeting-{date}.md)
+TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+DESCRIPTION="**Last updated:** ${TIMESTAMP}
+
+${REPORT}"
+
+gh api -X PATCH "repos/{owner}/{repo}/milestones/${MILESTONE_NUM}" \
+  -f description="${DESCRIPTION}"
+```
+
+### Milestone constraints
+
+- The milestone has **no due date** — it persists as a running bucket.
+- Do **NOT** close the milestone — it is reused across runs.
+- The description is **overwritten** each run (not appended).
+- Always include the `Last updated` timestamp at the top of the description.
+
 ## Important Notes
 
-- Do NOT approve or merge any PRs. This workflow is read-only.
+- Do NOT approve or merge any PRs. This workflow is read-only (except for milestone management).
 - If the fetch script fails, report the error clearly and stop.
 - Always include the PR URL as a link: `[#123](url)`.
 - Size format: `X files (+A/-D)` where A = additions, D = deletions.
