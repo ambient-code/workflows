@@ -17,8 +17,7 @@
 |---------|--------|--------|
 | CI | {{CI_STATUS}} | {{CI_DETAIL}} |
 | Merge conflicts | {{CONFLICT_STATUS}} | {{CONFLICT_DETAIL}} |
-| Human review comments | {{HUMAN_REVIEW_STATUS}} | {{HUMAN_REVIEW_DETAIL}} |
-| Agent review issues | {{AGENT_REVIEW_STATUS}} | {{AGENT_REVIEW_DETAIL}} |
+| Review comments | {{REVIEW_STATUS}} | {{REVIEW_DETAIL}} |
 | Jira hygiene | {{JIRA_STATUS}} | {{JIRA_DETAIL}} |
 | Staleness | {{STALE_STATUS}} | {{STALE_DETAIL}} |
 | Diff overlap risk | {{OVERLAP_STATUS}} | {{OVERLAP_DETAIL}} |

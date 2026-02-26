@@ -27,7 +27,7 @@ artifacts/pr-review/merge-meeting-{YYYY-MM-DD}.md
 
 ## Blocker Checklist
 
-For **every** open PR, evaluate each of these six categories. Each is either clear or a blocker.
+For **every** open PR, evaluate each of these five categories. Each is either clear or a blocker.
 
 ### 1. CI
 
@@ -41,20 +41,14 @@ For **every** open PR, evaluate each of these six categories. Each is either cle
 - **Clear:** `MERGEABLE`.
 - **Blocker:** `CONFLICTING` or `UNKNOWN`. Note which files overlap with other open PRs if detectable.
 
-### 3. Human Review Comments
+### 3. Review Comments
 
-- Inspect `review_comments` and `reviews`.
-- Filter to human-authored comments only (exclude bot accounts).
-- **Clear:** no unresolved human review threads.
-- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case").
+- Inspect **all** data sources: `reviews`, `review_comments`, and `comments`.
+- Consider all authors equally — do not attempt to distinguish bots from humans.
+- **Clear:** no unresolved review threads and no outstanding change requests (`CHANGES_REQUESTED` review state without a subsequent `APPROVED`).
+- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved.
 
-### 4. Agent Review Issues
-
-- Inspect reviews and comments from bot accounts (automated code review agents).
-- **Clear:** latest agent review has no critical issues, or issues are clearly hallucinated.
-- **Blocker:** list genuine critical issues flagged by the agent. When in doubt, note the concern but mark as informational rather than blocking.
-
-### 5. Jira Hygiene
+### 4. Jira Hygiene
 
 - Scan the PR body and branch name (`headRefName`) for Jira ticket patterns:
   - Primary: `RHOAIENG-\d+`
@@ -62,7 +56,7 @@ For **every** open PR, evaluate each of these six categories. Each is either cle
 - **Clear:** at least one Jira reference found.
 - **Blocker:** no Jira reference detected. This is a hygiene issue — it should not prevent merging on its own but must be flagged.
 
-### 6. Staleness
+### 5. Staleness
 
 - **Clear:** `updatedAt` is within the last 30 days and the PR is not superseded.
 - **Blocker:** flag if any of the following are true:
