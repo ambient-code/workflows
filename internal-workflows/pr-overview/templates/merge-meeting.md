@@ -11,7 +11,7 @@
 
 ## {{RANK}}. [#{{NUMBER}}]({{URL}}) — {{TITLE}}
 
-**Author:** {{AUTHOR}} | **Size:** {{SIZE}} | **Updated:** {{UPDATED}} | **Branch:** `{{BRANCH}}`
+**Author:** {{AUTHOR}} | **Size:** {{SIZE}} | **Updated:** {{UPDATED}} | **Analyzed:** {{LAST_ANALYZED}} | **Branch:** `{{BRANCH}}`
 
 | Blocker | Status | Detail |
 |---------|--------|--------|
