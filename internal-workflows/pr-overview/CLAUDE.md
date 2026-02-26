@@ -17,13 +17,79 @@ This produces:
 - `artifacts/pr-review/index.json` — summary of all open PRs
 - `artifacts/pr-review/prs/{number}.json` — detailed data per PR
 
-### Phase 2: Analyze and Generate Report
+### Data Structure Reference
 
-Read the fetched data, evaluate every PR against the blocker checklist below, and fill in the template at `templates/merge-meeting.md`. Write the final report to:
+Each `prs/{number}.json` file has this top-level structure:
 
+```json
+{
+  "pr": {
+    "number": 123,
+    "title": "...",
+    "author": { "login": "username" },
+    "isDraft": false,
+    "mergeable": "MERGEABLE",
+    "updatedAt": "2026-02-20T...",
+    "headRefName": "feat/branch-name",
+    "body": "PR description text...",
+    "additions": 42,
+    "deletions": 18,
+    "changedFiles": 5,
+    "labels": [{ "name": "bug" }],
+    "milestone": { "title": "Merge Queue" },
+    "statusCheckRollup": [...],
+    "comments": [
+      {
+        "author": { "login": "github-actions" },
+        "body": "# Amber Code Review\n### Blocker Issues\n..."
+      }
+    ],
+    "reviewDecision": "APPROVED",
+    "files": [...]
+  },
+  "reviews": [
+    {
+      "user": { "login": "reviewer", "type": "User" },
+      "state": "CHANGES_REQUESTED",
+      "body": "..."
+    }
+  ],
+  "review_comments": [
+    {
+      "user": { "login": "reviewer", "type": "User" },
+      "body": "inline comment text..."
+    }
+  ],
+  "check_runs": [
+    {
+      "name": "ci/build",
+      "conclusion": "success",
+      "status": "completed"
+    }
+  ],
+  "diff_files": [
+    {
+      "filename": "path/to/file.go",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 3,
+      "patch": "@@ -1,5 +1,7 @@\n..."
+    }
+  ]
+}
 ```
-artifacts/pr-review/merge-meeting-{YYYY-MM-DD}.md
-```
+
+**Critical data path notes:**
+
+- **PR comments** (including bot reviews like Amber Code Review) are at `pr.comments[]` — NOT at the top-level `reviews` or `review_comments`.
+- **Reviews** (approve/request changes) are at the top-level `reviews[]` with `user.login` and `state` fields. The `user.type` field is `"User"` for humans and `"Bot"` for GitHub Apps.
+- **Inline review comments** (code-level discussion threads) are at the top-level `review_comments[]` with `user.login`.
+- **CI status** is in both `pr.statusCheckRollup[]` and the top-level `check_runs[]`. Use `check_runs` as the primary source — it has the `conclusion` field.
+- **Milestone** is at `pr.milestone` — will be `null` or `{ "title": "..." }`.
+
+### Phase 2: Analyze PRs
+
+Read the fetched data and evaluate every PR against the blocker checklist below. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
 ## Blocker Checklist
 
@@ -43,10 +109,16 @@ For **every** open PR, evaluate each of these five categories. Each is either cl
 
 ### 3. Review Comments
 
-- Inspect **all** data sources: `reviews`, `review_comments`, and `comments`.
-- Consider all authors equally — do not attempt to distinguish bots from humans.
-- **Clear:** no unresolved review threads and no outstanding change requests (`CHANGES_REQUESTED` review state without a subsequent `APPROVED`).
-- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved.
+Inspect **all three** data sources — they contain different types of feedback:
+
+- `reviews[]` — formal review verdicts (APPROVED, CHANGES_REQUESTED, COMMENTED). Check the `state` field.
+- `review_comments[]` — inline code-level discussion threads.
+- `pr.comments[]` — general PR comments, **including bot reviews** (e.g., Amber Code Review from `github-actions`). Look for structured review comments with severity sections (Blocker Issues, Critical Issues, etc.).
+
+Consider all authors equally — do not attempt to distinguish bots from humans.
+
+- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no genuine blocker/critical issues in bot review comments.
+- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. Flag genuine blocker/critical issues from bot reviews — but only if the issue is real (e.g., compile errors, security issues, data races), not speculative.
 
 ### 4. Jira Hygiene
 
@@ -142,7 +214,9 @@ Use the optional `{{NOTES}}` field for:
 
 ## Phase 3: Milestone Management
 
-After generating the merge meeting report, manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run. The milestone description stores the report and per-PR analysis timestamps, which are used as state on subsequent runs.
+Manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run. The milestone description stores the report and per-PR analysis timestamps, which are used as state on subsequent runs.
+
+**Important: complete milestone sync BEFORE writing the final report** so that `{{MILESTONE_COUNT}}` in the report is accurate.
 
 ### Step 1: Find or create the milestone
 
@@ -185,9 +259,15 @@ Based on the analysis results (whether fresh or carried forward):
 
 Use the `milestone` field from the fetched PR data (already included in `gh pr view` output) to identify which PRs are currently in the milestone without extra API calls.
 
-### Step 4: Update milestone description with the report
+After syncing, count the PRs now in the milestone — this is `{{MILESTONE_COUNT}}` for the report.
 
-Overwrite the milestone description with the full merge meeting report, prefixed with a timestamp:
+### Step 4: Write the final report
+
+Now that milestone sync is complete and `{{MILESTONE_COUNT}}` is known, write the final report to `artifacts/pr-review/merge-meeting-{YYYY-MM-DD}.md` using the template.
+
+### Step 5: Update milestone description with the report
+
+Overwrite the milestone description with the final report, prefixed with a timestamp:
 
 ```bash
 REPORT=$(cat artifacts/pr-review/merge-meeting-{date}.md)
