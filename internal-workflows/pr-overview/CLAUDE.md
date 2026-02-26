@@ -142,7 +142,7 @@ Use the optional `{{NOTES}}` field for:
 
 ## Phase 3: Milestone Management
 
-After generating the merge meeting report, manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run.
+After generating the merge meeting report, manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run. The milestone description stores the report and per-PR analysis timestamps, which are used as state on subsequent runs.
 
 ### Step 1: Find or create the milestone
 
@@ -160,9 +160,24 @@ if [ -z "$MILESTONE_NUM" ]; then
 fi
 ```
 
-### Step 2: Sync PRs to the milestone
+### Step 2: Load previous state from milestone
 
-Determine which PRs belong in the milestone based on the analysis from Phase 2:
+If the milestone already has a description containing a previous report, parse it to extract per-PR `{{LAST_ANALYZED}}` timestamps. Build a map of `PR number → last analyzed timestamp`.
+
+Compare each open PR's `updatedAt` against its `lastAnalyzed`:
+
+| Condition | Action |
+|-----------|--------|
+| **New PR** — not in previous report | Full analysis (all blockers) |
+| **Updated PR** — `updatedAt > lastAnalyzed` | Full re-analysis; set `{{LAST_ANALYZED}}` to now |
+| **Unchanged PR** — `updatedAt <= lastAnalyzed` | Carry forward previous blocker results, but **always re-check CI and mergeable** (these are volatile and change without updating `updatedAt`) |
+| **Gone PR** — in previous report but now merged/closed | Remove from milestone, drop from report |
+
+Set `{{LAST_ANALYZED}}` to the current UTC timestamp for any PR that was fully analyzed or re-analyzed. For unchanged PRs, keep the previous `{{LAST_ANALYZED}}` value.
+
+### Step 3: Sync PRs to the milestone
+
+Based on the analysis results (whether fresh or carried forward):
 
 - **Add** PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`): `gh pr edit {number} --repo {owner/repo} --milestone "Merge Queue"`
 - **Remove** PRs currently in the milestone that now have blockers, are drafts, or have been merged/closed: `gh pr edit {number} --repo {owner/repo} --milestone ""`
@@ -170,7 +185,7 @@ Determine which PRs belong in the milestone based on the analysis from Phase 2:
 
 Use the `milestone` field from the fetched PR data (already included in `gh pr view` output) to identify which PRs are currently in the milestone without extra API calls.
 
-### Step 3: Update milestone description with the report
+### Step 4: Update milestone description with the report
 
 Overwrite the milestone description with the full merge meeting report, prefixed with a timestamp:
 
@@ -191,6 +206,7 @@ gh api -X PATCH "repos/{owner}/{repo}/milestones/${MILESTONE_NUM}" \
 - Do **NOT** close the milestone — it is reused across runs.
 - The description is **overwritten** each run (not appended).
 - Always include the `Last updated` timestamp at the top of the description.
+- The per-PR `{{LAST_ANALYZED}}` timestamps are the mechanism for incremental analysis — they must be preserved accurately.
 
 ## Important Notes
 
