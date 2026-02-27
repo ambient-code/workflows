@@ -64,6 +64,8 @@ REPO_NAME="${REPO##*/}"
 
 # ── Setup output dirs ────────────────────────────────────────────────────────
 mkdir -p "${OUTPUT_DIR}/prs"
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "Fetching open PRs for ${REPO}..."
 
@@ -86,45 +88,49 @@ if [[ "$PR_COUNT" -eq 0 ]]; then
 fi
 
 # ── Phase 2: Fetch per-PR detail ─────────────────────────────────────────────
+# Note: reviewRequests is excluded — it requires read:org scope which runners
+# typically lack.
 PR_NUMBERS=$(jq -r '.[].number' "${OUTPUT_DIR}/index.json")
+DETAIL_FIELDS="number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,url,state,additions,deletions,changedFiles,mergeable,body,reviewDecision,statusCheckRollup,comments,assignees,milestone,files"
 
 for PR_NUM in $PR_NUMBERS; do
     echo "  Fetching PR #${PR_NUM}..."
 
-    # Get detailed PR data
-    PR_DETAIL=$(gh pr view "$PR_NUM" \
+    # Write each API response to a temp file to avoid "argument list too long"
+    # errors when PRs have large bodies or many comments.
+
+    gh pr view "$PR_NUM" \
         --repo "$REPO" \
-        --json "number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,url,state,additions,deletions,changedFiles,mergeable,body,reviewDecision,statusCheckRollup,comments,reviewRequests,assignees,milestone,files" \
-        2>/dev/null || echo '{}')
+        --json "$DETAIL_FIELDS" \
+        2>/dev/null > "${TMPDIR}/pr.json" || echo '{}' > "${TMPDIR}/pr.json"
 
-    # Get reviews via API
-    REVIEWS=$(gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/reviews" \
-        --paginate 2>/dev/null || echo '[]')
+    gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/reviews" \
+        --paginate 2>/dev/null > "${TMPDIR}/reviews.json" || echo '[]' > "${TMPDIR}/reviews.json"
 
-    # Get review comments (threads)
-    REVIEW_COMMENTS=$(gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/comments" \
-        --paginate 2>/dev/null || echo '[]')
+    gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/comments" \
+        --paginate 2>/dev/null > "${TMPDIR}/review_comments.json" || echo '[]' > "${TMPDIR}/review_comments.json"
 
     # Get latest commit SHA for check runs
-    HEAD_SHA=$(echo "$PR_DETAIL" | jq -r '.statusCheckRollup // [] | if length > 0 then .[0].commit.oid // empty else empty end' 2>/dev/null || true)
+    HEAD_SHA=$(jq -r '.statusCheckRollup // [] | if length > 0 then .[0].commit.oid // empty else empty end' "${TMPDIR}/pr.json" 2>/dev/null || true)
 
-    CHECK_RUNS='[]'
+    echo '[]' > "${TMPDIR}/check_runs.json"
     if [[ -n "$HEAD_SHA" ]]; then
-        CHECK_RUNS=$(gh api "repos/${OWNER}/${REPO_NAME}/commits/${HEAD_SHA}/check-runs" \
-            --paginate 2>/dev/null | jq '.check_runs // []' 2>/dev/null || echo '[]')
+        gh api "repos/${OWNER}/${REPO_NAME}/commits/${HEAD_SHA}/check-runs" \
+            --paginate 2>/dev/null \
+            | jq '.check_runs // []' > "${TMPDIR}/check_runs.json" 2>/dev/null || echo '[]' > "${TMPDIR}/check_runs.json"
     fi
 
-    # Combine into a single JSON file (diff_files added in Phase 3 for mergeable PRs)
+    # Combine via file-based slurp (avoids --argjson size limits)
     jq -n \
-        --argjson pr "$PR_DETAIL" \
-        --argjson reviews "$REVIEWS" \
-        --argjson review_comments "$REVIEW_COMMENTS" \
-        --argjson check_runs "$CHECK_RUNS" \
+        --slurpfile pr "${TMPDIR}/pr.json" \
+        --slurpfile reviews "${TMPDIR}/reviews.json" \
+        --slurpfile review_comments "${TMPDIR}/review_comments.json" \
+        --slurpfile check_runs "${TMPDIR}/check_runs.json" \
         '{
-            pr: $pr,
-            reviews: $reviews,
-            review_comments: $review_comments,
-            check_runs: $check_runs,
+            pr: $pr[0],
+            reviews: $reviews[0],
+            review_comments: $review_comments[0],
+            check_runs: $check_runs[0],
             diff_files: []
         }' > "${OUTPUT_DIR}/prs/${PR_NUM}.json"
 
@@ -147,7 +153,7 @@ if [[ "$MERGEABLE_COUNT" -gt 0 ]]; then
     for PR_NUM in $MERGEABLE_PRS; do
         echo "  Fetching diffs for PR #${PR_NUM}..."
 
-        DIFF_FILES=$(gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/files" \
+        gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/files" \
             --paginate 2>/dev/null \
             | jq '[.[] | {
                 filename: .filename,
@@ -155,10 +161,10 @@ if [[ "$MERGEABLE_COUNT" -gt 0 ]]; then
                 additions: .additions,
                 deletions: .deletions,
                 patch: .patch
-            }]' 2>/dev/null || echo '[]')
+            }]' > "${TMPDIR}/diff_files.json" 2>/dev/null || echo '[]' > "${TMPDIR}/diff_files.json"
 
-        # Merge diff_files into the existing PR JSON
-        jq --argjson diff_files "$DIFF_FILES" '.diff_files = $diff_files' \
+        # Merge diff_files into the existing PR JSON via file-based slurp
+        jq --slurpfile diff_files "${TMPDIR}/diff_files.json" '.diff_files = $diff_files[0]' \
             "${OUTPUT_DIR}/prs/${PR_NUM}.json" > "${OUTPUT_DIR}/prs/${PR_NUM}.json.tmp" \
             && mv "${OUTPUT_DIR}/prs/${PR_NUM}.json.tmp" "${OUTPUT_DIR}/prs/${PR_NUM}.json"
 
