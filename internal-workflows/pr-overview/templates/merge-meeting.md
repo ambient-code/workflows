@@ -3,22 +3,20 @@
 **Date:** {{DATE}}
 **Open PRs:** {{TOTAL_PRS}} | **Clean (no blockers):** {{CLEAN_COUNT}} | **In Merge Queue:** {{MILESTONE_COUNT}}
 
----
+### At a Glance
 
-## Recommended Merge Order
-
-{{MERGE_ORDER}}
+{{AT_A_GLANCE}}
 
 ---
 
 ## Clean PRs ({{CLEAN_COUNT}})
 
-> These PRs have zero blockers and are ready to merge.
+> Ready to merge — listed in recommended merge order (smallest and least conflicting first).
 
-| # | PR | Author | Size | Updated | Jira | Overlap |
-|---|---|---|---|---|---|---|
+| # | PR | Author | Size | Updated | Notes |
+|---|---|---|---|---|---|
 {{#each CLEAN_PR_ROWS}}
-| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{JIRA_STATUS}} | {{OVERLAP_STATUS}} |
+| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{NOTES}} |
 {{/each}}
 
 ---

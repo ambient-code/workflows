@@ -205,23 +205,34 @@ Use these in the **Status** column of the per-PR blocker table:
 
 ## Output Format
 
-Use the template at `templates/merge-meeting.md`. The template has three main sections — populate them from `analysis.json`:
+Use the template at `templates/merge-meeting.md`. Populate it from `analysis.json`.
 
-### 1. Recommended Merge Order
+### Dates — use relative format
 
-The analysis script outputs a `merge_order` array of PR numbers — the optimal sequence for merging clean PRs. Render this as a numbered list: `1. #616 — title (size)`. If there are overlap conflicts, note them: "merge before #692 (overlapping lines on sessions.go)".
+All dates in the report should be **relative**, not absolute. Convert `updatedAt` to human-friendly strings:
+- Today/yesterday: "today", "yesterday"
+- Within a week: "3 days ago"
+- Within a month: "2 weeks ago"
+- Older: "5 weeks ago", "2 months ago"
 
-### 2. Clean PRs (condensed table)
+### At a Glance
 
-PRs with `fail_count == 0` and `isDraft == false` go in the condensed summary table — one row per PR, no full blocker breakdown. Show: rank, PR link + title, author, size, updated date, jira status, overlap status.
+A 2-3 sentence summary at the top of the report. Mention how many PRs are ready, call out the top 3-4 smallest ones by number, and flag any notable concerns (e.g., "3 PRs recommended for closure", "6 PRs blocked by merge conflicts").
 
-### 3. PRs With Blockers (full tables)
+### Clean PRs (condensed table)
 
-PRs with `fail_count > 0` and `isDraft == false` get the full blocker table with all 6 rows. PRs flagged with `recommend_close == true` go in the "Recommend Closing" table instead — do **not** give them a full blocker breakdown.
+PRs with `fail_count == 0` and `isDraft == false` go in the condensed summary table — one row per PR. List them in the order from the `merge_order` array (smallest and least conflicting first). The **Notes** column should include merge-order-relevant info:
+- Overlap warnings: "merge before #692 (sessions.go overlap)"
+- Jira hygiene: "no Jira ref"
+- Otherwise: "—"
 
-### 4. Recommend Closing
+### PRs With Blockers (full tables)
 
-PRs flagged by the script (`recommend_close == true`) or that you judge to be abandoned. One-row-per-PR table with: PR link, author, reason, last updated. Use your judgment to add PRs the script missed — e.g., old drafts that technically updated recently but have no meaningful progress.
+PRs with `fail_count > 0` and `isDraft == false` get the full blocker table. PRs flagged with `recommend_close == true` go in the "Recommend Closing" table instead — do **not** give them a full blocker breakdown.
+
+### Recommend Closing
+
+PRs flagged by the script (`recommend_close == true`) or that you judge to be abandoned. One-row-per-PR table with: PR link, author, reason, last updated (relative). Use your judgment to add PRs the script missed.
 
 ### Status indicators
 
@@ -230,13 +241,6 @@ PRs flagged by the script (`recommend_close == true`) or that you judge to be ab
 | `pass` | No issues detected |
 | `FAIL` | Blocker — must be resolved before merge |
 | `warn` | Hygiene / informational issue — does not block merge |
-
-### Notes field
-
-Use the optional `{{NOTES}}` field for:
-- Dependency chain info ("Depends on #456 — merge that first")
-- Diff overlap warnings with recommended merge order
-- Superseded warnings ("May be superseded by #101")
 
 ## Phase 3: Milestone Management
 
