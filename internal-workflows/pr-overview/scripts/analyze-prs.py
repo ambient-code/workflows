@@ -21,26 +21,6 @@ from datetime import datetime, timedelta, timezone
 # ── Jira exclusions ──────────────────────────────────────────────────────────
 JIRA_EXCLUDE = {"CVE", "GHSA", "HTTP", "API", "URL", "PR", "WIP"}
 
-# ── Security blocker patterns ────────────────────────────────────────────────
-SECURITY_PATTERNS = [
-    "data race",
-    "race condition",
-    "nil pointer dereference",
-    "hardcoded token",
-    "hardcoded secret",
-    "hardcoded password",
-    "hardcoded credential",
-    "hardcoded api",
-    "prompt injection",
-    "sql injection",
-    "command injection",
-    "rbac bypass",
-    "auth bypass",
-    "compile error",
-    "does not compile",
-    "syntax error",
-    "missing ownerreference",
-]
 
 
 def parse_date(s):
@@ -64,12 +44,9 @@ def is_none_content(text):
     return first_word.lower() == "none"
 
 
-def is_genuine_blocker(text):
-    """Check if blocker/critical text describes a real security/compile issue."""
-    if is_none_content(text):
-        return False
-    text_lower = text.lower()
-    return any(pat in text_lower for pat in SECURITY_PATTERNS)
+def has_real_content(text):
+    """Check if blocker/critical section has substantive content (not 'None')."""
+    return not is_none_content(text)
 
 
 # ── Blocker checks ───────────────────────────────────────────────────────────
@@ -188,7 +165,7 @@ def check_reviews(reviews, review_comments, pr_comments):
         )
         if blocker_match:
             content = blocker_match.group(1).strip()
-            if not is_none_content(content) and is_genuine_blocker(content):
+            if has_real_content(content):
                 summary = content.split("\n")[0][:80]
                 issues.append(f"Bot blocker: {summary}")
 
@@ -200,7 +177,7 @@ def check_reviews(reviews, review_comments, pr_comments):
         )
         if critical_match:
             content = critical_match.group(1).strip()
-            if not is_none_content(content) and is_genuine_blocker(content):
+            if has_real_content(content):
                 summary = content.split("\n")[0][:80]
                 issues.append(f"Bot critical: {summary}")
 

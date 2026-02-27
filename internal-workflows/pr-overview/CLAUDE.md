@@ -128,8 +128,8 @@ Consider all authors equally — do not attempt to distinguish bots from humans.
 
 For bot review comments (e.g., Amber Code Review), only the **last** bot review comment reflects the current state. When checking blocker/critical sections, treat the content as "None" (no issues) if the section body is any variation of: `None.`, `_None._`, `**None**`, `None identified.`, or is empty. These are all equivalent to "no issues found."
 
-- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no genuine blocker/critical issues in the latest bot review comment.
-- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. Flag genuine blocker/critical issues from bot reviews — but only if the issue is specific and real (e.g., compile errors, security issues, data races), not speculative or vague.
+- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no blocker/critical issues in the latest bot review comment.
+- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. If the latest bot review has a Blocker or Critical section with real content (not "None"), treat it as a blocker — trust the bot's severity classification.
 
 ### 4. Jira Hygiene
 
