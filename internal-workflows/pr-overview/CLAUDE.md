@@ -8,14 +8,15 @@ Create these as your todo items at the start. Mark each one as you complete it �
 
 1. **Run fetch-prs.sh** — collect all PR data into artifacts/pr-review/
 2. **Run analyze-prs.py** — produce analysis.json with blocker statuses and merge order
-3. **Evaluate review comments** — spawn a sub-agent to read raw PR files for `needs_review` PRs and return verdicts
+3. **Evaluate review comments** — spawn parallel sub-agents to read review files for `needs_review` PRs and return verdicts
 4. **Run test-merge-order.sh** — locally merge clean PRs in order, record which merged/conflicted
 5. **Find or create Merge Queue milestone** — get the milestone number
 6. **Sync PRs to milestone** — add clean PRs, remove ones with blockers
 7. **Write the merge meeting report** — fill the template with all data including merge test results
 8. **Update milestone description** — overwrite with the final report
+9. **Self-evaluate execution** — read `.ambient/rubric.md` and score your own efficiency (5 criteria, 25 points total)
 
-**Do not stop after writing the report.** The milestone description update is the final deliverable.
+**Do not stop until all 9 items are done.** The self-evaluation is the final step.
 
 ## Workflow
 
