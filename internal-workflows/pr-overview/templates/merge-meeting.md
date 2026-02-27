@@ -11,13 +11,19 @@
 
 ## Clean PRs ({{CLEAN_COUNT}})
 
-> Ready to merge — listed in recommended merge order (smallest and least conflicting first).
+> Listed in recommended merge order. Merge test results show whether each PR actually merges cleanly against the PRs above it.
 
-| # | PR | Author | Size | Updated | Notes |
-|---|---|---|---|---|---|
+| # | PR | Author | Size | Updated | Merge Test | Notes |
+|---|---|---|---|---|---|---|
 {{#each CLEAN_PR_ROWS}}
-| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{NOTES}} |
+| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{MERGE_TEST}} | {{NOTES}} |
 {{/each}}
+
+{{#if CONFLICT_RESOLUTION}}
+### Resolution Strategy
+
+{{CONFLICT_RESOLUTION}}
+{{/if}}
 
 ---
 

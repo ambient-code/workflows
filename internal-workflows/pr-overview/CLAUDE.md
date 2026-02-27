@@ -228,10 +228,19 @@ A 2-3 sentence summary at the top of the report. Mention how many PRs are ready,
 
 ### Clean PRs (condensed table)
 
-PRs with `fail_count == 0` and `isDraft == false` go in the condensed summary table — one row per PR. List them in the order from the `merge_order` array (smallest and least conflicting first). The **Notes** column should include merge-order-relevant info:
-- Overlap warnings: "merge before #692 (sessions.go overlap)"
-- Jira hygiene: "no Jira ref"
-- Otherwise: "—"
+PRs with `fail_count == 0` and `isDraft == false` go in the condensed summary table — one row per PR. List them in the order from the `merge_order` array (smallest and least conflicting first).
+
+The **Merge Test** column shows the result from `test-merge-order.sh`:
+- `merged` — PR merged cleanly on top of all previous PRs in the sequence
+- `CONFLICT` — merge failed; note the conflicting file(s)
+- `not attempted` — skipped because an earlier PR conflicted
+
+The **Notes** column: overlap warnings, jira hygiene, or "—".
+
+After the table, if any PR conflicted, add a **Resolution Strategy** section explaining:
+- Which PRs conflicted and on which files
+- Who owns the conflicting PR and what they need to do (rebase on top of which PR)
+- Which downstream PRs are blocked and will need rebasing once the conflict is resolved
 
 ### PRs With Blockers (full tables)
 
@@ -249,7 +258,32 @@ PRs flagged by the script (`recommend_close == true`) or that you judge to be ab
 | `FAIL` | Blocker — must be resolved before merge |
 | `warn` | Hygiene / informational issue — does not block merge |
 
-## Phase 3: Milestone Management
+## Phase 3: Test Merge Order
+
+After analysis and review evaluation, test the merge order locally to verify clean PRs actually merge without conflicts:
+
+```bash
+MERGE_ORDER=$(python3 -c "import json; d=json.load(open('artifacts/pr-review/analysis.json')); print(' '.join(str(n) for n in d['merge_order']))")
+
+./scripts/test-merge-order.sh \
+  --repo <owner/repo> \
+  --repo-dir /workspace/repos/<repo-name> \
+  --prs "$MERGE_ORDER"
+```
+
+This creates a temporary local branch, fetches all PR refs (including forks via `refs/pull/*/head`), and merges each PR in sequence. It stops on the first conflict and reports results as JSON.
+
+**The script NEVER pushes to any remote.** The push URL is overridden to `/dev/null` and the tmp branch is deleted on exit.
+
+Use the results to:
+- Mark each clean PR's merge test result in the report table (merged / conflict / not attempted)
+- For conflicts: note the conflicting files and which PR pair caused it
+- For not-attempted PRs: explain why (blocked by earlier conflict)
+- Add a **resolution strategy** after the table explaining what needs to happen to unblock the remaining PRs (who needs to rebase, which file, what the conflict is about)
+
+If the merge test script is not available or fails, skip this phase and note it in the report.
+
+## Phase 4: Milestone Management
 
 Manage the **"Merge Queue"** milestone. This milestone acts as a living bucket of ready-to-merge PRs — no due date, never closed, updated every run. The milestone description stores the report and per-PR analysis timestamps, which are used as state on subsequent runs.
 
