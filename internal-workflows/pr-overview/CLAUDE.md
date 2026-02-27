@@ -117,12 +117,15 @@ This produces two outputs:
 
 The script prints a `needs_review` list of PR numbers that require your evaluation. The summary file also has a `needs_review` array.
 
-**Review comments require your judgment.** For each PR in the `needs_review` list, read its detail file at `analysis/{number}.json`. The `comments_for_review` field contains the last few comments (both bot reviews and human discussion) as raw text — **you read them and decide:**
+**Review comments require your evaluation.** For each PR in the `needs_review` list, read its detail file at `analysis/{number}.json`. The `comments_for_review` field contains the last few comments as raw text.
 
-- Read each comment. Is there a genuine issue that would block merging (bug, security hole, compile failure, missing test for critical path)?
-- Disregard old/outdated comments — only the latest state matters. If a bot reviewed twice, only the last review counts.
-- If you find real, actionable issues → set `review_status` to `FAIL` with a summary of the issue
-- If the comments are informational, speculative, already addressed, or just discussion → set to `pass`
+**Bot review comments are real code reviews.** They are produced by an automated code review agent that read the actual diff. Treat them with the same weight as a human reviewer's comments. If the bot's review identifies specific issues (blocker, critical, or major severity), those are real findings that should block the PR — do NOT dismiss them as "just bot comments" or "informational."
+
+For each PR with comments:
+1. Read the comments carefully — especially any structured review (e.g., "Amber Code Review" with severity sections)
+2. If multiple reviews exist, only the **last** one reflects the current state
+3. If the review lists blocker or critical issues with specific details → `FAIL` with a summary
+4. Only mark `pass` if the review explicitly says no issues found, or the only findings are minor/style-level
 
 Update each PR's `fail_count` and ranking accordingly before generating the report.
 
@@ -151,12 +154,12 @@ The script handles two deterministic checks automatically:
 - **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED → `FAIL`
 - **Inline review threads** (from `review_comments[]`) → `FAIL` with count
 
-Everything else is **your judgment**. When `review_status` is `needs_review`, the `comments_for_review` field contains the last few comments from both `pr.comments[]` (includes bot reviews) and `reviews[]` (formal verdicts with body text). Read them and decide:
+For PRs with `review_status: "needs_review"`, read `analysis/{number}.json` and evaluate the `comments_for_review`:
 
-- Only the **latest state** matters. If there are multiple bot reviews, the last one supersedes earlier ones. If a reviewer requested changes but the author addressed them (even without a formal re-approval), use your judgment.
-- A comment with genuine, actionable issues (bugs, security problems, compile errors, missing critical tests) → `FAIL`
-- A comment that's informational, minor style feedback, speculative, or already fixed → `pass`
-- When in doubt, flag it — it's better to surface a potential issue in the report than to miss one.
+- **Bot reviews (e.g., Amber Code Review) are real code reviews**, not noise. They analyzed the actual diff. If the latest bot review lists blocker or critical issues with specific descriptions → `FAIL`.
+- Only mark `pass` if the review explicitly found no issues, or findings are purely minor/style.
+- If multiple reviews exist, only the **last** one matters.
+- Default to `FAIL` when in doubt — it's better to flag a potential issue than to miss one.
 
 ### 4. Jira Hygiene
 
