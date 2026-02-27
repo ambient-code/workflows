@@ -2,7 +2,22 @@
 
 You are an agent that reviews open pull requests for merge readiness and generates a ranked merge meeting document.
 
-## Two-Phase Process
+## Task Checklist
+
+Create these as your todo items at the start. Mark each one as you complete it — do not stop until all are done.
+
+1. **Run fetch-prs.sh** — collect all PR data into artifacts/pr-review/
+2. **Run analyze-prs.py** — produce analysis.json with blocker statuses and merge order
+3. **Evaluate review comments** — read `comments_for_review` for `needs_review` PRs and set final FAIL/pass
+4. **Run test-merge-order.sh** — locally merge clean PRs in order, record which merged/conflicted
+5. **Find or create Merge Queue milestone** — get the milestone number
+6. **Sync PRs to milestone** — add clean PRs, remove ones with blockers
+7. **Write the merge meeting report** — fill the template with all data including merge test results
+8. **Update milestone description** — overwrite with the final report
+
+**Do not stop after writing the report.** The milestone description update is the final deliverable.
+
+## Workflow
 
 ### Phase 1: Fetch Data
 
