@@ -136,13 +136,14 @@ def check_reviews(reviews, review_comments, pr_comments):
             )
 
     # 3. Surface comments for agent evaluation (no parsing, no regex)
-    # Include last few comments from each source, trimmed to reasonable length.
+    # Bot reviews are structured markdown documents — blocker/critical sections
+    # can be 2000+ chars in. Keep enough for the agent to see the full review.
     comments_for_review = []
 
     # Last 3 PR comments (includes bot reviews and human discussion)
     for c in pr_comments[-3:]:
         author = c.get("author", {}).get("login", "")
-        body = (c.get("body", "") or "")[:500]
+        body = (c.get("body", "") or "")[:3000]
         if body.strip():
             comments_for_review.append({"author": author, "body": body})
 
@@ -150,7 +151,7 @@ def check_reviews(reviews, review_comments, pr_comments):
     for r in reviews[-3:]:
         login = r.get("user", {}).get("login", "")
         state = r.get("state", "")
-        body = (r.get("body", "") or "")[:300]
+        body = (r.get("body", "") or "")[:1500]
         if body.strip():
             comments_for_review.append({"author": login, "state": state, "body": body})
 
