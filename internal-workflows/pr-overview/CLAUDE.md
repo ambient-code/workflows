@@ -129,9 +129,14 @@ Split the `needs_review` list into batches of ~10 PRs each and spawn sub-agents 
 > 3. Each comment file has: `source` (pr_comment / review / inline_comment), `author`, `body`, and optionally `state` or `path`
 > 4. Stop reading once you've found the latest bot review (author contains "github-actions" or "[bot]") and have enough context to judge
 >
-> **Bot review comments (e.g., "Amber Code Review") are real code reviews.** They analyzed the actual diff. If the latest bot review lists Blocker or Critical issues with specific descriptions, that is a FAIL — do NOT dismiss them as informational.
+> **Bot review comments (e.g., "Amber Code Review") are real code reviews.** They analyzed the actual diff. Evaluate the latest bot review's findings by severity:
 >
-> For each PR, return: PR number, verdict (FAIL or pass), and a one-line summary of the issue (or "no issues" for pass). Only mark pass if the review explicitly found no issues or findings are purely minor/style.
+> - **Blocker issues** → always FAIL. These are showstoppers (compile errors, security vulnerabilities, data races, missing auth).
+> - **Critical issues** → FAIL, but explain WHY it's blocking in your summary. These are serious (incorrect logic, missing error handling on critical paths, breaking changes).
+> - **Major issues** → usually NOT a blocker. Only FAIL if the major issue would cause a real bug or regression in production. Style issues, naming concerns, missing docs, or "nice to have" improvements marked as Major are NOT blockers.
+> - **Minor issues** → never a blocker. Pass.
+>
+> For each PR, return: PR number, verdict (FAIL or pass), and a 1-2 sentence explanation of your reasoning. For FAIL, describe the specific issue. For pass, briefly note what was found and why it's not blocking (e.g., "Major: naming suggestion — style only, not blocking").
 >
 > PRs to evaluate: {batch list}
 
@@ -164,7 +169,13 @@ The script handles two deterministic checks automatically:
 - **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED → `FAIL`
 - **Inline review threads** (from `review_comments[]`) → `FAIL` with count
 
-For PRs with `review_status: "needs_review"`, spawn a sub-agent to read the raw PR data at `prs/{number}.json` and evaluate comments. The sub-agent reads the full untruncated data and returns a FAIL/pass verdict per PR. See Phase 2 instructions above for the sub-agent prompt.
+For PRs with `review_status: "needs_review"`, sub-agents evaluate the comments (see Phase 2). The key severity rules:
+
+- **Blocker/Critical** bot review findings → `FAIL` (with reasoning in the report)
+- **Major** findings → usually `pass` unless it's a real bug/regression risk. Most Majors are style, naming, or improvement suggestions — not merge blockers.
+- **Minor** findings → always `pass`
+
+When marking a PR as FAIL in the report, include a brief explanation of the actual issue so the team can act on it — don't just say "Bot review: FAIL".
 
 ### 4. Jira Hygiene
 
