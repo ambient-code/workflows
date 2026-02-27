@@ -117,9 +117,9 @@ This produces:
 
 The script prints a `needs_review` list of PR numbers that require your evaluation. The summary file also has a `needs_review` array.
 
-**Review comments require evaluation.** Use a **sub-agent** to evaluate the `needs_review` PRs so the raw comment data doesn't flood your main context.
+**Review comments require evaluation.** Use **parallel sub-agents** to evaluate the `needs_review` PRs so the raw comment data doesn't flood your main context and evaluation runs fast.
 
-Spawn a Task agent with this prompt pattern:
+Split the `needs_review` list into batches of ~10 PRs each and spawn sub-agents **in parallel** (multiple Task calls in a single message). Use this prompt for each batch:
 
 > Read the PR data files listed below and evaluate each PR's review comments. For each PR, read `artifacts/pr-review/prs/{number}.json` — look at `pr.comments[]` (includes bot reviews) and the top-level `reviews[]` (formal verdicts).
 >
@@ -127,11 +127,11 @@ Spawn a Task agent with this prompt pattern:
 >
 > For each PR, return: PR number, verdict (FAIL or pass), and a one-line summary of the issue (or "no issues" for pass). Only mark pass if the review explicitly found no issues or findings are purely minor/style.
 >
-> PRs to evaluate: {needs_review list}
+> PRs to evaluate: {batch list}
 
-The sub-agent reads the **full, untruncated** raw PR files directly — no truncation, no data loss.
+Each sub-agent reads the **full, untruncated** raw PR files directly — no data loss.
 
-Take the sub-agent's verdicts and update each PR's `review_status` and `fail_count` in your working data before proceeding.
+Collect all verdicts from the parallel sub-agents and update each PR's `review_status` and `fail_count` in your working data before proceeding.
 
 **Do not rewrite the analysis script.** If you need to adjust a deterministic check, edit `scripts/analyze-prs.py` directly. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
