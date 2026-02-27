@@ -236,13 +236,9 @@ Use these in the **Status** column of the per-PR blocker table:
 
 Use the template at `templates/merge-meeting.md`. Populate it from `analysis.json`.
 
-### Dates — use relative format
+### Dates
 
-All dates in the report should be **relative**, not absolute. Convert `updatedAt` to human-friendly strings:
-- Today/yesterday: "today", "yesterday"
-- Within a week: "3 days ago"
-- Within a month: "2 weeks ago"
-- Older: "5 weeks ago", "2 months ago"
+Use absolute dates in `YYYY-MM-DD` format (e.g., `2026-02-27`). Do not use relative dates like "2 days ago" — the report is stored in the milestone description and becomes stale.
 
 ### At a Glance
 
