@@ -360,11 +360,8 @@ Then sync:
   gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=${MILESTONE_NUM}
   ```
 - **Never** add draft PRs to the milestone.
-- **Never** add draft PRs to the milestone.
 
 **Note:** Use the REST API (`gh api -X PATCH .../issues/{number}`) instead of `gh pr edit --milestone`, which requires `read:org` scope that runners typically lack.
-
-Use the `milestone` field from the fetched PR data (already included in `gh pr view` output) to identify which PRs are currently in the milestone without extra API calls.
 
 After syncing, count the PRs now in the milestone — this is `{{MILESTONE_COUNT}}` for the report.
 
