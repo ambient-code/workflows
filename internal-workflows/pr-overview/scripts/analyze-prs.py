@@ -32,22 +32,6 @@ def parse_date(s):
         return None
 
 
-def is_none_content(text):
-    """Check if blocker/critical section content is effectively 'None'."""
-    text = text.strip()
-    if not text:
-        return True
-    clean = re.sub(r"[_*`]", "", text).strip()
-    if not clean:
-        return True
-    first_word = clean.split()[0].rstrip(".,;:!-\u2013\u2014") if clean.split() else ""
-    return first_word.lower() == "none"
-
-
-def has_real_content(text):
-    """Check if blocker/critical section has substantive content (not 'None')."""
-    return not is_none_content(text)
-
 
 # ── Blocker checks ───────────────────────────────────────────────────────────
 
@@ -120,7 +104,12 @@ def check_conflicts(mergeable):
 
 
 def check_reviews(reviews, review_comments, pr_comments):
-    """Evaluate review status across all three data sources."""
+    """Handle deterministic review checks only. Comment evaluation is the agent's job.
+
+    Returns (status, detail, comments_for_review).
+    - status/detail cover only CHANGES_REQUESTED and inline threads.
+    - comments_for_review is a list of comment excerpts for the agent to evaluate.
+    """
     issues = []
 
     # 1. Check for unresolved CHANGES_REQUESTED (handle DISMISSED)
@@ -146,40 +135,30 @@ def check_reviews(reviews, review_comments, pr_comments):
                 f"{len(review_comments)} inline threads on {', '.join(list(paths)[:2])}"
             )
 
-    # 3. Extract bot review content for agent evaluation
-    bot_review_excerpt = ""
-    bot_comments = [
-        c
-        for c in pr_comments
-        if "github-actions" in c.get("author", {}).get("login", "")
-        or "[bot]" in c.get("author", {}).get("login", "")
-    ]
-    if bot_comments:
-        last_bot = bot_comments[-1]
-        body = last_bot.get("body", "")
+    # 3. Surface comments for agent evaluation (no parsing, no regex)
+    # Include last few comments from each source, trimmed to reasonable length.
+    comments_for_review = []
 
-        # Extract blocker and critical sections for the agent to review
-        sections = []
-        for label in ["Blocker", "Critical"]:
-            match = re.search(
-                rf"(?:###?\s*)?(?:.\s*)?{label}\s*Issues?\s*\n(.*?)(?=\n###?\s|\Z)",
-                body,
-                re.DOTALL | re.IGNORECASE,
-            )
-            if match:
-                content = match.group(1).strip()
-                if has_real_content(content):
-                    # Keep first ~300 chars for agent context
-                    sections.append(f"[{label}] {content[:300]}")
+    # Last 3 PR comments (includes bot reviews and human discussion)
+    for c in pr_comments[-3:]:
+        author = c.get("author", {}).get("login", "")
+        body = (c.get("body", "") or "")[:500]
+        if body.strip():
+            comments_for_review.append({"author": author, "body": body})
 
-        if sections:
-            bot_review_excerpt = "\n".join(sections)
+    # Last 3 formal reviews with body content
+    for r in reviews[-3:]:
+        login = r.get("user", {}).get("login", "")
+        state = r.get("state", "")
+        body = (r.get("body", "") or "")[:300]
+        if body.strip():
+            comments_for_review.append({"author": login, "state": state, "body": body})
 
     if issues:
-        return "FAIL", "; ".join(issues), bot_review_excerpt
-    if bot_review_excerpt:
-        return "needs_review", "Bot flagged issues — agent to evaluate", bot_review_excerpt
-    return "pass", "\u2014", ""
+        return "FAIL", "; ".join(issues), comments_for_review
+    if comments_for_review:
+        return "needs_review", "Has comments — agent to evaluate", comments_for_review
+    return "pass", "\u2014", []
 
 
 def check_jira(title, body, branch):
@@ -429,7 +408,7 @@ def main():
         # Run blocker checks
         ci_status, ci_detail = check_ci(check_runs, status_rollup)
         conflict_status, conflict_detail = check_conflicts(mergeable)
-        review_status, review_detail, bot_review_excerpt = check_reviews(reviews, review_comments, pr_comments)
+        review_status, review_detail, comments_for_review = check_reviews(reviews, review_comments, pr_comments)
         jira_status, jira_detail = check_jira(title, body, branch)
         stale_status, stale_detail, staleness_data = check_staleness(updated_at, now)
 
@@ -482,7 +461,7 @@ def main():
                 "conflict_detail": conflict_detail,
                 "review_status": review_status,
                 "review_detail": review_detail,
-                "bot_review_excerpt": bot_review_excerpt,
+                "comments_for_review": comments_for_review,
                 "jira_status": jira_status,
                 "jira_detail": jira_detail,
                 "stale_status": stale_status,

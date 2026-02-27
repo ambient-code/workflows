@@ -97,13 +97,16 @@ python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
 
 This produces `artifacts/pr-review/analysis.json` with per-PR blocker statuses, rankings, and diff overlap data. The script handles deterministic checks (CI, conflicts, Jira, staleness, overlaps) automatically.
 
-**Review comments require your judgment.** PRs with `review_status: "needs_review"` have bot review comments with blocker/critical content that the script extracted but cannot evaluate. The `bot_review_excerpt` field contains the relevant text. Read it and decide:
-- If the issues are real and actionable → set `review_status` to `FAIL` in the report
-- If the issues are speculative, already addressed, or not actually blocking → set to `pass`
+**Review comments require your judgment.** PRs with `review_status: "needs_review"` have comments that need evaluation. The `comments_for_review` field contains the last few comments (both bot reviews and human discussion) as raw text — **you read them and decide:**
 
-Update the PR's `fail_count` and ranking accordingly before generating the report.
+- Read each comment. Is there a genuine issue that would block merging (bug, security hole, compile failure, missing test for critical path)?
+- Disregard old/outdated comments — only the latest state matters. If a bot reviewed twice, only the last review counts.
+- If you find real, actionable issues → set `review_status` to `FAIL` with a summary of the issue
+- If the comments are informational, speculative, already addressed, or just discussion → set to `pass`
 
-**Do not rewrite the analysis script.** If you need to adjust a specific check, edit `scripts/analyze-prs.py` directly. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
+Update each PR's `fail_count` and ranking accordingly before generating the report.
+
+**Do not rewrite the analysis script.** If you need to adjust a deterministic check, edit `scripts/analyze-prs.py` directly. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
 ## Blocker Checklist
 
@@ -124,19 +127,16 @@ For **every** open PR, evaluate each of these five categories. Each is either cl
 
 ### 3. Review Comments
 
-Inspect **all three** data sources — they contain different types of feedback:
+The script handles two deterministic checks automatically:
+- **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED → `FAIL`
+- **Inline review threads** (from `review_comments[]`) → `FAIL` with count
 
-- `reviews[]` — formal review verdicts (APPROVED, CHANGES_REQUESTED, COMMENTED). Check the `state` field.
-- `review_comments[]` — inline code-level discussion threads.
-- `pr.comments[]` — general PR comments, **including bot reviews** (e.g., Amber Code Review from `github-actions`). Look for structured review comments with severity sections (Blocker Issues, Critical Issues, etc.).
+Everything else is **your judgment**. When `review_status` is `needs_review`, the `comments_for_review` field contains the last few comments from both `pr.comments[]` (includes bot reviews) and `reviews[]` (formal verdicts with body text). Read them and decide:
 
-Consider all authors equally — do not attempt to distinguish bots from humans.
-
-For bot review comments (e.g., Amber Code Review), only the **last** bot review comment reflects the current state. When checking blocker/critical sections, treat the content as "None" (no issues) if the section body is any variation of: `None.`, `_None._`, `**None**`, `None identified.`, or is empty. These are all equivalent to "no issues found."
-
-- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED`, and no real issues in bot reviews.
-- **Blocker:** unresolved `CHANGES_REQUESTED`, inline threads, or genuine bot review issues.
-- **needs_review:** the script flags PRs where the bot review has blocker/critical content but cannot judge whether the issues are real. The `bot_review_excerpt` field has the text — **you** read it and decide FAIL or pass. Consider: is the issue specific and actionable? Would it cause a bug, security hole, or compile failure? Or is it speculative / already addressed?
+- Only the **latest state** matters. If there are multiple bot reviews, the last one supersedes earlier ones. If a reviewer requested changes but the author addressed them (even without a formal re-approval), use your judgment.
+- A comment with genuine, actionable issues (bugs, security problems, compile errors, missing critical tests) → `FAIL`
+- A comment that's informational, minor style feedback, speculative, or already fixed → `pass`
+- When in doubt, flag it — it's better to surface a potential issue in the report than to miss one.
 
 ### 4. Jira Hygiene
 
@@ -271,22 +271,7 @@ if [ -z "$MILESTONE_NUM" ]; then
 fi
 ```
 
-### Step 2: Load previous state from milestone
-
-If the milestone already has a description containing a previous report, parse it to extract per-PR `{{LAST_ANALYZED}}` timestamps. Build a map of `PR number → last analyzed timestamp`.
-
-Compare each open PR's `updatedAt` against its `lastAnalyzed`:
-
-| Condition | Action |
-|-----------|--------|
-| **New PR** — not in previous report | Full analysis (all blockers) |
-| **Updated PR** — `updatedAt > lastAnalyzed` | Full re-analysis; set `{{LAST_ANALYZED}}` to now |
-| **Unchanged PR** — `updatedAt <= lastAnalyzed` | Carry forward previous blocker results, but **always re-check CI and mergeable** (these are volatile and change without updating `updatedAt`) |
-| **Gone PR** — in previous report but now merged/closed | Remove from milestone, drop from report |
-
-Set `{{LAST_ANALYZED}}` to the current UTC timestamp for any PR that was fully analyzed or re-analyzed. For unchanged PRs, keep the previous `{{LAST_ANALYZED}}` value.
-
-### Step 3: Sync PRs to the milestone
+### Step 2: Sync PRs to the milestone
 
 Based on the analysis results (whether fresh or carried forward):
 
@@ -306,11 +291,11 @@ Use the `milestone` field from the fetched PR data (already included in `gh pr v
 
 After syncing, count the PRs now in the milestone — this is `{{MILESTONE_COUNT}}` for the report.
 
-### Step 4: Write the final report
+### Step 3: Write the final report
 
 Now that milestone sync is complete and `{{MILESTONE_COUNT}}` is known, write the final report to `artifacts/pr-review/merge-meeting-{YYYY-MM-DD}.md` using the template.
 
-### Step 5: Update milestone description with the report
+### Step 4: Update milestone description with the report
 
 Overwrite the milestone description with the final report, prefixed with a timestamp:
 
@@ -331,7 +316,6 @@ gh api -X PATCH "repos/{owner}/{repo}/milestones/${MILESTONE_NUM}" \
 - Do **NOT** close the milestone — it is reused across runs.
 - The description is **overwritten** each run (not appended).
 - Always include the `Last updated` timestamp at the top of the description.
-- The per-PR `{{LAST_ANALYZED}}` timestamps are the mechanism for incremental analysis — they must be preserved accurately.
 
 ## Important Notes
 
