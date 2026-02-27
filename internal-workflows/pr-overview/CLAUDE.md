@@ -117,14 +117,16 @@ Inspect **all three** data sources — they contain different types of feedback:
 
 Consider all authors equally — do not attempt to distinguish bots from humans.
 
-- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no genuine blocker/critical issues in bot review comments.
-- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. Flag genuine blocker/critical issues from bot reviews — but only if the issue is real (e.g., compile errors, security issues, data races), not speculative.
+For bot review comments (e.g., Amber Code Review), only the **last** bot review comment reflects the current state. When checking blocker/critical sections, treat the content as "None" (no issues) if the section body is any variation of: `None.`, `_None._`, `**None**`, `None identified.`, or is empty. These are all equivalent to "no issues found."
+
+- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no genuine blocker/critical issues in the latest bot review comment.
+- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. Flag genuine blocker/critical issues from bot reviews — but only if the issue is specific and real (e.g., compile errors, security issues, data races), not speculative or vague.
 
 ### 4. Jira Hygiene
 
-- Scan the PR body and branch name (`headRefName`) for Jira ticket patterns:
+- Scan the PR **title**, **body**, and **branch name** (`headRefName`) for Jira ticket patterns:
   - Primary: `RHOAIENG-\d+`
-  - General: `[A-Z]{2,}-\d+`
+  - General: `[A-Z]{2,}-\d+` — but **exclude** non-Jira prefixes: `CVE`, `GHSA`, `HTTP`, `API`, `URL`, `PR`, `WIP`
 - **Clear:** at least one Jira reference found.
 - **Blocker:** no Jira reference detected. This is a hygiene issue — it should not prevent merging on its own but must be flagged.
 
@@ -253,9 +255,17 @@ Set `{{LAST_ANALYZED}}` to the current UTC timestamp for any PR that was fully a
 
 Based on the analysis results (whether fresh or carried forward):
 
-- **Add** PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`): `gh pr edit {number} --repo {owner/repo} --milestone "Merge Queue"`
-- **Remove** PRs currently in the milestone that now have blockers, are drafts, or have been merged/closed: `gh pr edit {number} --repo {owner/repo} --milestone ""`
+- **Add** PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`):
+  ```bash
+  gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=${MILESTONE_NUM}
+  ```
+- **Remove** PRs currently in the milestone that now have blockers, are drafts, or have been merged/closed:
+  ```bash
+  gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=null
+  ```
 - **Never** add draft PRs to the milestone.
+
+**Note:** Use the REST API (`gh api -X PATCH .../issues/{number}`) instead of `gh pr edit --milestone`, which requires `read:org` scope that runners typically lack.
 
 Use the `milestone` field from the fetched PR data (already included in `gh pr view` output) to identify which PRs are currently in the milestone without extra API calls.
 
