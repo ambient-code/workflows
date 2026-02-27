@@ -105,9 +105,10 @@ For **every** open PR, evaluate each of these five categories. Each is either cl
 
 ### 1. CI
 
-- Check `statusCheckRollup` and `check_runs`.
-- **Clear:** all check runs have conclusion `success` or `neutral` (ignore `skipped`).
-- **Blocker:** any check run with `failure`, `timed_out`, `cancelled`, or `action_required`. List the failing check names.
+- Check `check_runs` (primary) and `statusCheckRollup` (fallback).
+- **Clear:** all completed check runs have conclusion `success` or `neutral` (ignore `skipped`).
+- **Warn:** check runs still in progress (`status` is `queued` or `in_progress`) — CI hasn't finished yet.
+- **Blocker:** any completed check run with `failure`, `timed_out`, `cancelled`, or `action_required`. List the failing check names.
 
 ### 2. Merge Conflicts
 
@@ -140,11 +141,15 @@ For bot review comments (e.g., Amber Code Review), only the **last** bot review 
 
 ### 5. Staleness
 
-- **Clear:** `updatedAt` is within the last 30 days and the PR is not superseded.
-- **Blocker:** flag if any of the following are true:
-  - `updatedAt` is more than 30 days ago
-  - Another open or recently merged PR targets the same files with a newer `createdAt` (superseded)
-  - The fix described in the PR has already been merged via a different PR
+The analysis script flags PRs older than 30 days and detects potential supersession (newer PRs with similar branches/titles). But **use your judgment** beyond the script's output — the script provides `days_since_update`, `recommend_close`, and `superseded_by` fields as signals, not final verdicts.
+
+Consider recommending closure for PRs that show multiple signs of abandonment:
+- Draft PR + merge conflicts + no activity in 3+ weeks
+- Multiple blockers + no updates in 30+ days
+- Superseded by a newer PR from the same author
+- Very old (60+ days) regardless of other signals
+
+Do not waste report space on these — use the condensed "Recommend Closing" table instead of a full blocker breakdown.
 
 ## Ranking Logic
 
@@ -200,26 +205,37 @@ Use these in the **Status** column of the per-PR blocker table:
 
 ## Output Format
 
-Use the template at `templates/merge-meeting.md`. Replace all `{{PLACEHOLDER}}` tokens with actual content. The template uses `{{#each PR_ENTRIES}}` / `{{/each}}` as structural markers — generate one PR block per open PR in ranked order.
+Use the template at `templates/merge-meeting.md`. The template has three main sections — populate them from `analysis.json`:
 
-For the per-PR blocker table:
-- **Status** column: use `pass`, `FAIL`, or `warn` as defined above.
-- **Detail** column: keep it short — one line. For `pass`, use `—` or a brief confirmation. For `FAIL`/`warn`, describe the specific issue.
+### 1. Recommended Merge Order
 
-### Diff overlap risk row
+The analysis script outputs a `merge_order` array of PR numbers — the optimal sequence for merging clean PRs. Render this as a numbered list: `1. #616 — title (size)`. If there are overlap conflicts, note them: "merge before #692 (overlapping lines on sessions.go)".
 
-The blocker table includes a **Diff overlap risk** row. This is only meaningful for mergeable PRs that have `diff_files` data:
+### 2. Clean PRs (condensed table)
 
-- **`pass`** — no line-level overlaps with any other mergeable PR.
-- **`warn`** — shares files with another mergeable PR but hunks don't overlap. Safe to merge in any order.
-- **`FAIL`** — line-level overlap detected with another mergeable PR. Merge order matters. Detail should name the conflicting PR(s), file(s), and line ranges.
-- For non-mergeable PRs (no diff data), use `—` in both status and detail columns.
+PRs with `fail_count == 0` and `isDraft == false` go in the condensed summary table — one row per PR, no full blocker breakdown. Show: rank, PR link + title, author, size, updated date, jira status, overlap status.
+
+### 3. PRs With Blockers (full tables)
+
+PRs with `fail_count > 0` and `isDraft == false` get the full blocker table with all 6 rows. PRs flagged with `recommend_close == true` go in the "Recommend Closing" table instead — do **not** give them a full blocker breakdown.
+
+### 4. Recommend Closing
+
+PRs flagged by the script (`recommend_close == true`) or that you judge to be abandoned. One-row-per-PR table with: PR link, author, reason, last updated. Use your judgment to add PRs the script missed — e.g., old drafts that technically updated recently but have no meaningful progress.
+
+### Status indicators
+
+| Status | Meaning |
+|--------|---------|
+| `pass` | No issues detected |
+| `FAIL` | Blocker — must be resolved before merge |
+| `warn` | Hygiene / informational issue — does not block merge |
 
 ### Notes field
 
 Use the optional `{{NOTES}}` field for:
 - Dependency chain info ("Depends on #456 — merge that first")
-- Diff overlap warnings with recommended merge order ("Overlaps with #789 on `handler.go:45-62` — merge this one first (smaller diff)")
+- Diff overlap warnings with recommended merge order
 - Superseded warnings ("May be superseded by #101")
 
 ## Phase 3: Milestone Management

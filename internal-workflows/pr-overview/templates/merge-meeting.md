@@ -3,15 +3,33 @@
 **Date:** {{DATE}}
 **Open PRs:** {{TOTAL_PRS}} | **Clean (no blockers):** {{CLEAN_COUNT}} | **In Merge Queue:** {{MILESTONE_COUNT}}
 
-> PRs ranked by merge readiness — fewest blockers first, then by priority signals and size.
+---
+
+## Recommended Merge Order
+
+{{MERGE_ORDER}}
 
 ---
 
-{{#each PR_ENTRIES}}
+## Clean PRs ({{CLEAN_COUNT}})
 
-## {{RANK}}. [#{{NUMBER}}]({{URL}}) — {{TITLE}}
+> These PRs have zero blockers and are ready to merge.
 
-**Author:** {{AUTHOR}} | **Size:** {{SIZE}} | **Updated:** {{UPDATED}} | **Analyzed:** {{LAST_ANALYZED}} | **Branch:** `{{BRANCH}}`
+| # | PR | Author | Size | Updated | Jira | Overlap |
+|---|---|---|---|---|---|---|
+{{#each CLEAN_PR_ROWS}}
+| {{RANK}} | [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{SIZE}} | {{UPDATED}} | {{JIRA_STATUS}} | {{OVERLAP_STATUS}} |
+{{/each}}
+
+---
+
+## PRs With Blockers
+
+{{#each BLOCKER_PR_ENTRIES}}
+
+### {{RANK}}. [#{{NUMBER}}]({{URL}}) — {{TITLE}}
+
+**Author:** {{AUTHOR}} | **Size:** {{SIZE}} | **Updated:** {{UPDATED}} | **Branch:** `{{BRANCH}}`
 
 | Blocker | Status | Detail |
 |---------|--------|--------|
@@ -30,10 +48,25 @@
 
 {{/each}}
 
+{{#if RECOMMEND_CLOSE_ENTRIES}}
+## Recommend Closing
+
+> These PRs appear abandoned, superseded, or too stale to be worth maintaining. Use your judgment — close or ping the author.
+
+| PR | Author | Reason | Last Updated |
+|---|---|---|---|
+{{#each RECOMMEND_CLOSE_ENTRIES}}
+| [#{{NUMBER}}]({{URL}}) — {{TITLE}} | {{AUTHOR}} | {{REASON}} | {{UPDATED}} |
+{{/each}}
+
+---
+
+{{/if}}
+
 ## Summary
 
 - **Ready now:** {{CLEAN_COUNT}} PRs with zero blockers
 - **In Merge Queue:** {{MILESTONE_COUNT}} PRs
 - **One blocker away:** {{NEAR_COUNT}} PRs
 - **Needs work:** {{WORK_COUNT}} PRs
-- **Recommend closing:** {{CLOSE_COUNT}} PRs (stale / superseded)
+- **Recommend closing:** {{CLOSE_COUNT}} PRs

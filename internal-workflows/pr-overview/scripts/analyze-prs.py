@@ -14,7 +14,8 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
 
 # ── Jira exclusions ──────────────────────────────────────────────────────────
@@ -91,6 +92,17 @@ def check_ci(check_runs, status_rollup):
             if extra > 0:
                 detail += f" (+{extra} more)"
             return "FAIL", f"Failing: {detail}"
+
+        # Check for in-progress runs (not yet completed)
+        in_progress = [
+            cr
+            for cr in check_runs
+            if cr.get("status") in ("queued", "in_progress")
+        ]
+        if in_progress:
+            names = [cr.get("name", "unknown") for cr in in_progress[:3]]
+            return "warn", f"CI in progress: {', '.join(names)}"
+
         return "pass", "\u2014"
 
     # Fallback to statusCheckRollup
@@ -110,6 +122,14 @@ def check_ci(check_runs, status_rollup):
                 detail += f" (+{extra} more)"
             return "FAIL", f"Failing: {detail}"
 
+        pending = [
+            s
+            for s in status_rollup
+            if s.get("state", "").upper() in ("PENDING", "EXPECTED")
+        ]
+        if pending:
+            return "warn", "CI pending"
+
     return "pass", "\u2014"
 
 
@@ -126,15 +146,16 @@ def check_reviews(reviews, review_comments, pr_comments):
     """Evaluate review status across all three data sources."""
     issues = []
 
-    # 1. Check for unresolved CHANGES_REQUESTED
+    # 1. Check for unresolved CHANGES_REQUESTED (handle DISMISSED)
     user_states = {}
     for r in reviews:
         login = r.get("user", {}).get("login", "")
         state = r.get("state", "")
         if state == "CHANGES_REQUESTED":
             user_states[login] = "CHANGES_REQUESTED"
-        elif state == "APPROVED" and user_states.get(login) == "CHANGES_REQUESTED":
-            user_states[login] = "APPROVED"
+        elif state in ("APPROVED", "DISMISSED"):
+            if user_states.get(login) == "CHANGES_REQUESTED":
+                user_states[login] = state
 
     unresolved = [u for u, s in user_states.items() if s == "CHANGES_REQUESTED"]
     if unresolved:
@@ -168,7 +189,6 @@ def check_reviews(reviews, review_comments, pr_comments):
         if blocker_match:
             content = blocker_match.group(1).strip()
             if not is_none_content(content) and is_genuine_blocker(content):
-                # Summarize to first 80 chars
                 summary = content.split("\n")[0][:80]
                 issues.append(f"Bot blocker: {summary}")
 
@@ -200,15 +220,80 @@ def check_jira(title, body, branch):
     return "warn", "No Jira reference found"
 
 
-def check_staleness(updated_at_str, cutoff):
+def check_staleness(updated_at_str, now):
+    """Compute staleness signals for agent judgment. Returns (status, detail, staleness_data)."""
     if not updated_at_str:
-        return "FAIL", "No updatedAt date found"
+        return "FAIL", "No updatedAt date found", {"days_old": None}
     updated = parse_date(updated_at_str)
     if not updated:
-        return "FAIL", "Cannot parse date"
-    if updated < cutoff:
-        return "FAIL", f"Last updated {updated.date()} \u2014 more than 30 days ago"
-    return "pass", "\u2014"
+        return "FAIL", "Cannot parse date", {"days_old": None}
+    days_old = (now - updated).days
+    if days_old > 30:
+        return "FAIL", f"Last updated {updated.date()} \u2014 {days_old} days ago", {"days_old": days_old}
+    return "pass", "\u2014", {"days_old": days_old}
+
+
+# ── Superseded PR detection ─────────────────────────────────────────────────
+
+
+def detect_superseded(results, index_map):
+    """Detect PRs that may be superseded by newer PRs touching the same files."""
+    # Build a map of files touched by each PR (from index data)
+    pr_files = {}
+    for r in results:
+        num = r["number"]
+        idx = index_map.get(num, {})
+        # changedFiles count is in the index, but actual file list is in detail
+        # We'll use branch name similarity and title similarity as signals
+        pr_files[num] = {
+            "branch": r["branch"],
+            "title": r["title"].lower(),
+            "created": idx.get("createdAt", ""),
+            "updated": r["updatedAt"],
+            "is_draft": r["isDraft"],
+            "changed_files": idx.get("changedFiles", 0),
+        }
+
+    superseded = {}  # pr_number -> superseding pr_number
+
+    for r in results:
+        num = r["number"]
+        info = pr_files[num]
+
+        for other in results:
+            other_num = other["number"]
+            if other_num == num:
+                continue
+            other_info = pr_files[other_num]
+
+            # Skip if the other PR is older
+            if other_info["created"] <= info["created"]:
+                continue
+
+            # Check if branches suggest supersession (e.g., feat/foo-v2 supersedes feat/foo)
+            if (
+                info["branch"]
+                and other_info["branch"]
+                and info["branch"] in other_info["branch"]
+                and info["branch"] != other_info["branch"]
+            ):
+                superseded[num] = other_num
+                break
+
+            # Check if titles are very similar (edit distance proxy: one contains the other)
+            if (
+                len(info["title"]) > 15
+                and len(other_info["title"]) > 15
+                and (
+                    info["title"] in other_info["title"]
+                    or other_info["title"] in info["title"]
+                )
+                and info["created"] < other_info["created"]
+            ):
+                superseded[num] = other_num
+                break
+
+    return superseded
 
 
 # ── Diff hunk overlap analysis ───────────────────────────────────────────────
@@ -269,6 +354,46 @@ def compute_overlaps(pr_file_hunks):
     return overlaps, shared_no_overlap
 
 
+# ── Merge order computation ──────────────────────────────────────────────────
+
+
+def compute_merge_order(results, overlaps, pr_file_hunks):
+    """Compute a recommended merge sequence for clean, mergeable PRs."""
+    clean_mergeable = [
+        r["number"]
+        for r in results
+        if not r["isDraft"] and r["fail_count"] == 0 and r["conflict_status"] == "pass"
+    ]
+
+    if not clean_mergeable:
+        return []
+
+    # Build overlap graph: edges between PRs that overlap
+    overlap_graph = defaultdict(set)
+    for o in overlaps:
+        if o["pr_a"] in clean_mergeable and o["pr_b"] in clean_mergeable:
+            overlap_graph[o["pr_a"]].add(o["pr_b"])
+            overlap_graph[o["pr_b"]].add(o["pr_a"])
+
+    pr_map = {r["number"]: r for r in results}
+    ordered = []
+    remaining = set(clean_mergeable)
+
+    # Greedy: always pick the PR with fewest overlap partners, smallest size
+    while remaining:
+        best = min(
+            remaining,
+            key=lambda n: (
+                len(overlap_graph.get(n, set()) & remaining),
+                pr_map[n]["size_score"],
+            ),
+        )
+        ordered.append(best)
+        remaining.remove(best)
+
+    return ordered
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -283,7 +408,6 @@ def main():
 
     output_dir = args.output_dir
     now = datetime.now(timezone.utc)
-    stale_cutoff = now.replace(day=now.day) - __import__("datetime").timedelta(days=30)
 
     # Load index
     with open(os.path.join(output_dir, "index.json")) as f:
@@ -316,6 +440,7 @@ def main():
         is_draft = pr.get("isDraft", idx_pr.get("isDraft", False))
         mergeable = pr.get("mergeable") or idx_pr.get("mergeable", "UNKNOWN")
         updated_at = pr.get("updatedAt") or idx_pr.get("updatedAt", "")
+        created_at = pr.get("createdAt") or idx_pr.get("createdAt", "")
         branch = pr.get("headRefName") or idx_pr.get("headRefName", "")
         body = pr.get("body") or idx_pr.get("body", "")
         url = pr.get("url") or idx_pr.get("url", "")
@@ -333,7 +458,7 @@ def main():
         conflict_status, conflict_detail = check_conflicts(mergeable)
         review_status, review_detail = check_reviews(reviews, review_comments, pr_comments)
         jira_status, jira_detail = check_jira(title, body, branch)
-        stale_status, stale_detail = check_staleness(updated_at, stale_cutoff)
+        stale_status, stale_detail, staleness_data = check_staleness(updated_at, now)
 
         # Count FAILs (warn doesn't count)
         fail_count = sum(
@@ -374,6 +499,7 @@ def main():
                 "size": size_str,
                 "size_score": size_score,
                 "updatedAt": updated_at[:10] if updated_at else "",
+                "createdAt": created_at[:10] if created_at else "",
                 "branch": branch,
                 "labels": labels,
                 "milestoneCurrently": milestone_title,
@@ -387,13 +513,24 @@ def main():
                 "jira_detail": jira_detail,
                 "stale_status": stale_status,
                 "stale_detail": stale_detail,
+                "days_since_update": staleness_data["days_old"],
                 "overlap_status": "\u2014",
                 "overlap_detail": "\u2014",
                 "notes": "",
                 "fail_count": fail_count,
                 "has_priority": has_priority,
+                "superseded_by": None,
+                "recommend_close": False,
+                "recommend_close_reason": "",
             }
         )
+
+    # Detect superseded PRs
+    superseded = detect_superseded(results, index_map)
+    for r in results:
+        if r["number"] in superseded:
+            r["superseded_by"] = superseded[r["number"]]
+            r["notes"] = f"May be superseded by #{superseded[r['number']]}"
 
     # Compute diff overlaps
     overlaps, shared_no_overlap = compute_overlaps(pr_file_hunks)
@@ -419,7 +556,6 @@ def main():
             r["overlap_status"] = "\u2014"
             r["overlap_detail"] = "\u2014"
         elif num in overlap_prs:
-            # Find which PRs this one overlaps with
             partners = set()
             files = set()
             for o in overlaps:
@@ -433,13 +569,30 @@ def main():
             file_str = ", ".join(sorted(files)[:2])
             r["overlap_status"] = "FAIL"
             r["overlap_detail"] = f"Line overlap with {partner_str} on {file_str}"
-            r["notes"] = f"Merge order matters: overlaps with {partner_str}"
+            if not r["notes"]:
+                r["notes"] = f"Merge order matters: overlaps with {partner_str}"
         elif num in warn_prs:
             r["overlap_status"] = "warn"
             r["overlap_detail"] = "Shares files but no line overlap"
         elif num in pr_file_hunks:
             r["overlap_status"] = "pass"
             r["overlap_detail"] = "\u2014"
+
+    # Flag PRs to recommend closing (for agent to review)
+    for r in results:
+        reasons = []
+        days = r["days_since_update"]
+        if r["isDraft"] and days is not None and days > 21 and r["conflict_status"] == "FAIL":
+            reasons.append(f"Draft with conflicts, inactive {days}d")
+        if r["superseded_by"]:
+            reasons.append(f"Superseded by #{r['superseded_by']}")
+        if days is not None and days > 60:
+            reasons.append(f"Inactive for {days} days")
+        if days is not None and days > 30 and r["fail_count"] >= 2:
+            reasons.append(f"Stale ({days}d) with {r['fail_count']} blockers")
+        if reasons:
+            r["recommend_close"] = True
+            r["recommend_close_reason"] = "; ".join(reasons)
 
     # Rank PRs
     results.sort(
@@ -453,6 +606,9 @@ def main():
     for i, r in enumerate(results):
         r["rank"] = i + 1
 
+    # Compute merge order for clean PRs
+    merge_order = compute_merge_order(results, overlaps, pr_file_hunks)
+
     # Stats
     non_draft = [r for r in results if not r["isDraft"]]
     stats = {
@@ -461,11 +617,13 @@ def main():
         "clean": sum(1 for r in non_draft if r["fail_count"] == 0),
         "one_blocker": sum(1 for r in non_draft if r["fail_count"] == 1),
         "needs_work": sum(1 for r in non_draft if r["fail_count"] >= 2),
+        "recommend_close": sum(1 for r in results if r["recommend_close"]),
     }
 
     output = {
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S UTC"),
         "stats": stats,
+        "merge_order": merge_order,
         "prs": results,
         "overlaps": overlaps,
         "shared_no_overlap": shared_no_overlap,
@@ -478,7 +636,10 @@ def main():
     print(f"Analysis complete: {output_path}")
     print(f"  Total: {stats['total']} PRs ({stats['drafts']} drafts)")
     print(f"  Clean: {stats['clean']} | One blocker: {stats['one_blocker']} | Needs work: {stats['needs_work']}")
+    print(f"  Recommend closing: {stats['recommend_close']}")
     print(f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only")
+    if merge_order:
+        print(f"  Merge order: {' → '.join(f'#{n}' for n in merge_order[:10])}")
 
 
 if __name__ == "__main__":
