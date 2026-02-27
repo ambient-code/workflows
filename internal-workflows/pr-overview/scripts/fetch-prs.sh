@@ -9,6 +9,8 @@
 #   - gh CLI installed and authenticated
 #   - jq installed
 #
+# Progress goes to stderr. Final summary goes to stdout.
+#
 
 set -euo pipefail
 
@@ -67,7 +69,7 @@ mkdir -p "${OUTPUT_DIR}/prs"
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
-echo "Fetching open PRs for ${REPO}..."
+echo "Fetching open PRs for ${REPO}..." >&2
 
 # ── Phase 1: Fetch PR index ──────────────────────────────────────────────────
 INDEX_FIELDS="number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,url,state,additions,deletions,changedFiles,mergeable,body"
@@ -80,10 +82,10 @@ gh pr list \
     | jq '.' > "${OUTPUT_DIR}/index.json"
 
 PR_COUNT=$(jq 'length' "${OUTPUT_DIR}/index.json")
-echo "Found ${PR_COUNT} open PRs."
+echo "Found ${PR_COUNT} open PRs." >&2
 
 if [[ "$PR_COUNT" -eq 0 ]]; then
-    echo "No open PRs found. Done."
+    echo "No open PRs found."
     exit 0
 fi
 
@@ -92,12 +94,11 @@ fi
 # typically lack.
 PR_NUMBERS=$(jq -r '.[].number' "${OUTPUT_DIR}/index.json")
 DETAIL_FIELDS="number,title,author,createdAt,updatedAt,labels,isDraft,baseRefName,headRefName,url,state,additions,deletions,changedFiles,mergeable,body,reviewDecision,statusCheckRollup,comments,assignees,milestone,files"
+FETCHED=0
 
 for PR_NUM in $PR_NUMBERS; do
-    echo "  Fetching PR #${PR_NUM}..."
-
-    # Write each API response to a temp file to avoid "argument list too long"
-    # errors when PRs have large bodies or many comments.
+    FETCHED=$((FETCHED + 1))
+    echo -ne "  Fetching PR details... ${FETCHED}/${PR_COUNT}\r" >&2
 
     gh pr view "$PR_NUM" \
         --repo "$REPO" \
@@ -110,7 +111,6 @@ for PR_NUM in $PR_NUMBERS; do
     gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/comments" \
         --paginate 2>/dev/null > "${TMPDIR}/review_comments.json" || echo '[]' > "${TMPDIR}/review_comments.json"
 
-    # Get latest commit SHA for check runs
     HEAD_SHA=$(jq -r '.statusCheckRollup // [] | if length > 0 then .[0].commit.oid // empty else empty end' "${TMPDIR}/pr.json" 2>/dev/null || true)
 
     echo '[]' > "${TMPDIR}/check_runs.json"
@@ -120,7 +120,6 @@ for PR_NUM in $PR_NUMBERS; do
             | jq '.check_runs // []' > "${TMPDIR}/check_runs.json" 2>/dev/null || echo '[]' > "${TMPDIR}/check_runs.json"
     fi
 
-    # Combine via file-based slurp (avoids --argjson size limits)
     jq -n \
         --slurpfile pr "${TMPDIR}/pr.json" \
         --slurpfile reviews "${TMPDIR}/reviews.json" \
@@ -136,22 +135,19 @@ for PR_NUM in $PR_NUMBERS; do
 
     sleep 0.3
 done
+echo "" >&2
 
 # ── Phase 3: Fetch diff hunks for mergeable PRs ─────────────────────────────
-# Only spend API calls on PRs that are actually mergeable (not CONFLICTING,
-# not drafts). The diff_files array contains per-file patch data with hunk
-# line ranges so the agent can detect real line-level overlaps between PRs
-# when optimising merge order.
-
 MERGEABLE_PRS=$(jq -r '.[] | select(.mergeable == "MERGEABLE" and .isDraft == false) | .number' "${OUTPUT_DIR}/index.json")
 MERGEABLE_COUNT=$(echo "$MERGEABLE_PRS" | grep -c '[0-9]' || true)
 
 if [[ "$MERGEABLE_COUNT" -gt 0 ]]; then
-    echo ""
-    echo "Fetching diff hunks for ${MERGEABLE_COUNT} mergeable PRs..."
+    DIFF_FETCHED=0
+    echo "Fetching diff hunks for ${MERGEABLE_COUNT} mergeable PRs..." >&2
 
     for PR_NUM in $MERGEABLE_PRS; do
-        echo "  Fetching diffs for PR #${PR_NUM}..."
+        DIFF_FETCHED=$((DIFF_FETCHED + 1))
+        echo -ne "  Fetching diffs... ${DIFF_FETCHED}/${MERGEABLE_COUNT}\r" >&2
 
         gh api "repos/${OWNER}/${REPO_NAME}/pulls/${PR_NUM}/files" \
             --paginate 2>/dev/null \
@@ -163,31 +159,22 @@ if [[ "$MERGEABLE_COUNT" -gt 0 ]]; then
                 patch: .patch
             }]' > "${TMPDIR}/diff_files.json" 2>/dev/null || echo '[]' > "${TMPDIR}/diff_files.json"
 
-        # Merge diff_files into the existing PR JSON via file-based slurp
         jq --slurpfile diff_files "${TMPDIR}/diff_files.json" '.diff_files = $diff_files[0]' \
             "${OUTPUT_DIR}/prs/${PR_NUM}.json" > "${OUTPUT_DIR}/prs/${PR_NUM}.json.tmp" \
             && mv "${OUTPUT_DIR}/prs/${PR_NUM}.json.tmp" "${OUTPUT_DIR}/prs/${PR_NUM}.json"
 
         sleep 0.3
     done
-else
-    echo ""
-    echo "No mergeable (non-draft) PRs found — skipping diff fetch."
+    echo "" >&2
 fi
 
 # ── Phase 4: Sanitize Unicode ────────────────────────────────────────────────
-# PR bodies and comments can contain unpaired Unicode surrogates (e.g., from
-# emoji or copy-pasted text) that produce valid JSON per gh/jq but break the
-# Anthropic API with "no low surrogate in string". Strip them now so the agent
-# can safely pass PR data to sub-agents.
-
-echo ""
-echo "Sanitizing Unicode in fetched data..."
-
+SANITIZED=0
 if command -v python3 &>/dev/null; then
-    python3 -c "
-import os, json, sys
+    SANITIZED=$(python3 -c "
+import os, sys
 output_dir = sys.argv[1]
+count = 0
 for root, _, files in os.walk(output_dir):
     for fname in files:
         if not fname.endswith('.json'):
@@ -195,19 +182,18 @@ for root, _, files in os.walk(output_dir):
         fpath = os.path.join(root, fname)
         with open(fpath, 'r', errors='surrogateescape') as f:
             raw = f.read()
-        # Re-encode: replace surrogates with the replacement character
         clean = raw.encode('utf-8', errors='replace').decode('utf-8')
         if clean != raw:
             with open(fpath, 'w') as f:
                 f.write(clean)
-            print(f'  Sanitized: {fname}')
-" "${OUTPUT_DIR}"
-else
-    echo "  python3 not available — skipping Unicode sanitization"
+            count += 1
+print(count)
+" "${OUTPUT_DIR}")
 fi
 
-echo ""
-echo "Done. Output written to ${OUTPUT_DIR}/"
-echo "  - index.json          (${PR_COUNT} PR summaries)"
-echo "  - prs/*.json          (detailed data per PR)"
-echo "  - diff hunks fetched  (${MERGEABLE_COUNT} mergeable PRs)"
+# ── Final summary (stdout — this is what the agent sees) ─────────────────────
+echo "Fetch complete: ${PR_COUNT} PRs from ${REPO}"
+echo "  PR details: ${PR_COUNT} fetched"
+echo "  Diff hunks: ${MERGEABLE_COUNT} mergeable PRs"
+echo "  Unicode sanitized: ${SANITIZED} files"
+echo "  Output: ${OUTPUT_DIR}/"
