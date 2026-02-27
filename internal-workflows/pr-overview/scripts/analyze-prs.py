@@ -135,31 +135,15 @@ def check_reviews(reviews, review_comments, pr_comments):
                 f"{len(review_comments)} inline threads on {', '.join(list(paths)[:2])}"
             )
 
-    # 3. Surface comments for agent evaluation (no parsing, no regex)
-    # Bot reviews are structured markdown documents — blocker/critical sections
-    # can be 2000+ chars in. Keep enough for the agent to see the full review.
-    comments_for_review = []
-
-    # Last 3 PR comments (includes bot reviews and human discussion)
-    for c in pr_comments[-3:]:
-        author = c.get("author", {}).get("login", "")
-        body = (c.get("body", "") or "")[:3000]
-        if body.strip():
-            comments_for_review.append({"author": author, "body": body})
-
-    # Last 3 formal reviews with body content
-    for r in reviews[-3:]:
-        login = r.get("user", {}).get("login", "")
-        state = r.get("state", "")
-        body = (r.get("body", "") or "")[:1500]
-        if body.strip():
-            comments_for_review.append({"author": login, "state": state, "body": body})
+    # 3. Check if there are any comments worth reviewing (don't extract them —
+    # the agent spawns a sub-agent that reads the full raw PR file directly)
+    has_comments = bool(pr_comments) or any(r.get("body") for r in reviews)
 
     if issues:
-        return "FAIL", "; ".join(issues), comments_for_review
-    if comments_for_review:
-        return "needs_review", "Has comments — agent to evaluate", comments_for_review
-    return "pass", "\u2014", []
+        return "FAIL", "; ".join(issues), has_comments
+    if has_comments:
+        return "needs_review", "Has comments — agent to evaluate", True
+    return "pass", "\u2014", False
 
 
 def check_jira(title, body, branch):
@@ -410,7 +394,7 @@ def main():
         # Run blocker checks
         ci_status, ci_detail = check_ci(check_runs, status_rollup)
         conflict_status, conflict_detail = check_conflicts(mergeable)
-        review_status, review_detail, comments_for_review = check_reviews(reviews, review_comments, pr_comments)
+        review_status, review_detail, has_comments = check_reviews(reviews, review_comments, pr_comments)
         jira_status, jira_detail = check_jira(title, body, branch)
         stale_status, stale_detail, staleness_data = check_staleness(updated_at, now)
 
@@ -463,7 +447,7 @@ def main():
                 "conflict_detail": conflict_detail,
                 "review_status": review_status,
                 "review_detail": review_detail,
-                "comments_for_review": comments_for_review,
+                "has_comments": has_comments,
                 "jira_status": jira_status,
                 "jira_detail": jira_detail,
                 "stale_status": stale_status,
@@ -575,32 +559,15 @@ def main():
         "recommend_close": sum(1 for r in results if r["recommend_close"]),
     }
 
-    # ── Write per-PR detail files (includes comments_for_review) ────────────
-    analysis_dir = os.path.join(output_dir, "analysis")
-    os.makedirs(analysis_dir, exist_ok=True)
-
-    needs_review_nums = []
-    for r in results:
-        detail = dict(r)  # full data including comments
-        detail_path = os.path.join(analysis_dir, f"{r['number']}.json")
-        with open(detail_path, "w") as f:
-            json.dump(detail, f, indent=2, ensure_ascii=False)
-        if r["review_status"] == "needs_review":
-            needs_review_nums.append(r["number"])
-
-    # ── Write summary file (no comments — small enough to read at once) ───
-    summary_prs = []
-    for r in results:
-        summary = dict(r)
-        summary.pop("comments_for_review", None)  # strip the bulky field
-        summary_prs.append(summary)
+    # ── Collect PRs needing agent review ────────────────────────────────────
+    needs_review_nums = [r["number"] for r in results if r["review_status"] == "needs_review"]
 
     output = {
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S UTC"),
         "stats": stats,
         "merge_order": merge_order,
         "needs_review": needs_review_nums,
-        "prs": summary_prs,
+        "prs": results,
         "overlaps": overlaps,
         "shared_no_overlap": shared_no_overlap,
     }
@@ -614,10 +581,10 @@ def main():
     print(f"  Clean: {stats['clean']} | One blocker: {stats['one_blocker']} | Needs work: {stats['needs_work']}")
     print(f"  Recommend closing: {stats['recommend_close']}")
     print(f"  Needs agent review: {len(needs_review_nums)} PRs — {needs_review_nums}")
+    print(f"  Review raw data at: prs/{{number}}.json for each needs_review PR")
     print(f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only")
     if merge_order:
         print(f"  Merge order: {' → '.join(f'#{n}' for n in merge_order[:10])}")
-    print(f"  Per-PR details: {analysis_dir}/{{number}}.json")
 
 
 if __name__ == "__main__":

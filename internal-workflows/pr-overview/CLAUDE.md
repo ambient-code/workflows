@@ -8,7 +8,7 @@ Create these as your todo items at the start. Mark each one as you complete it �
 
 1. **Run fetch-prs.sh** — collect all PR data into artifacts/pr-review/
 2. **Run analyze-prs.py** — produce analysis.json with blocker statuses and merge order
-3. **Evaluate review comments** — for each PR in the `needs_review` list, read `analysis/{number}.json` and set final FAIL/pass
+3. **Evaluate review comments** — spawn a sub-agent to read raw PR files for `needs_review` PRs and return verdicts
 4. **Run test-merge-order.sh** — locally merge clean PRs in order, record which merged/conflicted
 5. **Find or create Merge Queue milestone** — get the milestone number
 6. **Sync PRs to milestone** — add clean PRs, remove ones with blockers
@@ -117,17 +117,21 @@ This produces two outputs:
 
 The script prints a `needs_review` list of PR numbers that require your evaluation. The summary file also has a `needs_review` array.
 
-**Review comments require your evaluation.** For each PR in the `needs_review` list, read its detail file at `analysis/{number}.json`. The `comments_for_review` field contains the last few comments as raw text.
+**Review comments require evaluation.** Use a **sub-agent** to evaluate the `needs_review` PRs so the raw comment data doesn't flood your main context.
 
-**Bot review comments are real code reviews.** They are produced by an automated code review agent that read the actual diff. Treat them with the same weight as a human reviewer's comments. If the bot's review identifies specific issues (blocker, critical, or major severity), those are real findings that should block the PR — do NOT dismiss them as "just bot comments" or "informational."
+Spawn a Task agent with this prompt pattern:
 
-For each PR with comments:
-1. Read the comments carefully — especially any structured review (e.g., "Amber Code Review" with severity sections)
-2. If multiple reviews exist, only the **last** one reflects the current state
-3. If the review lists blocker or critical issues with specific details → `FAIL` with a summary
-4. Only mark `pass` if the review explicitly says no issues found, or the only findings are minor/style-level
+> Read the PR data files listed below and evaluate each PR's review comments. For each PR, read `artifacts/pr-review/prs/{number}.json` — look at `pr.comments[]` (includes bot reviews) and the top-level `reviews[]` (formal verdicts).
+>
+> **Bot review comments (e.g., "Amber Code Review" from github-actions) are real code reviews.** They analyzed the actual diff. If the latest bot review lists Blocker or Critical issues with specific descriptions, that is a FAIL — do NOT dismiss them as informational.
+>
+> For each PR, return: PR number, verdict (FAIL or pass), and a one-line summary of the issue (or "no issues" for pass). Only mark pass if the review explicitly found no issues or findings are purely minor/style.
+>
+> PRs to evaluate: {needs_review list}
 
-Update each PR's `fail_count` and ranking accordingly before generating the report.
+The sub-agent reads the **full, untruncated** raw PR files directly — no truncation, no data loss.
+
+Take the sub-agent's verdicts and update each PR's `review_status` and `fail_count` in your working data before proceeding.
 
 **Do not rewrite the analysis script.** If you need to adjust a deterministic check, edit `scripts/analyze-prs.py` directly. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
@@ -154,12 +158,7 @@ The script handles two deterministic checks automatically:
 - **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED → `FAIL`
 - **Inline review threads** (from `review_comments[]`) → `FAIL` with count
 
-For PRs with `review_status: "needs_review"`, read `analysis/{number}.json` and evaluate the `comments_for_review`:
-
-- **Bot reviews (e.g., Amber Code Review) are real code reviews**, not noise. They analyzed the actual diff. If the latest bot review lists blocker or critical issues with specific descriptions → `FAIL`.
-- Only mark `pass` if the review explicitly found no issues, or findings are purely minor/style.
-- If multiple reviews exist, only the **last** one matters.
-- Default to `FAIL` when in doubt — it's better to flag a potential issue than to miss one.
+For PRs with `review_status: "needs_review"`, spawn a sub-agent to read the raw PR data at `prs/{number}.json` and evaluate comments. The sub-agent reads the full untruncated data and returns a FAIL/pass verdict per PR. See Phase 2 instructions above for the sub-agent prompt.
 
 ### 4. Jira Hygiene
 
