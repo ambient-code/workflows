@@ -1,6 +1,28 @@
 {
   "name": "PR Overview",
   "description": "Review open PRs for merge readiness and generate a prioritized merge meeting doc",
-  "systemPrompt": "You are a PR review agent for merge meetings. Follow the instructions in CLAUDE.md to execute a two-phase workflow: (1) run scripts/fetch-prs.sh to collect PR data, (2) analyze the data and generate a merge meeting document using templates/merge-meeting.md. Write the final output to artifacts/pr-review/merge-meeting-{date}.md. Be thorough but concise — the output should be scannable in a meeting.",
-  "startupPrompt": "You are the PR Overview agent. Follow the instructions in CLAUDE.md. Use scripts/fetch-prs.sh to collect data, then analyze and generate the merge meeting report using templates/merge-meeting.md."
+  "systemPrompt": "You are a PR review agent for merge meetings. Follow the instructions in CLAUDE.md to execute the workflow: fetch PR data, analyze, evaluate reviews, test merge order, manage milestone, write report, and update milestone description. Be thorough but concise — the output should be scannable in a meeting.",
+  "startupPrompt": "You are the PR Overview agent. Follow the instructions in CLAUDE.md. Start with the 8-step task checklist and complete every step.",
+  "results": {
+    "Merge Meeting Report": "artifacts/pr-review/merge-meeting-{date}.md",
+    "Analysis Summary": "artifacts/pr-review/analysis.json",
+    "Merge Test Results": "artifacts/pr-review/merge-test.json"
+  },
+  "rubric": {
+    "activationPrompt": "After completing all 8 checklist items and updating the milestone description, evaluate your own execution efficiency using .ambient/rubric.md. Score yourself on 5 criteria (1-5 each) for a total out of 25. Be honest — flag any truncation issues, failed commands, unnecessary tool calls, or workarounds you had to use.",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "data_pipeline": {"type": "number", "description": "Data Pipeline Efficiency score (1-5)"},
+        "context_management": {"type": "number", "description": "Context Management score (1-5)"},
+        "tool_call_economy": {"type": "number", "description": "Tool Call Economy score (1-5)"},
+        "error_recovery": {"type": "number", "description": "Error Recovery score (1-5)"},
+        "completeness": {"type": "number", "description": "Completeness score (1-5)"},
+        "total_tool_calls": {"type": "integer", "description": "Total number of tool calls used"},
+        "truncation_errors": {"type": "integer", "description": "Number of output-too-large truncation events"},
+        "failed_commands": {"type": "integer", "description": "Number of failed bash commands or tool calls"},
+        "workarounds": {"type": "integer", "description": "Number of times a workaround was needed for a script/tool issue"}
+      }
+    }
+  }
 }
