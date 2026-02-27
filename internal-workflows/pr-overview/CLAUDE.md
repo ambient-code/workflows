@@ -8,7 +8,7 @@ Create these as your todo items at the start. Mark each one as you complete it �
 
 1. **Run fetch-prs.sh** — collect all PR data into artifacts/pr-review/
 2. **Run analyze-prs.py** — produce analysis.json with blocker statuses and merge order
-3. **Evaluate review comments** — read `comments_for_review` for `needs_review` PRs and set final FAIL/pass
+3. **Evaluate review comments** — for each PR in the `needs_review` list, read `analysis/{number}.json` and set final FAIL/pass
 4. **Run test-merge-order.sh** — locally merge clean PRs in order, record which merged/conflicted
 5. **Find or create Merge Queue milestone** — get the milestone number
 6. **Sync PRs to milestone** — add clean PRs, remove ones with blockers
@@ -110,9 +110,14 @@ Run the analysis script to evaluate every PR against the blocker checklist:
 python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
 ```
 
-This produces `artifacts/pr-review/analysis.json` with per-PR blocker statuses, rankings, and diff overlap data. The script handles deterministic checks (CI, conflicts, Jira, staleness, overlaps) automatically.
+This produces two outputs:
 
-**Review comments require your judgment.** PRs with `review_status: "needs_review"` have comments that need evaluation. The `comments_for_review` field contains the last few comments (both bot reviews and human discussion) as raw text — **you read them and decide:**
+- `artifacts/pr-review/analysis.json` — summary with all PR statuses, rankings, merge order, and overlaps. **No comments** — small enough to read in one go.
+- `artifacts/pr-review/analysis/{number}.json` — per-PR detail files **with** `comments_for_review`. Only read these for PRs that need review.
+
+The script prints a `needs_review` list of PR numbers that require your evaluation. The summary file also has a `needs_review` array.
+
+**Review comments require your judgment.** For each PR in the `needs_review` list, read its detail file at `analysis/{number}.json`. The `comments_for_review` field contains the last few comments (both bot reviews and human discussion) as raw text — **you read them and decide:**
 
 - Read each comment. Is there a genuine issue that would block merging (bug, security hole, compile failure, missing test for critical path)?
 - Disregard old/outdated comments — only the latest state matters. If a bot reviewed twice, only the last review counts.

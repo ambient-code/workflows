@@ -574,11 +574,32 @@ def main():
         "recommend_close": sum(1 for r in results if r["recommend_close"]),
     }
 
+    # ── Write per-PR detail files (includes comments_for_review) ────────────
+    analysis_dir = os.path.join(output_dir, "analysis")
+    os.makedirs(analysis_dir, exist_ok=True)
+
+    needs_review_nums = []
+    for r in results:
+        detail = dict(r)  # full data including comments
+        detail_path = os.path.join(analysis_dir, f"{r['number']}.json")
+        with open(detail_path, "w") as f:
+            json.dump(detail, f, indent=2, ensure_ascii=False)
+        if r["review_status"] == "needs_review":
+            needs_review_nums.append(r["number"])
+
+    # ── Write summary file (no comments — small enough to read at once) ───
+    summary_prs = []
+    for r in results:
+        summary = dict(r)
+        summary.pop("comments_for_review", None)  # strip the bulky field
+        summary_prs.append(summary)
+
     output = {
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S UTC"),
         "stats": stats,
         "merge_order": merge_order,
-        "prs": results,
+        "needs_review": needs_review_nums,
+        "prs": summary_prs,
         "overlaps": overlaps,
         "shared_no_overlap": shared_no_overlap,
     }
@@ -591,9 +612,11 @@ def main():
     print(f"  Total: {stats['total']} PRs ({stats['drafts']} drafts)")
     print(f"  Clean: {stats['clean']} | One blocker: {stats['one_blocker']} | Needs work: {stats['needs_work']}")
     print(f"  Recommend closing: {stats['recommend_close']}")
+    print(f"  Needs agent review: {len(needs_review_nums)} PRs — {needs_review_nums}")
     print(f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only")
     if merge_order:
         print(f"  Merge order: {' → '.join(f'#{n}' for n in merge_order[:10])}")
+    print(f"  Per-PR details: {analysis_dir}/{{number}}.json")
 
 
 if __name__ == "__main__":
