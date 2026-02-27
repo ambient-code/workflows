@@ -110,10 +110,10 @@ Run the analysis script to evaluate every PR against the blocker checklist:
 python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
 ```
 
-This produces two outputs:
+This produces:
 
-- `artifacts/pr-review/analysis.json` — summary with all PR statuses, rankings, merge order, and overlaps. **No comments** — small enough to read in one go.
-- `artifacts/pr-review/analysis/{number}.json` — per-PR detail files **with** `comments_for_review`. Only read these for PRs that need review.
+- `artifacts/pr-review/analysis.json` — compact summary with stats, merge order, overlap data, and a `pr_index` (one line per PR: number, rank, title, author, fail_count, review_status). Small enough to read in one go.
+- `artifacts/pr-review/analysis/{number}.json` — full per-PR analysis (all blocker statuses, details, labels, notes). Read these when you need detail on specific PRs.
 
 The script prints a `needs_review` list of PR numbers that require your evaluation. The summary file also has a `needs_review` array.
 

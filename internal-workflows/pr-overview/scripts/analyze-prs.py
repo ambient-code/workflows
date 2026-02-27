@@ -562,26 +562,50 @@ def main():
     # ── Collect PRs needing agent review ────────────────────────────────────
     needs_review_nums = [r["number"] for r in results if r["review_status"] == "needs_review"]
 
-    output = {
+    # ── Write per-PR analysis files ───────────────────────────────────────
+    analysis_dir = os.path.join(output_dir, "analysis")
+    os.makedirs(analysis_dir, exist_ok=True)
+
+    for r in results:
+        pr_path = os.path.join(analysis_dir, f"{r['number']}.json")
+        with open(pr_path, "w") as f:
+            json.dump(r, f, indent=2, ensure_ascii=False)
+
+    # ── Write compact summary (no per-PR details — just the index) ────────
+    pr_index = []
+    for r in results:
+        pr_index.append({
+            "number": r["number"],
+            "rank": r["rank"],
+            "title": r["title"],
+            "author": r["author"],
+            "isDraft": r["isDraft"],
+            "fail_count": r["fail_count"],
+            "review_status": r["review_status"],
+            "recommend_close": r["recommend_close"],
+        })
+
+    summary = {
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S UTC"),
         "stats": stats,
         "merge_order": merge_order,
         "needs_review": needs_review_nums,
-        "prs": results,
+        "pr_index": pr_index,
         "overlaps": overlaps,
         "shared_no_overlap": shared_no_overlap,
     }
 
-    output_path = os.path.join(output_dir, "analysis.json")
-    with open(output_path, "w") as f:
-        json.dump(output, f, indent=2, ensure_ascii=False)
+    summary_path = os.path.join(output_dir, "analysis.json")
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=2, ensure_ascii=False)
 
-    print(f"Analysis complete: {output_path}")
+    print(f"Analysis complete:")
+    print(f"  Summary: {summary_path}")
+    print(f"  Per-PR:  {analysis_dir}/{{number}}.json")
     print(f"  Total: {stats['total']} PRs ({stats['drafts']} drafts)")
     print(f"  Clean: {stats['clean']} | One blocker: {stats['one_blocker']} | Needs work: {stats['needs_work']}")
     print(f"  Recommend closing: {stats['recommend_close']}")
     print(f"  Needs agent review: {len(needs_review_nums)} PRs — {needs_review_nums}")
-    print(f"  Review raw data at: prs/{{number}}.json for each needs_review PR")
     print(f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only")
     if merge_order:
         print(f"  Merge order: {' → '.join(f'#{n}' for n in merge_order[:10])}")
