@@ -175,6 +175,37 @@ else
     echo "No mergeable (non-draft) PRs found — skipping diff fetch."
 fi
 
+# ── Phase 4: Sanitize Unicode ────────────────────────────────────────────────
+# PR bodies and comments can contain unpaired Unicode surrogates (e.g., from
+# emoji or copy-pasted text) that produce valid JSON per gh/jq but break the
+# Anthropic API with "no low surrogate in string". Strip them now so the agent
+# can safely pass PR data to sub-agents.
+
+echo ""
+echo "Sanitizing Unicode in fetched data..."
+
+if command -v python3 &>/dev/null; then
+    python3 -c "
+import os, json, sys
+output_dir = sys.argv[1]
+for root, _, files in os.walk(output_dir):
+    for fname in files:
+        if not fname.endswith('.json'):
+            continue
+        fpath = os.path.join(root, fname)
+        with open(fpath, 'r', errors='surrogateescape') as f:
+            raw = f.read()
+        # Re-encode: replace surrogates with the replacement character
+        clean = raw.encode('utf-8', errors='replace').decode('utf-8')
+        if clean != raw:
+            with open(fpath, 'w') as f:
+                f.write(clean)
+            print(f'  Sanitized: {fname}')
+" "${OUTPUT_DIR}"
+else
+    echo "  python3 not available — skipping Unicode sanitization"
+fi
+
 echo ""
 echo "Done. Output written to ${OUTPUT_DIR}/"
 echo "  - index.json          (${PR_COUNT} PR summaries)"

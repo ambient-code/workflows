@@ -89,7 +89,15 @@ Each `prs/{number}.json` file has this top-level structure:
 
 ### Phase 2: Analyze PRs
 
-Read the fetched data and evaluate every PR against the blocker checklist below. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
+Run the analysis script to evaluate every PR against the blocker checklist:
+
+```bash
+python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
+```
+
+This produces `artifacts/pr-review/analysis.json` with per-PR blocker statuses, rankings, and diff overlap data. The script implements all the rules described in the blocker checklist below.
+
+**Do not rewrite the analysis script.** If you need to adjust a specific check (e.g., add a new security pattern), edit `scripts/analyze-prs.py` directly rather than writing a new script from scratch. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
 ## Blocker Checklist
 
