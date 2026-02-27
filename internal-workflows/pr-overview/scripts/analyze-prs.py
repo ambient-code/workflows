@@ -331,12 +331,13 @@ def compute_merge_order(results, overlaps, pr_file_hunks):
     ordered = []
     remaining = set(clean_mergeable)
 
-    # Greedy: always pick the PR with fewest overlap partners, smallest size
+    # Greedy: pick PR with fewest overlap partners, priority labels first, smallest size
     while remaining:
         best = min(
             remaining,
             key=lambda n: (
                 len(overlap_graph.get(n, set()) & remaining),
+                0 if pr_map[n]["has_priority"] else 1,
                 pr_map[n]["size_score"],
             ),
         )
