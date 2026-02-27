@@ -342,16 +342,24 @@ fi
 
 ### Step 2: Sync PRs to the milestone
 
-Based on the analysis results (whether fresh or carried forward):
+First, get the list of PRs currently in the milestone (this catches merged/closed PRs that the fetch script wouldn't see since it only fetches open PRs):
 
-- **Add** PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`):
-  ```bash
-  gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=${MILESTONE_NUM}
-  ```
-- **Remove** PRs currently in the milestone that now have blockers, are drafts, or have been merged/closed:
+```bash
+gh api "repos/{owner}/{repo}/issues?milestone=${MILESTONE_NUM}&state=all&per_page=100" \
+  --jq '.[] | {number: .number, state: .state, pull_request: .pull_request.merged_at}'
+```
+
+Then sync:
+
+- **Remove** PRs that are merged, closed, or now have blockers:
   ```bash
   gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=null
   ```
+- **Add** open PRs with **0 blockers** (all statuses are `pass` or `warn`, no `FAIL`):
+  ```bash
+  gh api -X PATCH "repos/{owner}/{repo}/issues/{number}" -F milestone=${MILESTONE_NUM}
+  ```
+- **Never** add draft PRs to the milestone.
 - **Never** add draft PRs to the milestone.
 
 **Note:** Use the REST API (`gh api -X PATCH .../issues/{number}`) instead of `gh pr edit --milestone`, which requires `read:org` scope that runners typically lack.
