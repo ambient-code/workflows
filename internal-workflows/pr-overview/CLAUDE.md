@@ -365,11 +365,45 @@ Then sync:
 
 After syncing, count the PRs now in the milestone — this is `{{MILESTONE_COUNT}}` for the report.
 
-### Step 3: Write the final report
+### Step 3: Reorder PRs in the milestone to match merge order
+
+GitHub supports reordering issues within a milestone via a GraphQL mutation. After syncing, reorder the PRs to match the `merge_order` from the analysis.
+
+First, get the milestone's node ID and each PR's node ID:
+
+```bash
+# Get milestone node ID
+MILESTONE_NODE_ID=$(gh api "repos/{owner}/{repo}/milestones/${MILESTONE_NUM}" --jq '.node_id')
+
+# Get PR node IDs (for each PR in merge_order)
+PR_NODE_ID=$(gh api "repos/{owner}/{repo}/pulls/{number}" --jq '.node_id')
+```
+
+Then reorder by calling the mutation for each PR in sequence, setting `prevId` to the previous PR's node ID:
+
+```bash
+gh api graphql -f query='
+  mutation {
+    reprioritizeMilestoneIssue(input: {
+      id: "{pr_node_id}",
+      milestoneId: "{milestone_node_id}",
+      prevId: "{previous_pr_node_id}"
+    }) {
+      clientMutationId
+    }
+  }
+'
+```
+
+For the first PR in the order, omit `prevId` (it goes to the top). For each subsequent PR, set `prevId` to the PR that should come before it.
+
+**Note:** This is an undocumented GitHub GraphQL mutation. If it fails, skip silently — the milestone description still has the merge order in the report.
+
+### Step 4: Write the final report
 
 Now that milestone sync is complete and `{{MILESTONE_COUNT}}` is known, write the final report to `artifacts/pr-review/merge-meeting-{YYYY-MM-DD}.md` using the template.
 
-### Step 4: Update milestone description with the report
+### Step 5: Update milestone description with the report
 
 Overwrite the milestone description with the final report, prefixed with a timestamp:
 
