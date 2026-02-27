@@ -571,6 +571,72 @@ def main():
         with open(pr_path, "w") as f:
             json.dump(r, f, indent=2, ensure_ascii=False)
 
+    # ── Write per-comment review files for needs_review PRs ───────────────
+    # Raw prs/{number}.json can be 50-80KB (diffs, patches, full body) which
+    # exceeds the Read tool's output limit. Instead, extract each comment into
+    # its own small file so the sub-agent can read them one at a time, newest
+    # first, and stop as soon as it finds the latest bot review.
+    reviews_dir = os.path.join(output_dir, "reviews")
+
+    for num in needs_review_nums:
+        pr_reviews_dir = os.path.join(reviews_dir, str(num))
+        os.makedirs(pr_reviews_dir, exist_ok=True)
+
+        raw_path = os.path.join(output_dir, "prs", f"{num}.json")
+        if not os.path.exists(raw_path):
+            continue
+        with open(raw_path) as f:
+            raw = json.load(f)
+
+        pr = raw.get("pr", {})
+        all_comments = []
+
+        # PR comments (includes bot reviews)
+        for c in pr.get("comments", []):
+            all_comments.append({
+                "source": "pr_comment",
+                "author": c.get("author", {}).get("login", ""),
+                "body": c.get("body", ""),
+            })
+
+        # Formal reviews with body content
+        for r_item in raw.get("reviews", []):
+            body = r_item.get("body", "")
+            if body and body.strip():
+                all_comments.append({
+                    "source": "review",
+                    "author": r_item.get("user", {}).get("login", ""),
+                    "state": r_item.get("state", ""),
+                    "body": body,
+                })
+
+        # Inline review comments
+        for rc in raw.get("review_comments", []):
+            body = rc.get("body", "")
+            if body and body.strip():
+                all_comments.append({
+                    "source": "inline_comment",
+                    "author": rc.get("user", {}).get("login", ""),
+                    "path": rc.get("path", ""),
+                    "body": body,
+                })
+
+        # Write meta file
+        meta = {
+            "number": num,
+            "title": pr.get("title", ""),
+            "author": (pr.get("author") or {}).get("login", ""),
+            "total_comments": len(all_comments),
+        }
+        with open(os.path.join(pr_reviews_dir, "meta.json"), "w") as f:
+            json.dump(meta, f, indent=2, ensure_ascii=False)
+
+        # Write each comment as a numbered file (01.json, 02.json, ...)
+        for i, comment in enumerate(all_comments, 1):
+            comment_path = os.path.join(pr_reviews_dir, f"{i:02d}.json")
+            with open(comment_path, "w") as f:
+                json.dump(comment, f, indent=2, ensure_ascii=False)
+
     # ── Write compact summary (no per-PR details — just the index) ────────
     pr_index = []
     for r in results:
@@ -602,6 +668,7 @@ def main():
     print(f"Analysis complete:")
     print(f"  Summary: {summary_path}")
     print(f"  Per-PR:  {analysis_dir}/{{number}}.json")
+    print(f"  Reviews: {reviews_dir}/{{number}}/meta.json + 01.json, 02.json, ...")
     print(f"  Total: {stats['total']} PRs ({stats['drafts']} drafts)")
     print(f"  Clean: {stats['clean']} | One blocker: {stats['one_blocker']} | Needs work: {stats['needs_work']}")
     print(f"  Recommend closing: {stats['recommend_close']}")

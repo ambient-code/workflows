@@ -121,15 +121,20 @@ The script prints a `needs_review` list of PR numbers that require your evaluati
 
 Split the `needs_review` list into batches of ~10 PRs each and spawn sub-agents **in parallel** (multiple Task calls in a single message). Use this prompt for each batch:
 
-> Read the PR data files listed below and evaluate each PR's review comments. For each PR, read `artifacts/pr-review/prs/{number}.json` — look at `pr.comments[]` (includes bot reviews) and the top-level `reviews[]` (formal verdicts).
+> Evaluate review comments for the PRs listed below. For each PR:
 >
-> **Bot review comments (e.g., "Amber Code Review" from github-actions) are real code reviews.** They analyzed the actual diff. If the latest bot review lists Blocker or Critical issues with specific descriptions, that is a FAIL — do NOT dismiss them as informational.
+> 1. Read `artifacts/pr-review/reviews/{number}/meta.json` to see how many comments there are
+> 2. Read the comment files **from highest number to lowest** (newest first): `reviews/{number}/05.json`, `04.json`, etc.
+> 3. Each comment file has: `source` (pr_comment / review / inline_comment), `author`, `body`, and optionally `state` or `path`
+> 4. Stop reading once you've found the latest bot review (author contains "github-actions" or "[bot]") and have enough context to judge
+>
+> **Bot review comments (e.g., "Amber Code Review") are real code reviews.** They analyzed the actual diff. If the latest bot review lists Blocker or Critical issues with specific descriptions, that is a FAIL — do NOT dismiss them as informational.
 >
 > For each PR, return: PR number, verdict (FAIL or pass), and a one-line summary of the issue (or "no issues" for pass). Only mark pass if the review explicitly found no issues or findings are purely minor/style.
 >
 > PRs to evaluate: {batch list}
 
-Each sub-agent reads the **full, untruncated** raw PR files directly — no data loss.
+Each comment is a small file — no truncation, no size limits. The sub-agent reads newest first and stops early once it has a verdict.
 
 Collect all verdicts from the parallel sub-agents and update each PR's `review_status` and `fail_count` in your working data before proceeding.
 
