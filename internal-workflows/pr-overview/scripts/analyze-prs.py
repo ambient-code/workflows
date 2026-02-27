@@ -146,7 +146,8 @@ def check_reviews(reviews, review_comments, pr_comments):
                 f"{len(review_comments)} inline threads on {', '.join(list(paths)[:2])}"
             )
 
-    # 3. Check bot review comments (last one only)
+    # 3. Extract bot review content for agent evaluation
+    bot_review_excerpt = ""
     bot_comments = [
         c
         for c in pr_comments
@@ -157,33 +158,28 @@ def check_reviews(reviews, review_comments, pr_comments):
         last_bot = bot_comments[-1]
         body = last_bot.get("body", "")
 
-        # Extract blocker section
-        blocker_match = re.search(
-            r"(?:###?\s*)?(?:\U0001f6ab\s*)?Blocker\s*Issues?\s*\n(.*?)(?=\n###?\s|\Z)",
-            body,
-            re.DOTALL | re.IGNORECASE,
-        )
-        if blocker_match:
-            content = blocker_match.group(1).strip()
-            if has_real_content(content):
-                summary = content.split("\n")[0][:80]
-                issues.append(f"Bot blocker: {summary}")
+        # Extract blocker and critical sections for the agent to review
+        sections = []
+        for label in ["Blocker", "Critical"]:
+            match = re.search(
+                rf"(?:###?\s*)?(?:.\s*)?{label}\s*Issues?\s*\n(.*?)(?=\n###?\s|\Z)",
+                body,
+                re.DOTALL | re.IGNORECASE,
+            )
+            if match:
+                content = match.group(1).strip()
+                if has_real_content(content):
+                    # Keep first ~300 chars for agent context
+                    sections.append(f"[{label}] {content[:300]}")
 
-        # Extract critical section
-        critical_match = re.search(
-            r"(?:###?\s*)?(?:\U0001f534\s*)?Critical\s*Issues?\s*\n(.*?)(?=\n###?\s|\Z)",
-            body,
-            re.DOTALL | re.IGNORECASE,
-        )
-        if critical_match:
-            content = critical_match.group(1).strip()
-            if has_real_content(content):
-                summary = content.split("\n")[0][:80]
-                issues.append(f"Bot critical: {summary}")
+        if sections:
+            bot_review_excerpt = "\n".join(sections)
 
     if issues:
-        return "FAIL", "; ".join(issues)
-    return "pass", "\u2014"
+        return "FAIL", "; ".join(issues), bot_review_excerpt
+    if bot_review_excerpt:
+        return "needs_review", "Bot flagged issues — agent to evaluate", bot_review_excerpt
+    return "pass", "\u2014", ""
 
 
 def check_jira(title, body, branch):
@@ -433,7 +429,7 @@ def main():
         # Run blocker checks
         ci_status, ci_detail = check_ci(check_runs, status_rollup)
         conflict_status, conflict_detail = check_conflicts(mergeable)
-        review_status, review_detail = check_reviews(reviews, review_comments, pr_comments)
+        review_status, review_detail, bot_review_excerpt = check_reviews(reviews, review_comments, pr_comments)
         jira_status, jira_detail = check_jira(title, body, branch)
         stale_status, stale_detail, staleness_data = check_staleness(updated_at, now)
 
@@ -486,6 +482,7 @@ def main():
                 "conflict_detail": conflict_detail,
                 "review_status": review_status,
                 "review_detail": review_detail,
+                "bot_review_excerpt": bot_review_excerpt,
                 "jira_status": jira_status,
                 "jira_detail": jira_detail,
                 "stale_status": stale_status,

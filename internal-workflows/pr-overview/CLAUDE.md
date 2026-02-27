@@ -95,9 +95,15 @@ Run the analysis script to evaluate every PR against the blocker checklist:
 python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
 ```
 
-This produces `artifacts/pr-review/analysis.json` with per-PR blocker statuses, rankings, and diff overlap data. The script implements all the rules described in the blocker checklist below.
+This produces `artifacts/pr-review/analysis.json` with per-PR blocker statuses, rankings, and diff overlap data. The script handles deterministic checks (CI, conflicts, Jira, staleness, overlaps) automatically.
 
-**Do not rewrite the analysis script.** If you need to adjust a specific check (e.g., add a new security pattern), edit `scripts/analyze-prs.py` directly rather than writing a new script from scratch. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
+**Review comments require your judgment.** PRs with `review_status: "needs_review"` have bot review comments with blocker/critical content that the script extracted but cannot evaluate. The `bot_review_excerpt` field contains the relevant text. Read it and decide:
+- If the issues are real and actionable → set `review_status` to `FAIL` in the report
+- If the issues are speculative, already addressed, or not actually blocking → set to `pass`
+
+Update the PR's `fail_count` and ranking accordingly before generating the report.
+
+**Do not rewrite the analysis script.** If you need to adjust a specific check, edit `scripts/analyze-prs.py` directly. Do **not** write the final report yet — the milestone count is needed first (see Phase 3).
 
 ## Blocker Checklist
 
@@ -128,8 +134,9 @@ Consider all authors equally — do not attempt to distinguish bots from humans.
 
 For bot review comments (e.g., Amber Code Review), only the **last** bot review comment reflects the current state. When checking blocker/critical sections, treat the content as "None" (no issues) if the section body is any variation of: `None.`, `_None._`, `**None**`, `None identified.`, or is empty. These are all equivalent to "no issues found."
 
-- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED` review state (without a subsequent `APPROVED`), and no blocker/critical issues in the latest bot review comment.
-- **Blocker:** list the count of unresolved threads and summarise the topics (e.g., "2 threads: naming concern on `handler.go`, missing test for edge case"). Include any `CHANGES_REQUESTED` reviews that haven't been resolved. If the latest bot review has a Blocker or Critical section with real content (not "None"), treat it as a blocker — trust the bot's severity classification.
+- **Clear:** no unresolved review threads, no outstanding `CHANGES_REQUESTED`, and no real issues in bot reviews.
+- **Blocker:** unresolved `CHANGES_REQUESTED`, inline threads, or genuine bot review issues.
+- **needs_review:** the script flags PRs where the bot review has blocker/critical content but cannot judge whether the issues are real. The `bot_review_excerpt` field has the text — **you** read it and decide FAIL or pass. Consider: is the issue specific and actionable? Would it cause a bug, security hole, or compile failure? Or is it speculative / already addressed?
 
 ### 4. Jira Hygiene
 
