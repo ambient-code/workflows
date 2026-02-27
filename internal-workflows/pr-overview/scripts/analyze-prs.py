@@ -103,13 +103,17 @@ def check_conflicts(mergeable):
         return "FAIL", f"Conflict status: {mergeable or 'unknown'}"
 
 
-def check_reviews(reviews, review_comments, pr_comments):
+def check_reviews(reviews, review_comments, pr_comments, fetch_ok=True):
     """Handle deterministic review checks only. Comment evaluation is the agent's job.
 
-    Returns (status, detail, comments_for_review).
+    Returns (status, detail, has_comments).
     - status/detail cover only CHANGES_REQUESTED and inline threads.
-    - comments_for_review is a list of comment excerpts for the agent to evaluate.
+    - has_comments indicates whether the agent needs to evaluate comments.
     """
+    # If the fetch failed, we can't know if there are comments — flag for review
+    if not fetch_ok:
+        return "needs_review", "PR data incomplete — fetch may have failed", True
+
     issues = []
 
     # 1. Check for unresolved CHANGES_REQUESTED (handle DISMISSED)
@@ -362,9 +366,11 @@ def main():
 
         # Load detailed data
         pr_data = {}
+        fetch_ok = False
         if os.path.exists(pr_file) and os.path.getsize(pr_file) > 10:
             with open(pr_file) as f:
                 pr_data = json.load(f)
+            fetch_ok = bool(pr_data.get("pr"))
 
         pr = pr_data.get("pr", {})
         reviews = pr_data.get("reviews", [])
@@ -394,7 +400,7 @@ def main():
         # Run blocker checks
         ci_status, ci_detail = check_ci(check_runs, status_rollup)
         conflict_status, conflict_detail = check_conflicts(mergeable)
-        review_status, review_detail, has_comments = check_reviews(reviews, review_comments, pr_comments)
+        review_status, review_detail, has_comments = check_reviews(reviews, review_comments, pr_comments, fetch_ok)
         jira_status, jira_detail = check_jira(title, body, branch)
         stale_status, stale_detail, staleness_data = check_staleness(updated_at, now)
 
