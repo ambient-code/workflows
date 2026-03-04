@@ -33,7 +33,26 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Example: `bugfix/issue-425-status-update-retry`
 - Verify you're on the new branch before making changes
 
-### Step 3: Implement Core Fix
+### Step 3: Research Implementation Patterns
+
+**CRITICAL: Before writing any code, research how similar functionality is already implemented.**
+
+- **Search for existing patterns**: Use Grep to find similar implementations in the codebase
+  - Example: If fixing polling logic, search for other polling implementations
+  - Example: If working with state machines, find all state definitions
+- **Identify all possible states/cases**: When working with state-based logic, enumerate ALL possible states by searching the codebase
+  - Example: If handling session phases, grep for ALL phase constants/enums, not just the ones mentioned in the bug
+  - Don't assume - verify by checking actual usage in the codebase
+- **Understand feature interactions**: When combining multiple features (e.g., polling + pagination), research how they interact
+  - Read relevant documentation (official docs for libraries/frameworks)
+  - Search for existing code that combines these features
+  - Look for comments or patterns that explain interaction behavior
+- **Check for framework-specific gotchas**: If using library features (React Query, Redux, etc.), research edge cases
+  - Example: `placeholderData: keepPreviousData` affects what data is available during transitions
+  - Example: Polling callbacks may receive stale data during page changes
+- **Document your research**: Note what patterns you found and why you're following them (or diverging)
+
+### Step 4: Implement Core Fix
 
 - Write the minimal code necessary to fix the bug
 - Follow project coding standards and conventions
@@ -41,21 +60,21 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Include inline comments explaining **why** the fix works, not just **what** it does
 - Reference the issue number in comments (e.g., `// Fix for #425: add retry logic`)
 
-### Step 4: Address Related Code
+### Step 5: Address Related Code
 
 - Fix similar patterns identified in root cause analysis
 - Update affected function signatures if necessary
 - Ensure consistency across the codebase
 - Consider adding defensive programming where appropriate
 
-### Step 5: Update Documentation
+### Step 6: Update Documentation
 
 - Update inline code documentation
 - Modify API documentation if interfaces changed
 - Update configuration documentation if settings changed
 - Note any breaking changes clearly
 
-### Step 6: Pre-commit Quality Checks
+### Step 7: Pre-commit Quality Checks
 
 - Run code formatters (e.g., `gofmt`, `black`, `prettier`)
 - Run linters and fix all warnings (e.g., `golangci-lint`, `flake8`, `eslint`)
@@ -63,7 +82,7 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Check for any new security vulnerabilities introduced
 - Verify no secrets or sensitive data added
 
-### Step 7: Document Implementation
+### Step 8: Document Implementation
 
 Create `artifacts/bugfix/fixes/implementation-notes.md` containing:
 

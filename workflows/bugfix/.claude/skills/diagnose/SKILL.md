@@ -59,6 +59,9 @@ Perform thorough root cause analysis that provides clear, evidence-based conclus
 - Identify all code paths affected by this bug
 - Assess severity and blast radius
 - Determine if similar bugs exist elsewhere (pattern analysis)
+- **Enumerate all relevant states/cases**: If the bug involves state-based logic, use Grep to find ALL possible states in the codebase
+  - Example: If diagnosing a session state bug, search for all session state constants/enums, not just the ones that reproduce the bug
+  - This ensures the fix will handle all cases, not just the reported scenario
 - Check if other features are impacted
 - Evaluate if fix requires breaking changes
 
