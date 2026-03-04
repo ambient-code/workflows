@@ -1,6 +1,6 @@
 ---
-description: Gather and document detailed product requirements.
-displayName: prd.requirements
+description: Gather and document detailed product requirements in an RFE.
+displayName: prd.rfe
 icon: 📋
 ---
 
@@ -31,7 +31,7 @@ Invoke these agents at the start of the requirements gathering process. Work col
    - Read `discovery.md` if it exists
    - Consider user input from $ARGUMENTS
 
-2. **Create Requirements Document**: Generate `requirements.md`:
+2. **Create RFE Document**: Generate `rfe.md`:
 
    ```markdown
    # Product Requirements: [Product/Feature Name]
@@ -139,7 +139,7 @@ Invoke these agents at the start of the requirements gathering process. Work col
    - Present options when multiple approaches are valid
 
 6. **Report Completion**:
-   - Path to requirements document
+   - Path to RFE document
    - Summary of key requirements
    - Readiness assessment for PRD creation
    - Next step: run `/prd.create`
