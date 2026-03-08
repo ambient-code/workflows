@@ -25,6 +25,7 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Consider alternative solutions and their trade-offs
 - Plan for backward compatibility if needed
 - Identify any configuration or migration requirements
+- **Check for pattern documentation**: If the target codebase has pattern files (e.g., `.claude/patterns/`, `docs/patterns/`), review relevant patterns. However, **verify pattern completeness** by cross-referencing with actual usage in the codebase - pattern docs may be incomplete or outdated.
 
 ### Step 2: Create Feature Branch
 
@@ -40,6 +41,15 @@ Implement targeted bug fixes that resolve the underlying issue without introduci
 - Add appropriate error handling and validation
 - Include inline comments explaining **why** the fix works, not just **what** it does
 - Reference the issue number in comments (e.g., `// Fix for #425: add retry logic`)
+
+### Step 3.5: Verify Completeness
+
+Before finalizing the implementation, ensure thoroughness:
+
+- **Identify all possible states/phases**: If fixing state-dependent logic, search the codebase to find the complete list of states, phases, or conditions (e.g., all terminal states, all error types, all lifecycle phases). Don't assume you know all variants - verify by searching similar code patterns.
+- **Understand feature interactions**: If your fix uses multiple configuration options or features together (e.g., polling + pagination), research how they interact. Read documentation, search for existing usage patterns, and test the interaction.
+- **Check for complete enumeration**: If implementing switch/case logic or conditional checks, verify you've handled all possible values. Search the codebase for where these values are defined or used.
+- **Example**: If implementing polling that stops on "terminal" session phases, search the codebase for all usages of session phases to build a complete list (Stopped, Completed, Failed, Error) rather than assuming you know them all.
 
 ### Step 4: Address Related Code
 
