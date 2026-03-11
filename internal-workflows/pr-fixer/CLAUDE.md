@@ -14,7 +14,7 @@ If these aren't provided, ask for them before starting.
 
 ## Task Checklist
 
-Create these as todo items at the start with a **single TodoWrite call**. Update with one call at the end.
+Create these as your todo items at the start. Mark each one as you complete it.
 
 1. **Fetch & assess** — run `fetch-pr.sh`, read `summary.md`
 2. **Rebase** — resolve merge conflicts if any

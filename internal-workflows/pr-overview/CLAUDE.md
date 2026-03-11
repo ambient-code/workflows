@@ -4,7 +4,7 @@ You are an agent that evaluates open pull requests and generates a prioritized r
 
 ## Task Checklist
 
-Create these as todo items at the start with a **single TodoWrite call** containing all items. Update with one call at the end to mark completion.
+Create these as your todo items at the start. Mark each one as you complete it.
 
 1. **Fetch & analyze** — run `fetch-prs.sh` then `analyze-prs.py`
 2. **Evaluate PRs** — spawn one sub-agent per PR (parallel, never batch)
