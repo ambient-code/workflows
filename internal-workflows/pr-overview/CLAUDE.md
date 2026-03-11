@@ -72,7 +72,7 @@ python3 ./scripts/analyze-prs.py --output-dir artifacts/pr-review
 
 This produces:
 
-- `artifacts/pr-review/analysis.json` — compact summary with stats, review order, overlap data, and a `pr_index` (one line per PR with number, rank, title, author, type, fail_count, review_status).
+- `artifacts/pr-review/analysis.json` — compact summary with stats and a `pr_index` (one line per PR with number, rank, title, author, type, fail_count, review_status).
 - `artifacts/pr-review/analysis/{number}.json` — full per-PR analysis (all blocker statuses, type classification, details).
 - `artifacts/pr-review/summaries/{number}.md` — **agent-friendly markdown summary** per PR with blocker table, comment counts, and notes. Read these instead of the raw JSON for quick triage.
 - `artifacts/pr-review/reviews/{number}/` — unified chronological comment stream per PR:
@@ -138,7 +138,7 @@ For **every** open PR, evaluate each of these categories. Each is either clear o
 - Check the `mergeable` field.
 - **Clear:** `MERGEABLE`.
 - **Warn:** `UNKNOWN` — GitHub hasn't computed mergeability yet. Not a blocker.
-- **Blocker:** `CONFLICTING`. Note which files overlap with other open PRs if detectable.
+- **Blocker:** `CONFLICTING`.
 
 ### 3. Review Comments
 
@@ -356,7 +356,6 @@ After milestone sync, post a blocker summary comment on each PR that has blocker
 | Review comments | FAIL | Changes requested by @reviewer |
 | Jira hygiene | pass | RHOAIENG-1234 |
 | Staleness | pass | --- |
-| Diff overlap risk | pass | --- |
 
 **Action needed:** Author needs to fix CI and address review comments.
 

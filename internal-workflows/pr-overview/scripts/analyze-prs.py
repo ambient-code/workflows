@@ -14,7 +14,6 @@ import json
 import os
 import re
 import sys
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 
@@ -315,102 +314,6 @@ def detect_superseded(results, index_map):
     return superseded
 
 
-# -- Diff hunk overlap analysis --
-
-
-def parse_hunks(patch):
-    if not patch:
-        return []
-    hunks = []
-    for m in re.finditer(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", patch):
-        start = int(m.group(1))
-        count = int(m.group(2)) if m.group(2) is not None else 1
-        hunks.append((start, start + count - 1))
-    return hunks
-
-
-def hunks_overlap(h1, h2):
-    return h1[0] <= h2[1] and h2[0] <= h1[1]
-
-
-def compute_overlaps(pr_file_hunks):
-    nums = sorted(pr_file_hunks.keys())
-    overlaps = []
-    shared_no_overlap = []
-
-    for i, num_a in enumerate(nums):
-        for num_b in nums[i + 1 :]:
-            files_a = set(pr_file_hunks[num_a].keys())
-            files_b = set(pr_file_hunks[num_b].keys())
-            shared = files_a & files_b
-
-            if not shared:
-                continue
-
-            has_overlap = False
-            for fname in shared:
-                for ha in pr_file_hunks[num_a][fname]:
-                    for hb in pr_file_hunks[num_b][fname]:
-                        if hunks_overlap(ha, hb):
-                            overlaps.append(
-                                {
-                                    "pr_a": num_a,
-                                    "pr_b": num_b,
-                                    "file": fname,
-                                    "range_a": list(ha),
-                                    "range_b": list(hb),
-                                }
-                            )
-                            has_overlap = True
-
-            if not has_overlap:
-                shared_no_overlap.append(
-                    {"pr_a": num_a, "pr_b": num_b, "shared_files": list(shared)}
-                )
-
-    return overlaps, shared_no_overlap
-
-
-# -- Review order computation --
-
-
-def compute_review_order(results, overlaps, pr_file_hunks):
-    """Compute a recommended review/merge sequence for clean, mergeable PRs."""
-    clean_mergeable = [
-        r["number"]
-        for r in results
-        if not r["isDraft"] and r["fail_count"] == 0 and r["conflict_status"] == "pass"
-    ]
-
-    if not clean_mergeable:
-        return []
-
-    overlap_graph = defaultdict(set)
-    for o in overlaps:
-        if o["pr_a"] in clean_mergeable and o["pr_b"] in clean_mergeable:
-            overlap_graph[o["pr_a"]].add(o["pr_b"])
-            overlap_graph[o["pr_b"]].add(o["pr_a"])
-
-    pr_map = {r["number"]: r for r in results}
-    ordered = []
-    remaining = set(clean_mergeable)
-
-    while remaining:
-        best = min(
-            remaining,
-            key=lambda n: (
-                TYPE_PRIORITY.get(pr_map[n]["pr_type"], 99),
-                len(overlap_graph.get(n, set()) & remaining),
-                0 if pr_map[n]["has_priority"] else 1,
-                pr_map[n]["size_score"],
-            ),
-        )
-        ordered.append(best)
-        remaining.remove(best)
-
-    return ordered
-
-
 # -- Unified comment stream extraction --
 
 
@@ -493,7 +396,6 @@ def main():
     index_map = {pr["number"]: pr for pr in index}
 
     results = []
-    pr_file_hunks = {}
     pr_data_cache = {}  # stash pr_data for needs_review PRs to avoid re-reading
 
     for idx_pr in index:
@@ -571,17 +473,6 @@ def main():
         size_score = additions + deletions + changed_files * 10
         size_str = f"{changed_files} files (+{additions}/-{deletions})"
 
-        if not is_draft and mergeable == "MERGEABLE" and diff_files:
-            file_hunks = {}
-            for df in diff_files:
-                fname = df.get("filename", "")
-                patch = df.get("patch", "")
-                hunks = parse_hunks(patch)
-                if fname and hunks:
-                    file_hunks[fname] = hunks
-            if file_hunks:
-                pr_file_hunks[num] = file_hunks
-
         results.append(
             {
                 "number": num,
@@ -612,8 +503,6 @@ def main():
                 "stale_status": stale_status,
                 "stale_detail": stale_detail,
                 "days_since_update": staleness_data["days_old"],
-                "overlap_status": "\u2014",
-                "overlap_detail": "\u2014",
                 "notes": "",
                 "fail_count": fail_count,
                 "has_priority": has_priority,
@@ -629,61 +518,6 @@ def main():
         if r["number"] in superseded:
             r["superseded_by"] = superseded[r["number"]]
             r["notes"] = f"May be superseded by #{superseded[r['number']]}"
-
-    # Compute diff overlaps
-    overlaps, shared_no_overlap = compute_overlaps(pr_file_hunks)
-
-    # Set overlap status per PR
-    pr_map = {r["number"]: r for r in results}
-    overlap_prs = set()
-    warn_prs = set()
-
-    for o in overlaps:
-        overlap_prs.add(o["pr_a"])
-        overlap_prs.add(o["pr_b"])
-
-    for s in shared_no_overlap:
-        if s["pr_a"] not in overlap_prs:
-            warn_prs.add(s["pr_a"])
-        if s["pr_b"] not in overlap_prs:
-            warn_prs.add(s["pr_b"])
-
-    for r in results:
-        num = r["number"]
-        if r["isDraft"] or r["conflict_status"] == "FAIL":
-            r["overlap_status"] = "\u2014"
-            r["overlap_detail"] = "\u2014"
-        elif num in overlap_prs:
-            partners = set()
-            files = set()
-            for o in overlaps:
-                if o["pr_a"] == num:
-                    partners.add(o["pr_b"])
-                    files.add(o["file"])
-                elif o["pr_b"] == num:
-                    partners.add(o["pr_a"])
-                    files.add(o["file"])
-            partner_str = ", ".join(f"#{p}" for p in sorted(partners))
-            file_str = ", ".join(sorted(files)[:2])
-            r["overlap_status"] = "FAIL"
-            r["overlap_detail"] = f"Line overlap with {partner_str} on {file_str}"
-            if not r["notes"]:
-                r["notes"] = f"Merge order matters: overlaps with {partner_str}"
-        elif num in warn_prs:
-            r["overlap_status"] = "warn"
-            r["overlap_detail"] = "Shares files but no line overlap"
-        elif num in pr_file_hunks:
-            r["overlap_status"] = "pass"
-            r["overlap_detail"] = "\u2014"
-
-    # Recompute fail_count now that overlap_status is set
-    for r in results:
-        r["fail_count"] = sum(
-            1
-            for s in [r["ci_status"], r["conflict_status"], r["review_status"],
-                       r["stale_status"], r["overlap_status"]]
-            if s == "FAIL"
-        )
 
     # Flag PRs to recommend closing
     for r in results:
@@ -713,9 +547,6 @@ def main():
     )
     for i, r in enumerate(results):
         r["rank"] = i + 1
-
-    # Compute review order for clean PRs
-    review_order = compute_review_order(results, overlaps, pr_file_hunks)
 
     # Stats
     non_draft = [r for r in results if not r["isDraft"]]
@@ -773,7 +604,6 @@ def main():
             f"| Reviews | {r['review_status']} | {r['review_detail']} |",
             f"| Jira | {r['jira_status']} | {r['jira_detail']} |",
             f"| Staleness | {r['stale_status']} | {r['stale_detail']} |",
-            f"| Overlap | {r['overlap_status']} | {r['overlap_detail']} |",
         ]
 
         if r["recommend_close"]:
@@ -852,11 +682,8 @@ def main():
     summary = {
         "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S UTC"),
         "stats": stats,
-        "review_order": review_order,
         "needs_review": needs_review_nums,
         "pr_index": pr_index,
-        "overlaps": overlaps,
-        "shared_no_overlap": shared_no_overlap,
     }
 
     summary_path = os.path.join(output_dir, "analysis.json")
@@ -876,14 +703,6 @@ def main():
     print(
         f"  Needs sub-agent review: {len(needs_review_nums)} PRs \u2014 {needs_review_nums}"
     )
-    print(
-        f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only"
-    )
-    if review_order:
-        arrow = " \u2192 "
-        print(
-            f"  Review order: {arrow.join(f'#{n}' for n in review_order[:10])}"
-        )
 
 
 if __name__ == "__main__":
