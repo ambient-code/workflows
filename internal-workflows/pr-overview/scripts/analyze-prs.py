@@ -239,6 +239,37 @@ def main():
     for r in results:
         r["fail_count"] = sum(1 for s in [r["ci_status"], r["conflict_status"], r["review_status"], r["stale_status"], r["overlap_status"]] if s == "FAIL")
 
+        # Build blocker_icons and issue_snippet for the report template
+        icons = []
+        snippets = []
+        if r["ci_status"] == "FAIL":
+            icons.append("CI")
+            snippets.append(r["ci_detail"])
+        if r["conflict_status"] == "FAIL":
+            icons.append("CONFLICT")
+            snippets.append(r["conflict_detail"])
+        if r["review_status"] == "FAIL":
+            icons.append("REVIEW")
+            snippets.append(r["review_detail"])
+        elif r["review_status"] == "needs_review":
+            icons.append("REVIEW?")
+            snippets.append("Needs evaluation")
+        if r["stale_status"] == "FAIL":
+            icons.append("STALE")
+            snippets.append(r["stale_detail"])
+        if r["overlap_status"] == "FAIL":
+            icons.append("OVERLAP")
+            snippets.append(r["overlap_detail"])
+        r["blocker_icons"] = ", ".join(icons) if icons else "\u2014"
+        r["issue_snippet"] = "; ".join(snippets) if snippets else "\u2014"
+        # For "Almost Ready" section — single blocker description
+        if r["fail_count"] == 1 and icons:
+            r["single_blocker"] = icons[0]
+            r["what_needed"] = snippets[0] if snippets else "\u2014"
+        else:
+            r["single_blocker"] = ""
+            r["what_needed"] = ""
+
     for r in results:
         reasons = []
         days = r["days_since_update"]
