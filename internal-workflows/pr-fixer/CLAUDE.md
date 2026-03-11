@@ -14,7 +14,7 @@ If these aren't provided, ask for them before starting.
 
 ## Task Checklist
 
-Track progress against this checklist. **Do not use TodoWrite** — it wastes tool calls. Just work through these steps in order:
+Create these as todo items at the start with a **single TodoWrite call**. Update with one call at the end.
 
 1. **Fetch & assess** — run `fetch-pr.sh`, read `summary.md`
 2. **Rebase** — resolve merge conflicts if any

@@ -4,10 +4,10 @@ You are an agent that evaluates open pull requests and generates a prioritized r
 
 ## Task Checklist
 
-Track progress against this checklist. **Do not use TodoWrite** — it wastes tool calls. Just work through these steps in order:
+Create these as todo items at the start with a **single TodoWrite call** containing all items. Update with one call at the end to mark completion.
 
 1. **Fetch & analyze** — run `fetch-prs.sh` then `analyze-prs.py`
-2. **Evaluate PRs** — read summaries and comments sequentially (most recent first)
+2. **Evaluate PRs** — spawn one sub-agent per PR (parallel, never batch)
 3. **Milestone sync** — find/create milestone, add clean PRs, remove blocked ones
 4. **Write report & update milestone** — generate report, set as milestone description
 5. **Comment on blocked PRs** — post blocker summaries (skip if auth fails)
@@ -79,11 +79,11 @@ This produces:
   - `meta.json` — PR number, title, author, total comment count
   - `01.json`, `02.json`, ... — each comment in chronological order with timestamp, author, body, and source hint
 
-### Phase 3: Sequential PR Evaluation
+### Phase 3: PR Evaluation
 
-Evaluate PRs **one at a time**, starting with the **most recently updated** PR. This avoids context overload and produces more accurate verdicts than bulk processing.
+Evaluate each PR that needs review. **One PR per sub-agent** — spawn them in parallel for speed, but never batch multiple PRs into a single agent (that causes context overload and inaccurate verdicts).
 
-**Sort the `needs_review` list by `updatedAt` descending** (most recent first). Then for each PR:
+**Sort the `needs_review` list by `updatedAt` descending** (most recent first). Spawn one sub-agent per PR with this prompt template, passing the PR number. Each sub-agent should:
 
 1. **Read the summary:** `artifacts/pr-review/summaries/{number}.md` — gives you the blocker table and comment counts at a glance.
 2. **Read review meta:** `artifacts/pr-review/reviews/{number}/meta.json` — check `total_comments`. If 0, verdict is `ready` (no review comments = needs first review, not blocked).
