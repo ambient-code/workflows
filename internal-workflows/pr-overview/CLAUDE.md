@@ -79,41 +79,36 @@ This produces:
 
 - `artifacts/pr-review/analysis.json` — compact summary with stats, review order, overlap data, and a `pr_index` (one line per PR with number, rank, title, author, type, fail_count, review_status).
 - `artifacts/pr-review/analysis/{number}.json` — full per-PR analysis (all blocker statuses, type classification, details).
+- `artifacts/pr-review/summaries/{number}.md` — **agent-friendly markdown summary** per PR with blocker table, comment counts, and notes. Read these instead of the raw JSON for quick triage.
 - `artifacts/pr-review/reviews/{number}/` — unified chronological comment stream per PR:
   - `meta.json` — PR number, title, author, total comment count
   - `01.json`, `02.json`, ... — each comment in chronological order with timestamp, author, body, and source hint
 
-### Phase 3: Per-PR Sub-Agent Evaluation
+### Phase 3: Sequential PR Evaluation
 
-This is where the real intelligence lives. The analyze script does mechanical checks (CI, conflicts, Jira, staleness). The sub-agents do the nuanced reading — understanding review conversations, judging comment validity, assessing overall PR health.
+Evaluate PRs **one at a time**, starting with the **most recently updated** PR. This avoids context overload and produces more accurate verdicts than bulk processing.
 
-**Spawn one sub-agent per batch of ~10 PRs.** Use this prompt for each batch:
+**Sort the `needs_review` list by `updatedAt` descending** (most recent first). Then for each PR:
 
-> Evaluate each PR listed below. For each PR:
->
-> 1. Read `artifacts/pr-review/analysis/{number}.json` to see the mechanical check results and the PR's `updatedAt` timestamp
-> 2. Read `artifacts/pr-review/reviews/{number}/meta.json` to see the comment count
-> 3. Read ALL comment files in `reviews/{number}/` in order (01.json, 02.json, ...) — these are the full chronological comment stream including human reviews, bot reviews, inline comments, and discussion. Do not skip any.
-> 4. Understand the full conversation arc: who reviewed, what they said, whether issues were addressed, whether reviews are stale (old commits), whether there's unresolved disagreement
->
-> For each PR, return a verdict with these fields:
-> - **number**: PR number
-> - **verdict**: `ready` (no blockers, needs human approval), `almost` (1 minor issue), `blocked` (real blockers), `stale` (abandoned/inactive)
-> - **review_summary**: 1-2 sentences capturing the review state — who reviewed, what was raised, whether it was addressed. Be specific.
-> - **action_needed**: What a human should do next (e.g., "Approve — all feedback addressed", "Author needs to fix CI", "Reviewer @alice has unresolved concern about error handling")
-> - **action_owner**: Who needs to act — `@author`, `@reviewer`, `@maintainer`, or a specific username
-> - **blockers_from_comments**: List of genuine blockers found in comments (empty list if none). Only real issues — not style nits, not stale bot findings on old commits.
->
-> Key judgment calls:
-> - A bot review from 3 weeks ago on a different commit is probably stale — note it but don't block on it
-> - A human requesting changes, author pushing a fix, but no re-approval = needs reviewer to re-review, not a blocker from comments
-> - "nit" comments or style suggestions with CHANGES_REQUESTED state = not a real blocker, note the mismatch
-> - Multiple rounds of review with all issues addressed = ready for approval
-> - Unresolved substantive disagreement = blocked, explain the disagreement
->
-> PRs to evaluate: {batch list}
+1. **Read the summary:** `artifacts/pr-review/summaries/{number}.md` — gives you the blocker table and comment counts at a glance.
+2. **Read review meta:** `artifacts/pr-review/reviews/{number}/meta.json` — check `total_comments`. If 0, verdict is `ready` (no review comments = needs first review, not blocked).
+3. **Read comments newest-first:** Start from the highest-numbered file (`05.json`, `04.json`, etc.).
+4. **Skip resolved inline comments:** If an inline comment was addressed by a later commit or reply, treat it as resolved. Only flag genuinely unresolved concerns.
+5. **Stop early:** Once you've found the latest bot review and have enough context, stop reading older comments.
+6. **Record verdict** with these fields:
+   - **number**: PR number
+   - **verdict**: `ready` (no blockers), `almost` (1 minor issue), `blocked` (real blockers), `stale` (abandoned)
+   - **review_summary**: 1-2 sentences — who reviewed, what was raised, whether addressed
+   - **action_needed**: What a human should do next
+   - **action_owner**: `@author`, `@reviewer`, `@maintainer`, or specific username
+   - **blockers_from_comments**: List of genuine blockers (empty if none)
 
-Collect all verdicts from the parallel sub-agents and update each PR's review data before proceeding.
+**Key judgment calls:**
+- A bot review from weeks ago on a different commit is stale — note but don't block
+- `CHANGES_REQUESTED` + author pushed fix + no re-approval = needs reviewer re-review, not a comment blocker
+- "nit" or style suggestions with `CHANGES_REQUESTED` = not a real blocker
+- No comments at all = `ready` (needs first review, not blocked)
+- Resolved inline threads = ignore
 
 **Do not rewrite the analysis script.** If you need to adjust a deterministic check, edit `scripts/analyze-prs.py` directly.
 
@@ -152,13 +147,12 @@ For **every** open PR, evaluate each of these categories. Each is either clear o
 
 ### 3. Review Comments
 
-The script handles two deterministic checks automatically:
-- **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED
-- **Inline review threads** (from `review_comments[]`)
+The script handles one deterministic check automatically:
+- **CHANGES_REQUESTED** without a subsequent APPROVED or DISMISSED → `FAIL`
 
-Everything else — bot reviews, human discussion, comment arcs — is evaluated by the sub-agents who read the full comment stream and make judgment calls. See Phase 3 for the sub-agent prompt.
+**Inline review comments are NOT blockers.** Most are resolved or addressed by subsequent commits. The script notes them for context but does not count them toward `fail_count`.
 
-When marking a PR as FAIL in the report, include a brief explanation of the actual issue so the team can act on it.
+Everything else — bot reviews, human discussion, comment arcs — is evaluated sequentially in Phase 3. When marking a PR as FAIL in the report, include a brief explanation of the actual issue so the team can act on it.
 
 ### 4. Jira Hygiene
 

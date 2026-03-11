@@ -214,13 +214,13 @@ def check_reviews(reviews, review_comments, pr_comments, fetch_ok=True):
             f"CHANGES_REQUESTED from {', '.join('@' + u for u in unresolved)}"
         )
 
-    # Check inline review comments
+    # Note inline review comments (informational, not a blocker — most are resolved)
     if review_comments:
         paths = set(c.get("path", "") for c in review_comments if c.get("path"))
         if paths:
-            issues.append(
-                f"{len(review_comments)} inline threads on {', '.join(list(paths)[:2])}"
-            )
+            # Don't add to issues — inline comments are not blockers.
+            # They're noted in the summary but don't contribute to fail_count.
+            pass
 
     # Check if there are any comments worth reviewing
     has_comments = bool(pr_comments) or any(r.get("body") for r in reviews)
@@ -747,6 +747,60 @@ def main():
         with open(pr_path, "w") as f:
             json.dump(r, f, indent=2, ensure_ascii=False)
 
+    # Write per-PR summary markdown (compact, agent-friendly)
+    summaries_dir = os.path.join(output_dir, "summaries")
+    os.makedirs(summaries_dir, exist_ok=True)
+
+    for r in results:
+        num = r["number"]
+        lines = [
+            f"# PR #{num}: {r['title']}",
+            f"",
+            f"- **Author:** {r['author']}",
+            f"- **Type:** {r['pr_type']}",
+            f"- **Size:** {r['size']}",
+            f"- **Updated:** {r['updatedAt']}",
+            f"- **Branch:** {r['branch']}",
+            f"- **Draft:** {'yes' if r['isDraft'] else 'no'}",
+            f"- **Fork:** {'yes (' + r['fork_owner'] + ')' if r['is_fork'] else 'no'}",
+            f"",
+            f"## Blocker Summary ({r['fail_count']} blockers)",
+            f"",
+            f"| Check | Status | Detail |",
+            f"|-------|--------|--------|",
+            f"| CI | {r['ci_status']} | {r['ci_detail']} |",
+            f"| Conflicts | {r['conflict_status']} | {r['conflict_detail']} |",
+            f"| Reviews | {r['review_status']} | {r['review_detail']} |",
+            f"| Jira | {r['jira_status']} | {r['jira_detail']} |",
+            f"| Staleness | {r['stale_status']} | {r['stale_detail']} |",
+            f"| Overlap | {r['overlap_status']} | {r['overlap_detail']} |",
+        ]
+
+        if r["recommend_close"]:
+            lines.append(f"")
+            lines.append(f"**Recommend closing:** {r['recommend_close_reason']}")
+
+        if r["notes"]:
+            lines.append(f"")
+            lines.append(f"**Notes:** {r['notes']}")
+
+        # Add comment count summary
+        raw = pr_data_cache.get(num, {})
+        if raw:
+            pr_comments_list = raw.get("pr", {}).get("comments", [])
+            reviews_list = raw.get("reviews", [])
+            review_comments_list = raw.get("review_comments", [])
+            lines.append(f"")
+            lines.append(
+                f"**Comments:** {len(pr_comments_list)} PR comments, "
+                f"{len(reviews_list)} reviews, "
+                f"{len(review_comments_list)} inline comments"
+            )
+
+        summary_path = os.path.join(summaries_dir, f"{num}.md")
+        with open(summary_path, "w") as f:
+            f.write("\n".join(lines) + "\n")
+
     # Write unified comment stream per PR
     reviews_dir = os.path.join(output_dir, "reviews")
 
@@ -826,8 +880,9 @@ def main():
         f"  Overlaps: {len(overlaps)} line-level, {len(shared_no_overlap)} shared-file-only"
     )
     if review_order:
+        arrow = " \u2192 "
         print(
-            f"  Review order: {' \u2192 '.join(f'#{n}' for n in review_order[:10])}"
+            f"  Review order: {arrow.join(f'#{n}' for n in review_order[:10])}"
         )
 
 
