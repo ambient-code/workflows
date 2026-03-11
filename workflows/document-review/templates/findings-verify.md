@@ -1,7 +1,19 @@
-## Code Verification Findings
+# Code Verification Findings
 
+**Project:** [name]
 **Verified:** [date]
 **Source files checked:** N
+
+## Verification Summary
+
+| Result | Count |
+|--------|-------|
+| Match | N |
+| Mismatch (Error) | N |
+| Partial (Improvement) | N |
+| Undocumented (Gap) | N |
+
+## Findings by Document
 
 ### [path/to/document.md]
 
@@ -19,9 +31,9 @@
   DEFAULT_MAX_RETRIES = 5  # src/config.py:42
   ```
 
-### Undocumented Features
+## Undocumented Features
 
-#### Feature 1
+### Feature 1
 
 - **Severity:** Gap
 - **Dimension:** Completeness

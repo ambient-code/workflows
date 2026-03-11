@@ -46,13 +46,6 @@
 | [most issues first] | N | N | N | N |
 | ... | ... | ... | ... | ... |
 
-## Instruction Test Results (if /test was run)
-
-- **Instruction blocks tested:** N
-- **Passed:** N
-- **Failed:** N
-- **Skipped:** N
-
 ## Recommended Fix Priority
 
 1. **[Category]** — [Why this should be fixed first]
@@ -63,9 +56,9 @@
 
 - Run `/fix` to generate inline fix suggestions
 - Run `/verify` for deeper code cross-referencing (if not already done)
-- Run `/test` to validate executable instructions (if not already done)
 
 ---
 
-*Full findings: artifacts/document-review/findings.md*
+*Review findings: artifacts/document-review/findings-review.md*
+*Verification findings: artifacts/document-review/findings-verify.md*
 *Document inventory: artifacts/document-review/inventory.md*

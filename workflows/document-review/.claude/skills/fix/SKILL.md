@@ -17,8 +17,10 @@ for easy application.
 
 ## Critical Rules
 
-- **Findings must exist.** If `artifacts/document-review/findings.md` does not
-  exist, inform the user and recommend running `/review` first.
+- **Findings must exist.** If neither
+  `artifacts/document-review/findings-review.md` nor
+  `artifacts/document-review/findings-verify.md` exists, inform the user and
+  recommend running `/review` first.
 - **Be specific.** Every suggestion must include the exact text to change and
   the exact replacement.
 - **Explain the rationale.** Don't just say "change X to Y" — explain why.
@@ -30,8 +32,12 @@ for easy application.
 
 ### Step 1: Load Findings
 
-Read `artifacts/document-review/findings.md`. Optionally read
-`artifacts/document-review/report.md` for priority guidance.
+Read whichever findings files exist:
+
+- `artifacts/document-review/findings-review.md` (from `/review`)
+- `artifacts/document-review/findings-verify.md` (from `/verify`)
+
+Optionally read `artifacts/document-review/report.md` for priority guidance.
 
 ### Step 2: Generate Fix Suggestions
 

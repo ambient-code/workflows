@@ -17,8 +17,10 @@ first.
 
 ## Critical Rules
 
-- **Findings must exist.** If `artifacts/document-review/findings.md` does not
-  exist, inform the user and recommend running `/review` first.
+- **Findings must exist.** If neither
+  `artifacts/document-review/findings-review.md` nor
+  `artifacts/document-review/findings-verify.md` exists, inform the user and
+  recommend running `/review` first.
 - **Be concise.** The report is a summary, not a copy of the findings. Link to
   findings for details.
 - **Prioritize actionably.** Order recommendations by impact, not just severity
@@ -30,18 +32,22 @@ first.
 
 ### Step 1: Load Findings
 
-Read `artifacts/document-review/findings.md` and optionally
-`artifacts/document-review/inventory.md` for context.
+Read whichever findings files exist:
+
+- `artifacts/document-review/findings-review.md` (from `/review`)
+- `artifacts/document-review/findings-verify.md` (from `/verify`)
+
+Also read `artifacts/document-review/inventory.md` for context.
 
 ### Step 2: Compute Statistics
 
 Calculate:
 
 - Total findings by severity (Error, Gap, Inconsistency, Stale, Improvement)
+  across all findings files
 - Total findings by dimension (Accuracy, Completeness, Consistency, Clarity,
   Currency, Structure, Examples)
 - Findings per document (which docs have the most issues)
-- If test results are included, pass/fail rates for executable instructions
 
 ### Step 3: Assess Overall Health
 

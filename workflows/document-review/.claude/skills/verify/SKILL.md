@@ -21,7 +21,7 @@ discrepancies as findings and flag undocumented features.
   If `artifacts/document-review/inventory.md` does not exist, inform the user
   and recommend running `/scan` first.
 - **Read, don't run.** This is static analysis. You read source code to verify
-  claims — you don't execute it. Use `/test` for runtime verification.
+  claims — you don't execute it.
 - **Be precise.** Cite the exact documentation claim and the exact code that
   confirms or contradicts it.
 - **Flag undocumented features.** If you discover functionality in code that
@@ -66,8 +66,7 @@ Focus on documentation claims that can be checked against source code:
 
 ### Step 1: Load Context
 
-Read the inventory (`artifacts/document-review/inventory.md`) and existing
-findings (`artifacts/document-review/findings.md`) if available.
+Read the inventory (`artifacts/document-review/inventory.md`).
 
 ### Step 2: Identify Verifiable Claims
 
@@ -106,8 +105,8 @@ For each verifiable claim:
 
 ### Step 5: Record Findings
 
-Add findings to `artifacts/document-review/findings.md`. If the file exists
-from a prior `/review`, append a new section. If not, create it.
+Follow the template at `templates/findings-verify.md` exactly. Write findings to
+`artifacts/document-review/findings-verify.md`.
 
 Each verification finding should include:
 
@@ -119,22 +118,6 @@ Each verification finding should include:
 - **Actual behavior**: What the code does
 - **Evidence**: Relevant code snippet
 
-Follow the template at `templates/verification-findings.md` for the format of
-appended sections.
-
 ## Output
 
-- Enriches `artifacts/document-review/findings.md` with code-verified findings
-
-## When This Phase Is Done
-
-Report your findings:
-
-- Number of claims verified
-- Number of mismatches found (Errors)
-- Number of undocumented features found (Gaps)
-- Key discrepancies between docs and code
-- Whether executable instructions were found that could be tested with `/test`
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for
-next-step guidance.
+- `artifacts/document-review/findings-verify.md`

@@ -5,10 +5,12 @@ Systematic documentation review through these phases:
 1. **Scan** (`/scan`) — Discover and catalog all documentation files
 2. **Review** (`/review`) — Deep quality analysis against 7 dimensions
 3. **Verify** (`/verify`) — *(Optional)* Cross-reference docs against source code
-4. **Test** (`/test`) — *(Optional)* Execute documented instructions and verify output
-5. **Report** (`/report`) — Generate prioritized findings summary
-6. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
-7. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
+4. **Report** (`/report`) — Generate prioritized findings summary
+5. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
+6. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
+
+Review and verify are independent — they can run in parallel as sub-agents
+after scan completes. Each writes to its own findings file.
 
 The workflow controller lives at `.claude/skills/controller/SKILL.md`.
 It defines how to execute phases, recommend next steps, and handle transitions.
@@ -46,8 +48,6 @@ Artifacts go in `artifacts/document-review/`.
 - Do not modify the project's documentation unless the user runs `/fix`
 - Do not make assumptions about intended behavior — flag for verification
 - Read-only access to project code unless explicitly told otherwise
-- When executing documented instructions (`/test`), always revert all
-  environment changes afterward
 - Never execute commands that could be destructive to the host system
 
 ## Working With the Project

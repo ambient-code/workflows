@@ -107,7 +107,7 @@ For each documentation file found, record:
   - Operators (deployment, monitoring, troubleshooting)
   - General (README, license, changelog)
 - **Has executable instructions**: Whether the doc contains code blocks with
-  shell commands, installation steps, or usage examples (flag for `/test`)
+  shell commands, installation steps, or usage examples
 
 ### Step 4: Identify Documentation Structure
 
@@ -146,7 +146,7 @@ Report your findings:
 - How many documentation files were discovered
 - Key categories and their coverage
 - Any obvious gaps noted
-- Whether executable instructions were found (relevant for `/test`)
+- Whether executable instructions were found
 
 Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for
 next-step guidance.

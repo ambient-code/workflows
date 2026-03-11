@@ -8,7 +8,7 @@ Systematic workflow for reviewing a project's documentation — assessing qualit
 - Evaluates docs against 7 quality dimensions
 - Classifies findings by severity for prioritized action
 - Cross-references documentation claims against source code
-- Executes documented instructions to verify they work as written
+- Runs review and verify in parallel as sub-agents for speed
 - Generates inline fix suggestions grouped by file
 - Supports a speedrun mode for one-shot review
 
@@ -23,7 +23,6 @@ workflows/document-review/
 │   │   ├── scan.md               # Discover and catalog docs
 │   │   ├── review.md             # Quality review
 │   │   ├── verify.md             # Code cross-referencing
-│   │   ├── test.md               # Execute documented instructions
 │   │   ├── report.md             # Summary report
 │   │   ├── fix.md                # Fix suggestions
 │   │   └── speedrun.md           # Full pipeline
@@ -32,9 +31,14 @@ workflows/document-review/
 │       ├── scan/SKILL.md         # Document discovery
 │       ├── review/SKILL.md       # Quality evaluation
 │       ├── verify/SKILL.md       # Source code verification
-│       ├── test/SKILL.md         # Instruction execution
 │       ├── report/SKILL.md       # Report generation
 │       └── fix/SKILL.md          # Fix suggestion generation
+├── templates/                    # Output format templates
+│   ├── inventory.md
+│   ├── findings-review.md
+│   ├── findings-verify.md
+│   ├── report.md
+│   └── fixes.md
 ├── CLAUDE.md                     # Behavioral context
 └── README.md                     # This file
 ```
@@ -46,16 +50,18 @@ workflows/document-review/
 | `/scan` | Discover and catalog all documentation in the project |
 | `/review` | Deep quality review against 7 dimensions |
 | `/verify` | Cross-reference docs against source code (optional) |
-| `/test` | Execute documented instructions and verify output (optional) |
 | `/report` | Generate prioritized findings summary |
 | `/fix` | Generate inline fix suggestions (optional) |
-| `/speedrun` | Run scan → review → report in one shot |
+| `/speedrun` | Run scan → review + verify → report in one shot |
 
 ## Workflow Phases
 
 ```text
-/scan → /review → (optional) /verify → (optional) /test → /report → (optional) /fix
+scan ──┬──> review (sub-agent) ──┬──> report ──> fix
+       └──> verify (sub-agent) ──┘
 ```
+
+Review and verify are independent after scan — they can run in parallel as sub-agents, each writing to its own findings file.
 
 ### 1. Scan
 
@@ -69,15 +75,11 @@ Deep-reads each document evaluating 7 quality dimensions: accuracy, completeness
 
 Cross-references documentation claims against actual source code. Checks CLI flags, API endpoints, configuration options, default values, and behavior descriptions. Flags undocumented features found in code.
 
-### 4. Test (Optional)
+### 4. Report
 
-Executes documented instructions (quickstarts, installation guides, usage examples) and compares actual output against expected output. Checks for missing prerequisites. Reverts all environment changes after execution.
+Generates a prioritized executive summary with overall health ratings per dimension, top issues, per-document breakdown, and recommended fix priority. Reads from whichever findings files exist.
 
-### 5. Report
-
-Generates a prioritized executive summary with overall health ratings per dimension, top issues, per-document breakdown, and recommended fix priority.
-
-### 6. Fix (Optional)
+### 5. Fix (Optional)
 
 Generates inline fix suggestions for each finding. Quotes problematic text, provides replacement, and explains rationale. Groups suggestions by file.
 
@@ -110,7 +112,8 @@ All artifacts are written to `artifacts/document-review/`:
 | File | Content |
 |------|---------|
 | `inventory.md` | Documentation file catalog |
-| `findings.md` | Detailed findings by document |
+| `findings-review.md` | Detailed findings by document |
+| `findings-verify.md` | Code verification findings |
 | `report.md` | Executive summary |
 | `fixes.md` | Inline fix suggestions |
 
@@ -120,6 +123,5 @@ All artifacts are written to `artifacts/document-review/`:
 2. Run `/scan` to discover documentation (or `/speedrun` for the full pipeline)
 3. Run `/review` for quality analysis
 4. Optionally run `/verify` to check docs against code
-5. Optionally run `/test` to execute documented instructions
-6. Run `/report` for a prioritized summary
-7. Optionally run `/fix` for concrete fix suggestions
+5. Run `/report` for a prioritized summary
+6. Optionally run `/fix` for concrete fix suggestions

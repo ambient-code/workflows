@@ -23,22 +23,39 @@ workflow by executing phases and handling transitions between them.
    documented APIs, CLI flags, config options, and behavior descriptions match
    the implementation.
 
-4. **Test** (`/test`) — `.claude/skills/test/SKILL.md`
-   Execute documented instructions (quickstarts, installation guides, usage
-   examples) and compare actual output against expected output. Revert all
-   environment changes after execution.
-
-5. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
+4. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
    Generate a clean, prioritized executive summary from current findings.
 
-6. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
+5. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
    Generate inline fix suggestions for each finding.
 
-7. **Speedrun** (`/speedrun`)
-   Run scan → review → report automatically, pausing only for critical
-   decisions. Does not include verify or test — those are opt-in.
+6. **Speedrun** (`/speedrun`)
+   Run scan → review + verify (parallel) → report automatically, pausing only
+   for critical decisions.
 
 Phases can be skipped or reordered at the user's discretion.
+
+## Dependency Graph
+
+```text
+scan ──┬──> review (sub-agent) ──┬──> report ──> fix
+       └──> verify (sub-agent) ──┘
+```
+
+- **Scan** must run first — all other phases depend on the inventory.
+- **Review** and **verify** are independent of each other. Both read the
+  inventory and write to separate findings files. They can run in parallel as
+  sub-agents.
+- **Report** and **fix** read from whichever findings files exist.
+
+### Findings Files
+
+| Phase | Output |
+|-------|--------|
+| Review | `artifacts/document-review/findings-review.md` |
+| Verify | `artifacts/document-review/findings-verify.md` |
+
+Report and fix read from both files (whichever exist).
 
 ## How to Execute a Phase
 
@@ -47,11 +64,26 @@ Phases can be skipped or reordered at the user's discretion.
    workflow is progressing and learns about the commands.
 2. **Read** the skill file from the list above
 3. **Execute** the skill's steps directly — the user should see your progress
-4. When the skill is done, it will tell you to report your findings and re-read
-   this controller. Do that — then use "Recommending Next Steps" below to offer
-   options.
+4. When the skill is done, use "Recommending Next Steps" below to offer options.
 5. Present the skill's results and your recommendations to the user
 6. **Stop and wait** for the user to tell you what to do next
+
+## Running Review and Verify in Parallel
+
+When both review and verify should run (e.g., during speedrun, or when the user
+requests both), use the Agent tool to launch them as parallel sub-agents:
+
+1. **Announce** that you're launching review and verify in parallel
+2. **Spawn two Agent calls simultaneously:**
+   - Agent 1 (review): Read `.claude/skills/review/SKILL.md` and execute it.
+     Write output to `artifacts/document-review/findings-review.md`.
+   - Agent 2 (verify): Read `.claude/skills/verify/SKILL.md` and execute it.
+     Write output to `artifacts/document-review/findings-verify.md`.
+3. **Wait** for both agents to complete
+4. **Summarize** the combined results to the user
+
+When running a single phase (e.g., user invokes only `/review`), execute it
+directly — no sub-agent needed.
 
 ## Recommending Next Steps
 
@@ -62,7 +94,7 @@ happened.
 ### Typical Flow
 
 ```text
-scan → review → (optional) verify → (optional) test → report → (optional) fix
+scan → review + verify (parallel) → report → (optional) fix
 ```
 
 ### What to Recommend
@@ -74,23 +106,17 @@ make sense:
 
 - Recommend `/review` — the natural next step
 - Offer `/verify` if documentation references lots of code (APIs, CLI flags)
+- Mention that review and verify can run in parallel if both are needed
 - Offer `/speedrun` if the user wants to go fast
 
 **After review:**
 
 - Recommend `/report` to get a summary of findings
 - Offer `/verify` for deeper accuracy checking against code
-- Offer `/test` if documentation contains executable instructions (quickstarts,
-  installation guides, usage examples with expected output)
 
 **After verify:**
 
 - Recommend `/report` to consolidate all findings
-- Offer `/test` if executable instructions were found during verification
-
-**After test:**
-
-- Recommend `/report` to incorporate test results into the summary
 
 **After report:**
 
@@ -106,7 +132,6 @@ make sense:
 
 - New documents discovered → offer `/scan` again
 - Need deeper accuracy checking → offer `/verify`
-- Want to test specific instructions → offer `/test`
 
 ### How to Present Options
 
@@ -116,8 +141,8 @@ Lead with your top recommendation, then list alternatives briefly:
 Recommended next step: /review — deep quality analysis of the 42 documents found.
 
 Other options:
-- /verify — cross-reference docs against source code first
-- /speedrun — run the full scan → review → report pipeline automatically
+- /verify — cross-reference docs against source code (can run in parallel with review)
+- /speedrun — run the full scan → review + verify → report pipeline automatically
 ```
 
 ## Executing a Speedrun
@@ -125,10 +150,11 @@ Other options:
 When the user invokes `/speedrun`:
 
 1. Execute the **scan** phase — announce it, read the skill, run it
-2. Without waiting, execute the **review** phase
-3. Without waiting, execute the **report** phase
+2. Launch **review** and **verify** as parallel sub-agents (see "Running Review
+   and Verify in Parallel" above)
+3. Once both complete, execute the **report** phase
 4. Present the final report to the user
-5. Offer `/verify`, `/test`, or `/fix` as follow-up options
+5. Offer `/fix` as a follow-up option
 
 During speedrun, only pause if:
 
@@ -144,7 +170,7 @@ When the user first provides a project path, repository URL, or description:
 2. After scanning, present results and wait
 
 If the user invokes a specific command (e.g., `/review`), execute that phase
-directly — don't force them through earlier phases. However, if `/review` is
+directly — don't force them through earlier phases. However, if a phase is
 invoked without an existing inventory, run `/scan` first and inform the user.
 
 ## Rules

@@ -114,22 +114,9 @@ For each document, evaluate audience-appropriateness:
 
 ### Step 5: Write Findings
 
-Follow the template at `templates/findings.md` exactly. Write findings to
-`artifacts/document-review/findings.md`.
+Follow the template at `templates/findings-review.md` exactly. Write findings to
+`artifacts/document-review/findings-review.md`.
 
 ## Output
 
-- `artifacts/document-review/findings.md`
-
-## When This Phase Is Done
-
-Report your findings:
-
-- Total number of issues found, broken down by severity
-- Most critical issues (Errors and Gaps)
-- Documents with the most issues
-- Whether any documents contain executable instructions that could be tested
-  with `/test`
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for
-next-step guidance.
+- `artifacts/document-review/findings-review.md`
