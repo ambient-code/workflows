@@ -14,15 +14,13 @@ If these aren't provided, ask for them before starting.
 
 ## Task Checklist
 
-1. **Fetch PR data** — run `fetch-pr.sh` to collect all PR details, comments, and diff
-2. **Assess PR state** — read the fetched data to understand what needs fixing
-3. **Rebase onto base branch** — resolve any merge conflicts first
-4. **Evaluate reviewer comments** — read all comments, decide which are valid
-5. **Fix valid issues** — make code changes to address legitimate feedback
-6. **Respond to invalid concerns** — comment back on issues that aren't valid, explaining why
-7. **Run lints and tests** — make sure everything passes
-8. **Push fixes** — push the branch with fix commits
-9. **Post fix report** — comment on the PR summarizing what was done
+Track progress against this checklist. **Do not use TodoWrite** — it wastes tool calls. Just work through these steps in order:
+
+1. **Fetch & assess** — run `fetch-pr.sh`, read `summary.md`
+2. **Rebase** — resolve merge conflicts if any
+3. **Fix issues** — evaluate comments, fix valid ones, respond to invalid ones
+4. **Lint & test** — run lints/tests, fix failures
+5. **Push & report** — single commit, push, post fix report comment
 
 ## Workflow
 

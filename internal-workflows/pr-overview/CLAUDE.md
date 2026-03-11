@@ -4,19 +4,14 @@ You are an agent that evaluates open pull requests and generates a prioritized r
 
 ## Task Checklist
 
-Create these as your todo items at the start. Mark each one as you complete it — do not stop until all are done.
+Track progress against this checklist. **Do not use TodoWrite** — it wastes tool calls. Just work through these steps in order:
 
-1. **Run fetch-prs.sh** — collect all PR data into artifacts/pr-review/
-2. **Run analyze-prs.py** — produce analysis.json with blocker statuses, type classification, and review order
-3. **Evaluate PRs via sub-agents** — spawn parallel sub-agents to deeply read each PR's full comment stream and return verdicts
-4. **Find or create Review Queue milestone** — get the milestone number
-5. **Sync PRs to milestone** — add clean PRs, remove ones with blockers
-6. **Comment on blocked PRs** — post blocker summaries on PRs not in the queue (only if PR was updated since last comment)
-7. **Write the review queue report** — fill the template with all data
-8. **Update milestone description** — overwrite with the final report
-9. **Self-evaluate execution** — read `.ambient/rubric.md` and score your own efficiency (5 criteria, 25 points total)
-
-**Do not stop until all 9 items are done.** The self-evaluation is the final step.
+1. **Fetch & analyze** — run `fetch-prs.sh` then `analyze-prs.py`
+2. **Evaluate PRs** — read summaries and comments sequentially (most recent first)
+3. **Milestone sync** — find/create milestone, add clean PRs, remove blocked ones
+4. **Write report & update milestone** — generate report, set as milestone description
+5. **Comment on blocked PRs** — post blocker summaries (skip if auth fails)
+6. **Self-evaluate** — read `.ambient/rubric.md` and score efficiency
 
 ## Workflow
 
@@ -30,8 +25,8 @@ Run the fetch script to collect all PR data:
 
 This produces:
 
-- `artifacts/pr-review/index.json` — summary of all open PRs
-- `artifacts/pr-review/prs/{number}.json` — detailed data per PR (**do not read directly** — these can exceed token limits. Use the analysis and summary files instead.)
+- `artifacts/pr-review/index.json` — raw PR index (**do not read directly** — can exceed token limits. The analyze script reads this for you.)
+- `artifacts/pr-review/prs/{number}.json` — raw PR data (**do not read directly** — use summaries and analysis files instead.)
 
 ### Data Structure Reference
 
@@ -334,9 +329,9 @@ gh api -X PATCH "repos/{owner}/{repo}/milestones/${MILESTONE_NUM}" \
 - The description is **overwritten** each run (not appended).
 - Always include the `Last updated` timestamp at the top.
 
-## Phase 6: Comment on Blocked PRs
+## Phase 6: Comment on Blocked PRs (best-effort)
 
-After milestone sync, post a blocker summary comment on each PR that has blockers (`fail_count > 0`) and was **not** added to the Review Queue.
+After milestone sync, post a blocker summary comment on each PR that has blockers (`fail_count > 0`) and was **not** added to the Review Queue. **If any auth or API error occurs, skip this phase entirely** — the report and milestone are the primary outputs.
 
 **All comments are identified by a hidden HTML marker:** `<!-- review-queue-bot -->` at the end of the comment body.
 
@@ -347,6 +342,7 @@ After milestone sync, post a blocker summary comment on each PR that has blocker
    - If the PR was **not updated** since the last comment — **skip**.
    - If the PR **was updated** — **delete** the old comment, then **post** a new one.
 3. **No existing comment:** Post a new comment.
+4. **On any error:** Skip the PR and move on. Do not retry more than once.
 
 ### Comment format
 
