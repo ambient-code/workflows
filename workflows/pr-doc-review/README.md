@@ -25,13 +25,7 @@ The review follows a five-phase process:
 | 2. Classify Changes | Categorize each change by user-facing impact |
 | 3. Discover Docs | Search the repo for existing documentation of affected behavior |
 | 4. Evaluate Coverage | Determine if PR includes necessary doc updates |
-| 5. Render Verdict | PASS, PASS WITH SUGGESTIONS, or FAIL with findings |
-
-## Verdicts
-
-- **PASS** -- All changes are internal or documentation updates are sufficient
-- **PASS WITH SUGGESTIONS** -- Only minor documentation gaps found
-- **FAIL** -- At least one critical or major documentation gap
+| 5. Report Findings | Severity-ranked findings with fix guidance |
 
 ## Finding Severities
 

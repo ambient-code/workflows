@@ -20,7 +20,7 @@ The `/review-pr` command follows a five-phase analysis:
 2. **Classify Changes** -- Categorize each change (API, CLI, config, behavioral, new feature, deprecation, or internal-only)
 3. **Discover Existing Documentation** -- Find docs that cover affected behavior
 4. **Evaluate Coverage** -- Determine if PR includes necessary doc updates
-5. **Render Verdict** -- PASS, PASS WITH SUGGESTIONS, or FAIL with findings
+5. **Report Findings** -- Severity-ranked findings with fix guidance
 
 ## Finding Severities
 

@@ -1,6 +1,4 @@
-## Documentation Review: {VERDICT}
-
-<!-- VERDICT: PASS | PASS WITH SUGGESTIONS | FAIL -->
+## Documentation Review
 
 ### Summary
 
