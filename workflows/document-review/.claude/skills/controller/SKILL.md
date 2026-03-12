@@ -26,17 +26,22 @@ workflow by executing phases and handling transitions between them.
 4. **Install-test** (`/install-test`) — `.claude/skills/install-test/SKILL.md`
    Execute documented installation instructions on a live cluster. Compare
    actual results against documented expectations and track common errors
-   with their solutions.
+   with their solutions. Logs all cluster changes for cleanup.
 
-5. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
+5. **Cleanup** (`/cleanup`) — `.claude/skills/cleanup/SKILL.md`
+   Revert all cluster changes made during install-test. Reads the change log
+   and deletes resources in reverse order. Reports any changes that could not
+   be reverted.
+
+6. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
    Generate a clean, prioritized executive summary from current findings.
 
-6. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
+7. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
    Generate inline fix suggestions for each finding.
 
-7. **Speedrun** (`/speedrun`)
-   Run scan → review + verify + install-test (parallel) → validate → report
-   automatically, pausing only for critical decisions.
+8. **Speedrun** (`/speedrun`)
+   Run scan → review + verify + install-test (parallel) → cleanup → validate
+   → report automatically, pausing only for critical decisions.
 
 Phases can be skipped or reordered at the user's discretion.
 
@@ -46,14 +51,17 @@ Phases can be skipped or reordered at the user's discretion.
 scan ──┬──> review (sub-agent) ────────┬──> validate ──> report ──> fix
        ├──> verify (sub-agent) ────────┤       ↑  │
        └──> install-test (sub-agent) ──┘       └──┘
-                                           (retry on fail,
-                                            max 1 retry)
+                    │                      (retry on fail,
+                    └──> cleanup            max 1 retry)
 ```
 
 - **Scan** must run first — all other phases depend on the inventory.
 - **Review**, **verify**, and **install-test** are independent of each other.
   All read the inventory and write to separate findings files. They can run
   in parallel as sub-agents.
+- **Cleanup** runs automatically after **install-test** completes (whether
+  install-test ran alone or as a sub-agent). It reads the change log and
+  reverts cluster modifications. Cleanup runs before validation.
 - **Validate** checks sub-agent output for coverage, structure, and evidence
   quality. On failure, the failing sub-agent is re-dispatched with specific
   feedback. Maximum 1 retry per sub-agent.
@@ -66,6 +74,8 @@ scan ──┬──> review (sub-agent) ────────┬──> vali
 | Review | `artifacts/document-review/findings-review.md` |
 | Verify | `artifacts/document-review/findings-verify.md` |
 | Install-test | `artifacts/document-review/findings-install-test.md` |
+| Install-test | `artifacts/document-review/cluster-changes.md` (change log) |
+| Cleanup | `artifacts/document-review/cleanup-report.md` |
 
 Report and fix read from all findings files (whichever exist).
 
@@ -96,11 +106,42 @@ sub-agents:
      execute it. Write output to
      `artifacts/document-review/findings-install-test.md`.
 3. **Wait** for all agents to complete
-4. **Run validation** (see below)
-5. **Summarize** the combined results to the user
+4. **Run cluster cleanup** if install-test was dispatched (see "Cluster
+   Cleanup" below)
+5. **Run validation** (see below)
+6. **Summarize** the combined results to the user
 
 When running a single phase (e.g., user invokes only `/review`), execute it
-directly — no sub-agent needed. Still run validation afterward.
+directly — no sub-agent needed. Still run validation afterward. If the single
+phase is `/install-test`, run cleanup after it completes and before validation.
+
+## Cluster Cleanup
+
+After install-test completes — whether it ran as a sub-agent or was invoked
+directly — **always dispatch the cleanup agent** before proceeding to
+validation or recommending next steps.
+
+### How to Run Cleanup
+
+1. **Check** that `artifacts/document-review/cluster-changes.md` exists. If it
+   does not exist (install-test was skipped or produced no changes), skip
+   cleanup.
+2. **Announce** to the user: "Running cluster cleanup to revert changes made
+   during install-test."
+3. **Spawn a cleanup Agent:** Give it these instructions:
+   - Read `.claude/skills/cleanup/SKILL.md` and follow it.
+   - Read `artifacts/document-review/cluster-changes.md`.
+   - Revert all changes and write the report to
+     `artifacts/document-review/cleanup-report.md`.
+4. **Report the result** to the user:
+   - If all changes reverted successfully, confirm the cluster is clean.
+   - If any reverts failed, list what requires manual cleanup.
+
+### When the User Runs /cleanup Directly
+
+The user can invoke `/cleanup` at any time to revert cluster changes from a
+previous install-test run. Execute it directly (no sub-agent needed) using the
+same process above.
 
 ## Validation Loop
 
@@ -169,7 +210,7 @@ happened.
 ### Typical Flow
 
 ```text
-scan → review + verify + install-test (parallel) → validate → report → (optional) fix
+scan → review + verify + install-test (parallel) → cleanup → validate → report → (optional) fix
 ```
 
 ### What to Recommend
@@ -195,10 +236,11 @@ make sense:
 
 - Recommend `/report` to consolidate all findings
 
-**After install-test (and validation):**
+**After install-test (cleanup runs automatically, then validation):**
 
 - Recommend `/report` to consolidate all findings
 - Note that the troubleshooting guide will feed into `/fix`
+- If cleanup had failures, mention what requires manual attention
 
 **After report:**
 
@@ -236,11 +278,13 @@ When the user invokes `/speedrun`:
    (see "Running Analysis Sub-Agents in Parallel" above). Skip install-test
    if no installation docs were found or no cluster is available
    (`$CLUSTER_URL` and `$CLUSTER_TOKEN` must be set).
-3. **Run validation** — retry any failing sub-agents (max 1 retry)
-4. Once validation passes (or retries are exhausted), execute the **report**
+3. **Run cluster cleanup** if install-test was dispatched (see "Cluster
+   Cleanup" above)
+4. **Run validation** — retry any failing sub-agents (max 1 retry)
+5. Once validation passes (or retries are exhausted), execute the **report**
    phase
-5. Present the final report to the user
-6. Offer `/fix` as a follow-up option
+6. Present the final report to the user
+7. Offer `/fix` as a follow-up option
 
 During speedrun, only pause if:
 
@@ -263,8 +307,11 @@ invoked without an existing inventory, run `/scan` first and inform the user.
 
 - **Never auto-advance.** Always wait for the user between phases (except
   during speedrun).
+- **Always clean up.** Run cleanup after every install-test execution before
+  proceeding to validation or next steps.
 - **Always validate.** Run validation after every review, verify, or
-  install-test execution, including retries. The only exception is if the user explicitly asks to skip.
+  install-test execution, including retries. The only exception is if the
+  user explicitly asks to skip.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.
 - **Respect the target project.** This workflow reviews external project

@@ -35,6 +35,11 @@ their solutions. The troubleshooting guide you produce is a primary input for
   is valuable. Record it with the cause and solution.
 - **Don't guess fixes.** When troubleshooting, verify the correct steps against
   source code, Makefile targets, or other authoritative sources in the repo.
+- **Log every cluster change.** Every command that creates, modifies, or deletes
+  a cluster resource must be recorded in the change log at
+  `artifacts/document-review/cluster-changes.md`. This includes changes made
+  during troubleshooting. The cleanup agent depends on this log to revert all
+  changes.
 
 ## Cluster Environment Setup
 
@@ -78,6 +83,54 @@ Specific skip conditions:
   without cluster access.
 - `oc login` fails — record the error message as the reason.
 - No installation-related documents are found in the inventory.
+
+## Change Logging
+
+**Before executing any command that modifies the cluster**, initialize the
+change log at `artifacts/document-review/cluster-changes.md` using the template
+at `templates/cluster-changes.md`.
+
+Every cluster modification must be logged immediately after execution — do not
+batch them at the end. For each change, record:
+
+- **Action**: What was done (create, apply, patch, label, script)
+- **Resource**: Kind and name (e.g., `Deployment/my-app`)
+- **Namespace**: Where it lives, or `--` for cluster-scoped resources
+- **Command**: The exact command that was executed
+- **Revert command**: The exact command to undo this change
+
+### What counts as a change
+
+- `oc create`, `oc apply`, `oc run`, `oc new-project`, `oc adm` commands that
+  create or modify resources
+- `oc patch`, `oc label`, `oc annotate` on existing resources
+- `oc delete` (record what was deleted so the cleanup report is accurate)
+- `kubectl` equivalents of the above
+- `helm install`, `helm upgrade`
+- `make` targets that deploy to the cluster
+- Any shell script that modifies cluster state
+
+### Logging shell script effects
+
+When a documented step runs a shell script (`bash scripts/setup.sh`, `make
+deploy`, etc.), you cannot rely on the script name alone for cleanup. You must:
+
+1. **Read the script** before executing it to understand what it will do
+2. **List the expected effects** (resources created, modified, deleted)
+3. **Execute the script**
+4. **Verify the effects** by checking which resources now exist:
+
+   ```bash
+   oc get all -n <namespace>
+   oc get crd | grep <pattern>
+   ```
+
+5. **Log each effect as a separate entry** in the change log with individual
+   revert commands. Use action type `script` and record the script path.
+
+If a script's effects cannot be fully determined by reading it (e.g., it calls
+other scripts, uses dynamic resource names), log what you can identify and add
+a note: `Effects may be incomplete — manual review recommended`.
 
 ## Process
 
@@ -194,3 +247,4 @@ execution, record:
 ## Output
 
 - `artifacts/document-review/findings-install-test.md`
+- `artifacts/document-review/cluster-changes.md`

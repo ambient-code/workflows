@@ -6,9 +6,10 @@ Systematic documentation review through these phases:
 2. **Review** (`/review`) — Deep quality analysis against 7 dimensions
 3. **Verify** (`/verify`) — *(Optional)* Cross-reference docs against source code
 4. **Install-test** (`/install-test`) — *(Optional)* Execute installation instructions on a cluster
-5. **Report** (`/report`) — Generate prioritized findings summary
-6. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
-7. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
+5. **Cleanup** (`/cleanup`) — Revert cluster changes from install-test (runs automatically)
+6. **Report** (`/report`) — Generate prioritized findings summary
+7. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
+8. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
 
 Review, verify, and install-test are independent — they can run in parallel as
 sub-agents after scan completes. Each writes to its own findings file. A
