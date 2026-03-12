@@ -5,14 +5,15 @@ Systematic documentation review through these phases:
 1. **Scan** (`/scan`) — Discover and catalog all documentation files
 2. **Review** (`/review`) — Deep quality analysis against 7 dimensions
 3. **Verify** (`/verify`) — *(Optional)* Cross-reference docs against source code
-4. **Report** (`/report`) — Generate prioritized findings summary
-5. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
-6. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
+4. **Install-test** (`/install-test`) — *(Optional)* Execute installation instructions on a cluster
+5. **Report** (`/report`) — Generate prioritized findings summary
+6. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
+7. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
 
-Review and verify are independent — they can run in parallel as sub-agents
-after scan completes. Each writes to its own findings file. A validation
-sub-agent checks their output for coverage, structure, and evidence quality,
-retrying once on failure.
+Review, verify, and install-test are independent — they can run in parallel as
+sub-agents after scan completes. Each writes to its own findings file. A
+validation sub-agent checks their output for coverage, structure, and evidence
+quality, retrying once on failure.
 
 The workflow controller lives at `.claude/skills/controller/SKILL.md`.
 It defines how to execute phases, recommend next steps, and handle transitions.

@@ -23,32 +23,37 @@ workflow by executing phases and handling transitions between them.
    documented APIs, CLI flags, config options, and behavior descriptions match
    the implementation.
 
-4. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
+4. **Install-test** (`/install-test`) — `.claude/skills/install-test/SKILL.md`
+   Execute documented installation instructions on a live cluster. Compare
+   actual results against documented expectations and track common errors
+   with their solutions.
+
+5. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
    Generate a clean, prioritized executive summary from current findings.
 
-5. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
+6. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
    Generate inline fix suggestions for each finding.
 
-6. **Speedrun** (`/speedrun`)
-   Run scan → review + verify (parallel) → validate → report automatically,
-   pausing only for critical decisions.
+7. **Speedrun** (`/speedrun`)
+   Run scan → review + verify + install-test (parallel) → validate → report
+   automatically, pausing only for critical decisions.
 
 Phases can be skipped or reordered at the user's discretion.
 
 ## Dependency Graph
 
 ```text
-scan ──┬──> review (sub-agent) ──┬──> validate ──> report ──> fix
-       └──> verify (sub-agent) ──┘       ↑  │
-                                         └──┘
-                                     (retry on fail,
-                                      max 1 retry)
+scan ──┬──> review (sub-agent) ────────┬──> validate ──> report ──> fix
+       ├──> verify (sub-agent) ────────┤       ↑  │
+       └──> install-test (sub-agent) ──┘       └──┘
+                                           (retry on fail,
+                                            max 1 retry)
 ```
 
 - **Scan** must run first — all other phases depend on the inventory.
-- **Review** and **verify** are independent of each other. Both read the
-  inventory and write to separate findings files. They can run in parallel as
-  sub-agents.
+- **Review**, **verify**, and **install-test** are independent of each other.
+  All read the inventory and write to separate findings files. They can run
+  in parallel as sub-agents.
 - **Validate** checks sub-agent output for coverage, structure, and evidence
   quality. On failure, the failing sub-agent is re-dispatched with specific
   feedback. Maximum 1 retry per sub-agent.
@@ -60,8 +65,9 @@ scan ──┬──> review (sub-agent) ──┬──> validate ──> repor
 |-------|--------|
 | Review | `artifacts/document-review/findings-review.md` |
 | Verify | `artifacts/document-review/findings-verify.md` |
+| Install-test | `artifacts/document-review/findings-install-test.md` |
 
-Report and fix read from both files (whichever exist).
+Report and fix read from all findings files (whichever exist).
 
 ## How to Execute a Phase
 
@@ -74,18 +80,22 @@ Report and fix read from both files (whichever exist).
 5. Present the skill's results and your recommendations to the user
 6. **Stop and wait** for the user to tell you what to do next
 
-## Running Review and Verify in Parallel
+## Running Analysis Sub-Agents in Parallel
 
-When both review and verify should run (e.g., during speedrun, or when the user
-requests both), use the Agent tool to launch them as parallel sub-agents:
+When multiple analysis phases should run (e.g., during speedrun, or when the
+user requests several), use the Agent tool to launch them as parallel
+sub-agents:
 
-1. **Announce** that you're launching review and verify in parallel
-2. **Spawn two Agent calls simultaneously:**
-   - Agent 1 (review): Read `.claude/skills/review/SKILL.md` and execute it.
+1. **Announce** which sub-agents you're launching in parallel
+2. **Spawn Agent calls simultaneously** (include whichever are requested):
+   - Agent (review): Read `.claude/skills/review/SKILL.md` and execute it.
      Write output to `artifacts/document-review/findings-review.md`.
-   - Agent 2 (verify): Read `.claude/skills/verify/SKILL.md` and execute it.
+   - Agent (verify): Read `.claude/skills/verify/SKILL.md` and execute it.
      Write output to `artifacts/document-review/findings-verify.md`.
-3. **Wait** for both agents to complete
+   - Agent (install-test): Read `.claude/skills/install-test/SKILL.md` and
+     execute it. Write output to
+     `artifacts/document-review/findings-install-test.md`.
+3. **Wait** for all agents to complete
 4. **Run validation** (see below)
 5. **Summarize** the combined results to the user
 
@@ -94,9 +104,9 @@ directly — no sub-agent needed. Still run validation afterward.
 
 ## Validation Loop
 
-After review and/or verify complete, validate their output using a validation
-sub-agent. This catches coverage gaps, missing fields, and weak evidence before
-the findings flow into report and fix.
+After review, verify, and/or install-test complete, validate their output using
+a validation sub-agent. This catches coverage gaps, missing fields, and weak
+evidence before the findings flow into report and fix.
 
 ### How to Run Validation
 
@@ -104,7 +114,7 @@ the findings flow into report and fix.
    - Read `.claude/skills/validate/SKILL.md` and follow it.
    - Read `artifacts/document-review/inventory.md`.
    - Read whichever findings files exist (`findings-review.md`,
-     `findings-verify.md`).
+     `findings-verify.md`, `findings-install-test.md`).
    - Return the validation result.
 2. **Check the result:**
    - If all checked files **PASS** → proceed to next step.
@@ -159,7 +169,7 @@ happened.
 ### Typical Flow
 
 ```text
-scan → review + verify (parallel) → validate → report → (optional) fix
+scan → review + verify + install-test (parallel) → validate → report → (optional) fix
 ```
 
 ### What to Recommend
@@ -171,7 +181,9 @@ make sense:
 
 - Recommend `/review` — the natural next step
 - Offer `/verify` if documentation references lots of code (APIs, CLI flags)
-- Mention that review and verify can run in parallel if both are needed
+- Offer `/install-test` if installation docs were found and a cluster is
+  available (`$CLUSTER_URL` and `$CLUSTER_TOKEN` must be set)
+- Mention that review, verify, and install-test can run in parallel
 - Offer `/speedrun` if the user wants to go fast
 
 **After review (and validation):**
@@ -182,6 +194,11 @@ make sense:
 **After verify (and validation):**
 
 - Recommend `/report` to consolidate all findings
+
+**After install-test (and validation):**
+
+- Recommend `/report` to consolidate all findings
+- Note that the troubleshooting guide will feed into `/fix`
 
 **After report:**
 
@@ -215,8 +232,10 @@ Other options:
 When the user invokes `/speedrun`:
 
 1. Execute the **scan** phase — announce it, read the skill, run it
-2. Launch **review** and **verify** as parallel sub-agents (see "Running Review
-   and Verify in Parallel" above)
+2. Launch **review**, **verify**, and **install-test** as parallel sub-agents
+   (see "Running Analysis Sub-Agents in Parallel" above). Skip install-test
+   if no installation docs were found or no cluster is available
+   (`$CLUSTER_URL` and `$CLUSTER_TOKEN` must be set).
 3. **Run validation** — retry any failing sub-agents (max 1 retry)
 4. Once validation passes (or retries are exhausted), execute the **report**
    phase
@@ -244,8 +263,8 @@ invoked without an existing inventory, run `/scan` first and inform the user.
 
 - **Never auto-advance.** Always wait for the user between phases (except
   during speedrun).
-- **Always validate.** Run validation after every review or verify execution,
-  including retries. The only exception is if the user explicitly asks to skip.
+- **Always validate.** Run validation after every review, verify, or
+  install-test execution, including retries. The only exception is if the user explicitly asks to skip.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.
 - **Respect the target project.** This workflow reviews external project

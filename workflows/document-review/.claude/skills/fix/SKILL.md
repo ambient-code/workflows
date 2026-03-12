@@ -36,8 +36,13 @@ Read whichever findings files exist:
 
 - `artifacts/document-review/findings-review.md` (from `/review`)
 - `artifacts/document-review/findings-verify.md` (from `/verify`)
+- `artifacts/document-review/findings-install-test.md` (from `/install-test`)
 
 Optionally read `artifacts/document-review/report.md` for priority guidance.
+
+If install-test findings exist, pay special attention to the **Troubleshooting
+Guide** section — use it to generate error-handling guidance, troubleshooting
+tips, and corrected commands for the installation documentation.
 
 ### Step 2: Generate Fix Suggestions
 

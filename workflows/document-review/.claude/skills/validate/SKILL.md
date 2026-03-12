@@ -68,6 +68,43 @@ Run these checks in order. Record every failure.
 - At least one finding per reviewed document should include a direct quote
   (unless the document genuinely has no issues).
 
+### For findings-install-test.md
+
+**1. Coverage — Were installation docs actually tested?**
+
+- The file should reference at least one document from the inventory that
+  contains installation instructions.
+- `Steps executed` must be an actual number, not `N` or `0`.
+
+**2. Metadata — Are placeholders filled in?**
+
+- Header must not contain unfilled placeholders like `[name]` or `[date]`.
+- `Cluster`, `Documents tested`, `Steps executed`, `Steps passed`, and
+  `Steps failed` must all have real values.
+
+**3. Summary table — Are statistics present?**
+
+- The execution summary table must exist with actual counts.
+- The total should be consistent (pass + fail categories = steps executed).
+
+**4. Finding structure — Does each finding have required fields?**
+
+- Every step finding must have:
+  - **Source** (document path, section, line)
+  - **Command** (what was executed)
+  - **Expected result** (what docs say)
+  - **Actual result** (what happened)
+  - **Severity**
+  - **Dimension**
+- Flag any finding missing a required field.
+
+**5. Troubleshooting guide — Are errors documented with solutions?**
+
+- If any steps failed, the Troubleshooting Guide section must exist.
+- Each troubleshooting entry must have **When**, **Cause**, **Solution**, and
+  **Prevention** fields.
+- Solutions must contain actual commands or steps, not vague advice.
+
 ### For findings-verify.md
 
 **1. Coverage — Were verifiable claims actually checked?**
@@ -116,6 +153,14 @@ Return your validation result in exactly this format:
 - **Unfilled placeholder**: Header still contains `[name]`
 - **Missing field**: Finding 3 in `README.md` is missing **Evidence**
 - **Weak evidence**: Finding 2 in `CONTRIBUTING.md` has no direct quote
+
+### findings-install-test.md: PASS | FAIL
+
+[If FAIL, list each failure:]
+
+- **No steps tested**: File contains 0 executed steps
+- **Missing field**: Step 2 in `INSTALL.md` is missing **Actual result**
+- **Missing troubleshooting**: Steps failed but no Troubleshooting Guide
 
 ### findings-verify.md: PASS | FAIL
 

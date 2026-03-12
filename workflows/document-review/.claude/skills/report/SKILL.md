@@ -36,6 +36,7 @@ Read whichever findings files exist:
 
 - `artifacts/document-review/findings-review.md` (from `/review`)
 - `artifacts/document-review/findings-verify.md` (from `/verify`)
+- `artifacts/document-review/findings-install-test.md` (from `/install-test`)
 
 Also read `artifacts/document-review/inventory.md` for context.
 
@@ -76,7 +77,21 @@ Suggest an order for addressing issues:
 4. Inconsistencies (confusing but not wrong)
 5. Improvements (nice to have)
 
-### Step 6: Write the Report
+### Step 6: Note Skipped Phases
+
+Check whether optional phases were skipped and note the reason in the report:
+
+- If `findings-install-test.md` exists and contains `**Status:** Skipped`,
+  include a note in the report with the skip reason (e.g., "Install-test was
+  skipped: cluster credentials not available").
+- If `findings-install-test.md` does not exist at all, note that installation
+  testing was not performed.
+- If `findings-verify.md` does not exist, note that code verification was not
+  performed.
+
+This helps readers understand the scope of the review.
+
+### Step 7: Write the Report
 
 Follow the template at `templates/report.md` exactly. Write to
 `artifacts/document-review/report.md`.

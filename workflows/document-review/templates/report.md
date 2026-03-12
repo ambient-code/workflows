@@ -52,10 +52,19 @@
 2. **[Category]** — [Why this is next]
 3. ...
 
+## Phases Not Run
+
+[Note any optional phases that were skipped and why. Remove this section if all
+phases were executed.]
+
+- **Install-test:** [reason — e.g., "cluster credentials not available"]
+- **Verify:** [reason — e.g., "not requested"]
+
 ## Next Steps
 
 - Run `/fix` to generate inline fix suggestions
 - Run `/verify` for deeper code cross-referencing (if not already done)
+- Run `/install-test` to test installation instructions on a cluster (if not already done)
 
 ---
 

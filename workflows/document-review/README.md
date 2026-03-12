@@ -8,7 +8,9 @@ Systematic workflow for reviewing a project's documentation — assessing qualit
 - Evaluates docs against 7 quality dimensions
 - Classifies findings by severity for prioritized action
 - Cross-references documentation claims against source code
-- Runs review and verify in parallel as sub-agents for speed
+- Runs review, verify, and install-test in parallel as sub-agents for speed
+- Executes installation instructions on a live cluster to verify accuracy
+- Tracks common installation errors and their solutions for fix generation
 - Validates sub-agent output and retries on quality failures
 - Generates inline fix suggestions grouped by file
 - Supports a speedrun mode for one-shot review
@@ -26,12 +28,14 @@ workflows/document-review/
 │   │   ├── verify.md             # Code cross-referencing
 │   │   ├── report.md             # Summary report
 │   │   ├── fix.md                # Fix suggestions
+│   │   ├── install-test.md       # Installation testing
 │   │   └── speedrun.md           # Full pipeline
 │   └── skills/
 │       ├── controller/SKILL.md   # Phase orchestration
 │       ├── scan/SKILL.md         # Document discovery
 │       ├── review/SKILL.md       # Quality evaluation
 │       ├── verify/SKILL.md       # Source code verification
+│       ├── install-test/SKILL.md # Installation instruction testing
 │       ├── validate/SKILL.md     # Output validation
 │       ├── report/SKILL.md       # Report generation
 │       └── fix/SKILL.md          # Fix suggestion generation
@@ -39,6 +43,7 @@ workflows/document-review/
 │   ├── inventory.md
 │   ├── findings-review.md
 │   ├── findings-verify.md
+│   ├── findings-install-test.md
 │   ├── report.md
 │   └── fixes.md
 ├── CLAUDE.md                     # Behavioral context
@@ -52,21 +57,22 @@ workflows/document-review/
 | `/scan` | Discover and catalog all documentation in the project |
 | `/review` | Deep quality review against 7 dimensions |
 | `/verify` | Cross-reference docs against source code (optional) |
+| `/install-test` | Execute installation instructions on a cluster (optional) |
 | `/report` | Generate prioritized findings summary |
 | `/fix` | Generate inline fix suggestions (optional) |
-| `/speedrun` | Run scan → review + verify → report in one shot |
+| `/speedrun` | Run scan → review + verify + install-test → report in one shot |
 
 ## Workflow Phases
 
 ```text
-scan ──┬──> review (sub-agent) ──┬──> validate ──> report ──> fix
-       └──> verify (sub-agent) ──┘       ↑  │
-                                         └──┘
-                                     (retry on fail,
-                                      max 1 retry)
+scan ──┬──> review (sub-agent) ────────┬──> validate ──> report ──> fix
+       ├──> verify (sub-agent) ────────┤       ↑  │
+       └──> install-test (sub-agent) ──┘       └──┘
+                                           (retry on fail,
+                                            max 1 retry)
 ```
 
-Review and verify are independent after scan — they run in parallel as sub-agents, each writing to its own findings file. A validation sub-agent then checks their output for coverage, structure, and evidence quality, retrying failed agents once before proceeding.
+Review, verify, and install-test are independent after scan — they run in parallel as sub-agents, each writing to its own findings file. A validation sub-agent then checks their output for coverage, structure, and evidence quality, retrying failed agents once before proceeding.
 
 ### 1. Scan
 
@@ -80,11 +86,15 @@ Deep-reads each document evaluating 7 quality dimensions: accuracy, completeness
 
 Cross-references documentation claims against actual source code. Checks CLI flags, API endpoints, configuration options, default values, and behavior descriptions. Flags undocumented features found in code.
 
-### 4. Report
+### 4. Install-test (Optional)
+
+Executes documented installation instructions on a live OpenShift cluster. Compares actual results against documented expectations step by step. When a step fails, troubleshoots the root cause to determine the correct procedure. Tracks every error a user might encounter along with its solution, producing a troubleshooting guide that `/fix` uses to add error-handling guidance to the documentation.
+
+### 5. Report
 
 Generates a prioritized executive summary with overall health ratings per dimension, top issues, per-document breakdown, and recommended fix priority. Reads from whichever findings files exist.
 
-### 5. Fix (Optional)
+### 6. Fix (Optional)
 
 Generates inline fix suggestions for each finding. Quotes problematic text, provides replacement, and explains rationale. Groups suggestions by file.
 
@@ -119,6 +129,7 @@ All artifacts are written to `artifacts/document-review/`:
 | `inventory.md` | Documentation file catalog |
 | `findings-review.md` | Detailed findings by document |
 | `findings-verify.md` | Code verification findings |
+| `findings-install-test.md` | Installation test findings and troubleshooting guide |
 | `report.md` | Executive summary |
 | `fixes.md` | Inline fix suggestions |
 
@@ -128,5 +139,6 @@ All artifacts are written to `artifacts/document-review/`:
 2. Run `/scan` to discover documentation (or `/speedrun` for the full pipeline)
 3. Run `/review` for quality analysis
 4. Optionally run `/verify` to check docs against code
-5. Run `/report` for a prioritized summary
-6. Optionally run `/fix` for concrete fix suggestions
+5. Optionally run `/install-test` to execute installation steps on a cluster
+6. Run `/report` for a prioritized summary
+7. Optionally run `/fix` for concrete fix suggestions
