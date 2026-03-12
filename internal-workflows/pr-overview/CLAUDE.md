@@ -113,9 +113,23 @@ Find or create **"Review Queue"** milestone (also check for "Merge Queue"). Add 
 
 ## Blocker Comments
 
-Post **after sub-agent evaluation is complete**. Skip drafts, recommend-close PRs, and PRs unchanged since last comment.
+Post **after sub-agent evaluation is complete**.
 
-Use `<!-- review-queue-bot -->` marker. Delete old comment before posting new one.
+Use `<!-- review-queue-bot -->` marker (also check for legacy `<!-- pr-overview-bot -->`).
+
+### Clean PRs: remove old blocker comments
+
+If a PR is now clean (`fail_count == 0` after sub-agent evaluation), **delete any existing blocker comment** on it. The PR moved to "Ready for Review" — a stale blocker comment is confusing.
+
+```bash
+OLD=$(gh api "repos/{owner}/{repo}/issues/{number}/comments" \
+  --jq '.[] | select(.body | contains("<!-- review-queue-bot -->") or contains("<!-- pr-overview-bot -->")) | .id')
+[ -n "$OLD" ] && gh api -X DELETE "repos/{owner}/{repo}/issues/comments/${OLD}"
+```
+
+### Blocked PRs: post or update blocker comment
+
+Skip drafts, recommend-close PRs, and PRs unchanged since last comment.
 
 **Do NOT use a rigid blocker table.** Write a natural language comment that's actually helpful to the PR author. Use the analysis data and sub-agent verdict to write 2-4 sentences covering:
 
