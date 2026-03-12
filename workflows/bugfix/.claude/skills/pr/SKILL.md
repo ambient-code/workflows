@@ -598,4 +598,4 @@ Report your results:
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.

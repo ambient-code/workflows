@@ -155,6 +155,6 @@ Report your results:
 
 - How many tests were added and their results
 - Whether the full test suite passes
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the verification report was written
+
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.

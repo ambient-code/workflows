@@ -88,6 +88,6 @@ Report your findings:
 
 - Whether the bug was successfully reproduced
 - Key observations and environment details
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the reproduction report was written
+
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.

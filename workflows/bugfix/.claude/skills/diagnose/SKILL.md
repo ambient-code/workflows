@@ -116,6 +116,6 @@ Report your findings:
 
 - The identified root cause (or top hypotheses if uncertain)
 - Confidence level in the diagnosis
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the root cause analysis was written
+
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
