@@ -10,7 +10,9 @@ Systematic documentation review through these phases:
 6. **Speedrun** (`/speedrun`) — Run scan → review → report in one shot
 
 Review and verify are independent — they can run in parallel as sub-agents
-after scan completes. Each writes to its own findings file.
+after scan completes. Each writes to its own findings file. A validation
+sub-agent checks their output for coverage, structure, and evidence quality,
+retrying once on failure.
 
 The workflow controller lives at `.claude/skills/controller/SKILL.md`.
 It defines how to execute phases, recommend next steps, and handle transitions.
