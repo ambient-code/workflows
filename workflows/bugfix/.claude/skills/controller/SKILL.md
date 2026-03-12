@@ -38,13 +38,15 @@ Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
 
-1. **Announce** the phase to the user before doing anything else, e.g., "Starting the /fix phase."
-   This is very important so the user knows that the workflow is working and learns about the commands.
+1. **Announce** the phase to the user before doing anything else. Include this
+   file as the dispatcher so skills know where to return, e.g.,
+   "Starting the /fix phase (dispatched by `.claude/skills/controller/SKILL.md`)."
+   This is very important so the user knows the workflow is working, learns
+   about the commands, and so skills can find their way back here.
 2. **Read** the skill file from the list above
 3. **Execute** the skill's steps directly — the user should see your progress
-4. When the skill is done, it will tell you to report your findings and
-   re-read this controller. Do that — then use "Recommending Next Steps"
-   below to offer options.
+4. When the skill is done, it will report its findings and re-read this
+   controller. Then use "Recommending Next Steps" below to offer options.
 5. Present the skill's results and your recommendations to the user
 6. **Stop and wait** for the user to tell you what to do next
 

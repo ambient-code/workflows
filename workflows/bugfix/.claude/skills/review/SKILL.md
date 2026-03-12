@@ -191,4 +191,4 @@ are insufficient, say what's missing.
 
 Your verdict and recommendation (from Step 5) serve as the phase summary.
 
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.

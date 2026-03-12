@@ -133,6 +133,6 @@ Report your results:
 
 - What was changed (files, approach)
 - What quality checks passed
-
-Then **re-read the controller** (`.claude/skills/controller/SKILL.md`) for next-step guidance.
 - Where the implementation notes were written
+
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
