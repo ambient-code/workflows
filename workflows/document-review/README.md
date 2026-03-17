@@ -171,8 +171,33 @@ phases have additional requirements:
 
 | Phase | Requirement |
 |-------|-------------|
-| `/install-test`, `/usage-test`, `/cleanup` | `$CLUSTER_URL` and `$CLUSTER_TOKEN` for an OpenShift cluster |
+| `/install-test`, `/usage-test`, `/cleanup` | `$CLUSTER_URL`, `$CLUSTER_USERNAME`, `$CLUSTER_PASSWORD` (see below) |
 | `/create-prs` | `$GITHUB_TOKEN` with permission to fork, push, and open PRs (see below) |
+
+### Cluster Credentials for `/install-test` and `/usage-test`
+
+The `/install-test` phase executes documented installation instructions on a
+live OpenShift cluster. After a successful install, `/usage-test` interacts
+with the installed project to verify usage documentation. `/cleanup` then
+reverts all cluster changes.
+
+These phases require three environment variables:
+
+```bash
+export CLUSTER_URL=https://api.my-cluster.example.com:6443
+export CLUSTER_USERNAME=admin
+export CLUSTER_PASSWORD=secret
+```
+
+The workflow logs in with:
+
+```bash
+oc login -u "$CLUSTER_USERNAME" -p "$CLUSTER_PASSWORD" --server="$CLUSTER_URL"
+```
+
+When these variables are not set, the controller skips install-test and
+usage-test automatically — the remaining phases (scan, review, verify, report,
+fix) work without cluster access.
 
 ### GitHub Token for `/create-prs`
 

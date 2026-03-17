@@ -117,10 +117,10 @@ user requests several), use the Agent tool to launch them as parallel
 sub-agents:
 
 1. **Announce** which sub-agents you're launching in parallel
-2. **Check whether `$CLUSTER_URL` and `$CLUSTER_TOKEN` are set** by running:
+2. **Check whether cluster credentials are set** by running:
 
    ```bash
-   echo "CLUSTER_URL=${CLUSTER_URL:-(not set)}" && echo "CLUSTER_TOKEN=${CLUSTER_TOKEN:+(set)}"
+   echo "CLUSTER_URL=${CLUSTER_URL:-(not set)}" && echo "CLUSTER_USERNAME=${CLUSTER_USERNAME:-(not set)}" && echo "CLUSTER_PASSWORD=${CLUSTER_PASSWORD:+(set)}"
    ```
 
 3. **Spawn Agent calls simultaneously:**
@@ -128,8 +128,8 @@ sub-agents:
      Write output to `artifacts/findings-review.md`.
    - Agent (verify): Read `.claude/skills/verify/SKILL.md` and execute it.
      Write output to `artifacts/findings-verify.md`.
-   - Agent (install-test): **Include this agent when `$CLUSTER_URL` and
-     `$CLUSTER_TOKEN` are both set.** Read
+   - Agent (install-test): **Include this agent when `$CLUSTER_URL`,
+     `$CLUSTER_USERNAME`, and `$CLUSTER_PASSWORD` are all set.** Read
      `.claude/skills/install-test/SKILL.md` and execute it. Write output to
      `artifacts/findings-install-test.md`. The skill itself
      handles the case where no installation docs exist (writes a skip file),
@@ -286,7 +286,7 @@ make sense:
 
 - Recommend `/review` — the natural next step
 - Offer `/verify` if documentation references lots of code (APIs, CLI flags)
-- Offer `/install-test` if `$CLUSTER_URL` and `$CLUSTER_TOKEN` are set (the
+- Offer `/install-test` if `$CLUSTER_URL`, `$CLUSTER_USERNAME`, and `$CLUSTER_PASSWORD` are set (the
   skill itself handles the case where no installation docs exist)
 - Mention that review, verify, and install-test can run in parallel
 - Offer `/speedrun` if the user wants to go fast
@@ -352,7 +352,7 @@ Other options:
 When the user invokes `/speedrun`:
 
 1. Execute the **scan** phase — announce it, read the skill, run it
-2. **Check whether `$CLUSTER_URL` and `$CLUSTER_TOKEN` are set** (see
+2. **Check whether cluster credentials are set** (see
    "Running Analysis Sub-Agents in Parallel" above for the check command).
    Launch **review**, **verify**, and — if both env vars are set —
    **install-test** as parallel sub-agents. Only skip install-test when

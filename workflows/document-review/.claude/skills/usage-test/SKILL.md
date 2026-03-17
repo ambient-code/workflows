@@ -27,7 +27,7 @@ documentation accurately describe how to use it?"
 - **Read the inventory first.** If `artifacts/inventory.md`
   does not exist, inform the user and recommend running `/scan` first.
 - **Use the cluster, not localhost.** All interactions happen on the cluster
-  identified by `$CLUSTER_URL` and `$CLUSTER_TOKEN`.
+  identified by `$CLUSTER_URL`, `$CLUSTER_USERNAME`, and `$CLUSTER_PASSWORD`.
 - **Read-only on the local filesystem.** Do not modify project files. You may
   create temporary files in `/tmp` if needed.
 - **Log every cluster change.** Append to the existing change log at
@@ -51,7 +51,7 @@ If the session has expired, re-authenticate:
 
 ```bash
 bash scripts/install-oc.sh
-oc login --token="$CLUSTER_TOKEN" --server="$CLUSTER_URL"
+oc login -u "$CLUSTER_USERNAME" -p "$CLUSTER_PASSWORD" --server="$CLUSTER_URL"
 ```
 
 If the phase cannot proceed, write a skip file to

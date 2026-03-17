@@ -24,7 +24,8 @@ their solutions. The troubleshooting guide you produce is a primary input for
   If `artifacts/inventory.md` does not exist, inform the user
   and recommend running `/scan` first.
 - **Use the cluster, not localhost.** All execution happens on the cluster
-  identified by `$CLUSTER_URL` and `$CLUSTER_TOKEN`. Never run installation
+  identified by `$CLUSTER_URL`, `$CLUSTER_USERNAME`, and `$CLUSTER_PASSWORD`.
+  Never run installation
   steps directly on the local host system.
 - **Read-only on the local filesystem.** Do not modify project files. You may
   create temporary files in `/tmp` if needed.
@@ -52,7 +53,7 @@ their solutions. The troubleshooting guide you produce is a primary input for
 2. Login to the cluster:
 
    ```bash
-   oc login --token="$CLUSTER_TOKEN" --server="$CLUSTER_URL"
+   oc login -u "$CLUSTER_USERNAME" -p "$CLUSTER_PASSWORD" --server="$CLUSTER_URL"
    ```
 
 3. Verify connectivity:
@@ -83,8 +84,8 @@ Then stop. Do not proceed with execution steps.
 
 Specific skip conditions:
 
-- `$CLUSTER_URL` or `$CLUSTER_TOKEN` are not set — the phase cannot proceed
-  without cluster access.
+- `$CLUSTER_URL`, `$CLUSTER_USERNAME`, or `$CLUSTER_PASSWORD` are not set —
+  the phase cannot proceed without cluster access.
 - `oc login` fails — record the error message as the reason.
 - No installation-related documents are found in the inventory.
 

@@ -44,7 +44,7 @@ Use the same credentials as install-test:
 
 ```bash
 bash scripts/install-oc.sh
-oc login --token="$CLUSTER_TOKEN" --server="$CLUSTER_URL"
+oc login -u "$CLUSTER_USERNAME" -p "$CLUSTER_PASSWORD" --server="$CLUSTER_URL"
 ```
 
 If login fails, report the failure and list all changes that could not be
