@@ -110,6 +110,37 @@ Report and fix read from all findings files (whichever exist).
 5. Present the skill's results and your recommendations to the user
 6. **Stop and wait** for the user to tell you what to do next
 
+## Handling Multiple Commands
+
+When the user provides multiple commands in a single prompt (e.g.,
+`/scan /review /report` or "run scan, review, and report"), execute **all**
+listed commands in order. This is equivalent to the user invoking each command
+one after another — do not stop between them to ask what to do next.
+
+### How to process multiple commands
+
+1. **Parse** the full prompt and identify all commands mentioned
+2. **Announce** the plan: "Running /scan → /review → /report."
+3. **Execute each command in sequence**, following the dependency graph:
+   - If a later command depends on an earlier one (e.g., `/review` needs
+     `/scan`), execute them in order
+   - If commands are independent (e.g., `/review` and `/verify`), run them in
+     parallel as sub-agents — same as during speedrun
+   - Implicit dependencies still apply: `/install-test` triggers usage-test
+     and cleanup automatically, validation runs after findings phases
+4. **Report combined results** at the end, after all commands have completed
+5. **Then stop and wait** — recommend next steps as usual
+
+### Examples
+
+- `/scan /review` → run scan, then review, then validate, then present results
+- `/scan /review /verify` → run scan, then review + verify in parallel, then
+  validate, then present results
+- `/scan /review /report` → run scan, then review, then validate, then report,
+  then present results
+- `/review /report /fix` → run review (scan first if no inventory), then
+  validate, then report, then fix, then present results
+
 ## Running Analysis Sub-Agents in Parallel
 
 When multiple analysis phases should run (e.g., during speedrun, or when the
@@ -388,7 +419,8 @@ invoked without an existing inventory, run `/scan` first and inform the user.
 ## Rules
 
 - **Never auto-advance.** Always wait for the user between phases (except
-  during speedrun).
+  during speedrun or when the user provides multiple commands in a single
+  prompt).
 - **Always run usage-test after successful install-test.** Before cleanup,
   check whether install-test succeeded and dispatch usage-test if it did.
 - **Always clean up.** Run cleanup after every install-test (and usage-test)
