@@ -9,9 +9,9 @@
 | Result | Count |
 |--------|-------|
 | Match | N |
-| Mismatch (Error) | N |
-| Partial (Improvement) | N |
-| Undocumented (Gap) | N |
+| Mismatch (Critical) | N |
+| Partial (Low) | N |
+| Undocumented (High) | N |
 
 ## Findings by Document
 
@@ -19,7 +19,7 @@
 
 #### Verification Finding 1
 
-- **Severity:** Error
+- **Severity:** Critical
 - **Dimension:** Accuracy
 - **Doc location:** README.md, "Configuration" section, line 85
 - **Code location:** src/config.py:42
@@ -35,7 +35,7 @@
 
 ### Feature 1
 
-- **Severity:** Gap
+- **Severity:** High
 - **Dimension:** Completeness
 - **Code location:** src/cli.py:120
 - **Description:** The `--dry-run` flag exists in code but is not documented

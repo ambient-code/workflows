@@ -36,11 +36,10 @@ Artifacts go in `artifacts/document-review/`.
 
 ## Finding Severities
 
-- **Error** — Factually incorrect information that misleads users
-- **Gap** — Missing documentation for existing functionality
-- **Inconsistency** — Contradictions between documents
-- **Stale** — Outdated content, dead links, removed features
-- **Improvement** — Could be clearer, better structured, or more helpful
+- **Critical** — Incorrect information, broken commands, or missing steps that would block users or cause them to take wrong actions
+- **High** — Significant gaps, contradictions, or outdated content that degrades the user experience
+- **Medium** — Issues that cause confusion but have workarounds or limited impact
+- **Low** — Minor improvements to clarity, structure, or presentation
 
 ## Principles
 

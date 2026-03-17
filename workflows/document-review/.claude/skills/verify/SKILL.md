@@ -25,7 +25,7 @@ discrepancies as findings and flag undocumented features.
 - **Be precise.** Cite the exact documentation claim and the exact code that
   confirms or contradicts it.
 - **Flag undocumented features.** If you discover functionality in code that
-  has no documentation, report it as a Gap finding.
+  has no documentation, report it as a High finding.
 
 ## What to Verify
 
@@ -99,9 +99,9 @@ For each verifiable claim:
 3. Compare: does the code match what the docs say?
 4. Record the result:
    - **Match**: Doc accurately reflects code (no finding needed)
-   - **Mismatch**: Doc contradicts code → severity: **Error**
-   - **Partial**: Doc is incomplete or imprecise → severity: **Improvement**
-   - **Undocumented**: Code has features not in docs → severity: **Gap**
+   - **Mismatch**: Doc contradicts code → severity: **Critical**
+   - **Partial**: Doc is incomplete or imprecise → severity: **Low**
+   - **Undocumented**: Code has features not in docs → severity: **High**
 
 ### Step 5: Record Findings
 
@@ -110,7 +110,7 @@ Follow the template at `templates/findings-verify.md` exactly. Write findings to
 
 Each verification finding should include:
 
-- **Severity**: Error, Gap, or Improvement
+- **Severity**: Critical, High, or Low
 - **Dimension**: Accuracy or Completeness
 - **Documentation location**: File, section, and line
 - **Code location**: Source file and line

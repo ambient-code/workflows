@@ -13,11 +13,10 @@
 
 | Severity | Automatable | Needs Input | Total |
 |----------|-------------|-------------|-------|
-| Error | N | N | N |
-| Gap | N | N | N |
-| Inconsistency | N | N | N |
-| Stale | N | N | N |
-| Improvement | N | N | N |
+| Critical | N | N | N |
+| High | N | N | N |
+| Medium | N | N | N |
+| Low | N | N | N |
 | **Total** | **N** | **N** | **N** |
 
 ## Suggested Pull Requests
@@ -30,7 +29,7 @@
 #### Fix 1: [brief description]
 
 **File:** `path/to/document.md`
-**Severity:** Error
+**Severity:** Critical
 **Automatable:** Yes
 **Location:** Section "[heading]", line N
 
@@ -61,7 +60,7 @@ and the default changed from 3000 to 8080. Confirmed in `src/cli.py:45`:
 #### Fix 2: [brief description — needs input]
 
 **File:** `path/to/document.md`
-**Severity:** Gap
+**Severity:** High
 **Automatable:** No
 **Location:** After section "[heading]", line N
 
@@ -162,5 +161,5 @@ contents before applying fixes.
 
 ### Ordering
 
-Create PRs in severity order — PRs containing Error fixes first, then Gaps,
+Create PRs in severity order — PRs containing Critical fixes first, then High,
 then others. This ensures the highest-impact changes are reviewed first.

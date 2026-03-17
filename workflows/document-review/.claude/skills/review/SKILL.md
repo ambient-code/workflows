@@ -63,33 +63,32 @@ Evaluate each document against these 7 dimensions:
 7. **Examples** — Check every code block and inline code sample:
    - **Presence.** Are code examples provided where the reader would need
      them? A configuration reference with no example snippet, or a CLI
-     description with no invocation, is a Gap.
+     description with no invocation, is a High finding.
    - **Syntax validity.** Does each code block look syntactically valid for
      the language shown (per the language tag or surrounding context)? Flag
      obviously broken syntax — unclosed brackets, unterminated strings,
-     invalid YAML indentation — as an Error.
+     invalid YAML indentation — as a Critical finding.
    - **Placeholder clarity.** Are user-supplied values clearly distinguished
      from literal values? Flag values that look real but are meant to be
      replaced (e.g., `192.168.1.100` as a placeholder IP, `my-password` as
      a credential) without any indication to substitute. Severity:
-     Improvement (Clarity).
+     Low (Clarity).
    - **Command completeness.** Do CLI commands include all required arguments
      and flags to actually run? A command missing a required positional
-     argument or a mandatory flag is an Error.
+     argument or a mandatory flag is a Critical finding.
    - **Explanation.** Are non-obvious code constructs explained? An example
      using advanced syntax, flags, or patterns that the target audience
      would not recognize should have accompanying explanation. Severity:
-     Improvement.
+     Low.
 
 ## Finding Severities
 
-Classify each finding:
+Classify each finding by impact:
 
-- **Error** — Factually incorrect information that would mislead users
-- **Gap** — Missing documentation for existing functionality or concepts
-- **Inconsistency** — Contradictions between documents or within a document
-- **Stale** — Outdated content, dead links, references to removed features
-- **Improvement** — Could be clearer, better structured, or more helpful
+- **Critical** — Incorrect information, broken commands, or missing steps that would block users or cause them to take wrong actions
+- **High** — Significant gaps, contradictions, or outdated content that degrades the user experience
+- **Medium** — Issues that cause confusion but have workarounds or limited impact
+- **Low** — Minor improvements to clarity, structure, or presentation
 
 ## Reviewer Lens
 
@@ -127,7 +126,7 @@ Read as an implementer who will follow every step and run every command. Ask:
 
 This lens triggers the **procedural document checks** below and emphasizes the
 **Examples** and **Completeness** dimensions. Findings from this lens are
-typically high-severity (Error, Gap) because they directly block users.
+typically high-severity (Critical, High) because they directly block users.
 
 ### Architect lens (conceptual docs)
 
@@ -135,21 +134,21 @@ Read as someone building a mental model of the system. Ask:
 
 - **Internal consistency.** Does the description of components and their
   relationships hold together? Flag contradictions between prose and diagrams,
-  or between different sections of the same document. Severity: Error
-  (Accuracy) or Inconsistency.
+  or between different sections of the same document. Severity: Critical
+  (Accuracy) or Medium (Consistency).
 - **Abstraction level.** Is the depth right for the audience? Flag
   implementation details that belong in a procedure rather than a concept.
   Flag content that is too abstract for a developer who needs concrete
-  guidance. Severity: Improvement (Clarity).
+  guidance. Severity: Low (Clarity).
 - **"Why" context.** Does the document explain *why*, not just *what*?
   Configuration options should explain when you would use them and what
   trade-offs are involved. Architecture descriptions should explain design
-  decisions, not just list components. Severity: Gap (Completeness) if
-  entirely absent, Improvement (Clarity) if present but shallow.
+  decisions, not just list components. Severity: High (Completeness) if
+  entirely absent, Low (Clarity) if present but shallow.
 - **Onward paths.** Are there cross-references where a reader would need to
   go elsewhere to complete a task or deepen understanding? A concept that
-  describes a feature but never links to the procedure for using it is a Gap
-  (Structure).
+  describes a feature but never links to the procedure for using it is a High
+  finding (Structure).
 
 This lens emphasizes the **Accuracy**, **Clarity**, and **Structure**
 dimensions.
@@ -168,27 +167,27 @@ recourse when something goes wrong.
   have a way to confirm it succeeded. Flag procedures where a create/apply/
   install step has no corresponding get/describe/status check. Example: an
   `oc apply -f manifest.yaml` with no `oc get` to confirm the resource exists
-  is a Gap finding (Completeness).
+  is a High finding (Completeness).
 - **Error guidance.** Flag procedures that describe only the happy path with no
   mention of what to do if a step fails. At minimum, common failure modes
   should be acknowledged. A procedure with 5+ steps and zero error handling is
-  a Gap finding (Completeness).
+  a High finding (Completeness).
 - **Undocumented intermediate state.** Flag procedures where failure at step N
   would leave the system in a state the documentation never describes. If a
   user gets halfway through and something breaks, can they recover or roll
-  back? Missing rollback/undo guidance is a Gap finding (Completeness).
+  back? Missing rollback/undo guidance is a High finding (Completeness).
 - **Prerequisite placement.** Flag prerequisites that first appear mid-procedure
   rather than at the top. A tool, credential, or permission that is needed at
-  step 5 but not mentioned until step 5 is a Gap finding (Structure).
+  step 5 but not mentioned until step 5 is a High finding (Structure).
 
 ### Cross-step consistency
 
 Check that variable names, resource names, file paths, and output values chain
 correctly across steps. If step 2 creates a resource named `my-app` but step 4
-references `myapp`, flag it as an Error (Accuracy).
+references `myapp`, flag it as Critical (Accuracy).
 
 Classify procedural findings using the same severity and dimension system as
-all other findings. The most common classification is Gap (Completeness) for
+all other findings. The most common classification is High (Completeness) for
 missing verification, error handling, and rollback guidance.
 
 ## Process
@@ -232,7 +231,7 @@ document:
      consistency, abstraction level, "why" context, onward paths).
    - For mixed docs, apply both sets of checks to the relevant sections.
 7. **Record** findings with:
-   - **Severity**: Error, Gap, Inconsistency, Stale, or Improvement
+   - **Severity**: Critical, High, Medium, or Low
    - **Dimension**: Which quality dimension is affected
    - **Location**: File path and section heading or line reference
    - **Description**: What the issue is

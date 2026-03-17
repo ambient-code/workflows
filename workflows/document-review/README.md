@@ -142,11 +142,10 @@ Creates draft GitHub pull requests from automatable fix suggestions. Only fixes 
 
 | Severity | Definition |
 |----------|-----------|
-| Error | Factually incorrect information |
-| Gap | Missing documentation |
-| Inconsistency | Contradictions between docs |
-| Stale | Outdated content, dead links |
-| Improvement | Could be clearer or better structured |
+| Critical | Incorrect information, broken commands, or missing steps that block users |
+| High | Significant gaps, contradictions, or outdated content |
+| Medium | Issues that cause confusion but have workarounds |
+| Low | Minor improvements to clarity, structure, or presentation |
 
 ## Output Artifacts
 

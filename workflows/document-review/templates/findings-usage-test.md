@@ -33,7 +33,7 @@ Can a user discover, follow, and succeed with the documented interactions?]
 - **Interaction:** `oc get myresource -n my-namespace`
 - **Expected result:** [what docs say should happen]
 - **Actual result:** [what actually happened]
-- **Severity:** Error
+- **Severity:** Critical
 - **Dimension:** Accuracy
 - **Resolution:** [what the correct interaction or output is]
 
@@ -49,7 +49,7 @@ Can a user discover, follow, and succeed with the documented interactions?]
 
 ### Issue 1: [brief description]
 
-- **Severity:** Gap | Improvement
+- **Severity:** High | Low
 - **Dimension:** Completeness | Structure | Examples
 - **Documents:** [which docs]
 - **Description:** [what's missing or could be better]

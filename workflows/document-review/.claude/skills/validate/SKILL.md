@@ -54,7 +54,7 @@ Run these checks in order. Record every failure.
 **4. Finding structure — Does each finding have required fields?**
 
 - Every finding must have all of these fields:
-  - **Severity** (one of: Error, Gap, Inconsistency, Stale, Improvement)
+  - **Severity** (one of: Critical, High, Medium, Low)
   - **Dimension** (one of: Accuracy, Completeness, Consistency, Clarity,
     Currency, Structure, Examples)
   - **Location** (file path and section/line reference)

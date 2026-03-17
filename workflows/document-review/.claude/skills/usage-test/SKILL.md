@@ -213,12 +213,12 @@ Beyond step-by-step accuracy, evaluate the documented user journey:
 
 Classify each finding:
 
-- Documented interaction doesn't work → **Error** (Accuracy)
-- Documented output doesn't match actual → **Error** (Accuracy)
-- Feature works but usage is undocumented → **Gap** (Completeness)
-- Missing link from install docs to usage docs → **Gap** (Structure)
-- Interaction works but no expected output documented → **Improvement** (Examples)
-- Usage docs don't cover error scenarios → **Improvement** (Completeness)
+- Documented interaction doesn't work → **Critical** (Accuracy)
+- Documented output doesn't match actual → **Critical** (Accuracy)
+- Feature works but usage is undocumented → **High** (Completeness)
+- Missing link from install docs to usage docs → **High** (Structure)
+- Interaction works but no expected output documented → **Low** (Examples)
+- Usage docs don't cover error scenarios → **Low** (Completeness)
 
 ### Step 7: Write Findings
 

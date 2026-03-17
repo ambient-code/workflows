@@ -8,11 +8,10 @@
 
 | Severity | Count |
 |----------|-------|
-| Error | N |
-| Gap | N |
-| Inconsistency | N |
-| Stale | N |
-| Improvement | N |
+| Critical | N |
+| High | N |
+| Medium | N |
+| Low | N |
 | **Total** | **N** |
 
 | Dimension | Issues |
@@ -34,7 +33,7 @@
 
 #### Finding 1
 
-- **Severity:** Error
+- **Severity:** Critical
 - **Dimension:** Accuracy
 - **Location:** Section "Installation", line 42
 - **Description:** The documented command uses a flag that doesn't exist.
@@ -53,7 +52,7 @@
 
 ### Issue 1
 
-- **Severity:** Inconsistency
+- **Severity:** Medium
 - **Documents:** doc-a.md, doc-b.md
 - **Description:** ...
 - **Evidence:** ...

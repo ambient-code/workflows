@@ -21,17 +21,16 @@
 
 | Severity | Count |
 |----------|-------|
-| Error | N |
-| Gap | N |
-| Inconsistency | N |
-| Stale | N |
-| Improvement | N |
+| Critical | N |
+| High | N |
+| Medium | N |
+| Low | N |
 
 ## Top Issues
 
 ### 1. [Most critical issue]
 
-**Severity:** Error | **Dimension:** Accuracy
+**Severity:** Critical | **Dimension:** Accuracy
 **Location:** [file:section]
 [Brief description and why it matters]
 
@@ -41,8 +40,8 @@
 
 ## Documents Needing Attention
 
-| Document | Errors | Gaps | Other | Total |
-|----------|--------|------|-------|-------|
+| Document | Critical | High | Other | Total |
+|----------|----------|------|-------|-------|
 | [most issues first] | N | N | N | N |
 | ... | ... | ... | ... | ... |
 

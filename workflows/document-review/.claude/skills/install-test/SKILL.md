@@ -213,21 +213,21 @@ For each issue found, classify it:
 
 **Documentation accuracy issues:**
 
-- Documented command doesn't work -> **Error** (Accuracy)
-- Documented output doesn't match actual -> **Error** (Accuracy)
-- Documented prerequisite is wrong or missing -> **Gap** (Completeness)
+- Documented command doesn't work -> **Critical** (Accuracy)
+- Documented output doesn't match actual -> **Critical** (Accuracy)
+- Documented prerequisite is wrong or missing -> **High** (Completeness)
 
 **Flow issues:**
 
-- Steps in wrong order -> **Error** (Structure)
-- Missing intermediate step -> **Gap** (Completeness)
-- Implicit step not documented -> **Gap** (Completeness)
+- Steps in wrong order -> **Critical** (Structure)
+- Missing intermediate step -> **High** (Completeness)
+- Implicit step not documented -> **High** (Completeness)
 
 **Completeness issues:**
 
-- No expected output documented -> **Improvement** (Examples)
-- Missing error handling / what-if guidance -> **Improvement** (Completeness)
-- Missing cleanup / uninstall instructions -> **Gap** (Completeness)
+- No expected output documented -> **Low** (Examples)
+- Missing error handling / what-if guidance -> **Low** (Completeness)
+- Missing cleanup / uninstall instructions -> **High** (Completeness)
 
 ### Step 6: Write Findings
 

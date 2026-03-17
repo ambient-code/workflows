@@ -26,7 +26,7 @@ needs-human-input so a PR agent knows how to handle it.
 - **Be specific.** Every suggestion must include the exact text to change and
   the exact replacement.
 - **Explain the rationale.** Don't just say "change X to Y" — explain why.
-- **Prioritize by severity.** Address Errors first, then Gaps, then others.
+- **Prioritize by severity.** Address Critical first, then High, then others.
 - **Don't invent behavior.** If a fix requires knowledge of intended behavior
   you don't have, flag it as needing human input rather than guessing.
 - **Self-contained output.** Every fix must include all context inline — do not
@@ -78,7 +78,7 @@ file stands alone without cross-references.
 context above and below the text to change. This context block is what the
 consuming agent will use to locate the exact edit position.
 
-**For Errors (factually wrong):**
+**For Critical findings (factually wrong, broken commands):**
 
 - Quote the incorrect text with surrounding context
 - Provide the corrected text
@@ -86,7 +86,7 @@ consuming agent will use to locate the exact edit position.
   etc.)
 - Mark as `Automatable: Yes` when the correct value is known
 
-**For Gaps (missing documentation):**
+**For High findings (significant gaps, contradictions, outdated content):**
 
 - Identify where the new content should go (which file, which section, after
   which existing line)
@@ -96,24 +96,18 @@ consuming agent will use to locate the exact edit position.
   `Automatable: No` if it contains `TODO` markers or needs information you
   don't have
 
-**For Inconsistencies (contradictions):**
+**For Medium findings (confusing, has workarounds):**
 
-- Quote both contradictory passages with their locations and surrounding
-  context
-- Recommend which version is correct (if determinable from code or test
-  results)
-- Suggest the unified text
-- Mark as `Automatable: Yes` if the correct version is known,
-  `Automatable: No` if a human must decide which version is authoritative
-
-**For Stale (outdated):**
-
-- Quote the outdated text with surrounding context
-- Provide the updated text (if the correct current value is known)
+- Quote the problematic text with surrounding context
+- If contradictions: recommend which version is correct (if determinable from
+  code or test results), suggest the unified text
+- If outdated: provide the updated text (if the correct current value is known)
 - If the current value isn't known, flag what needs to be looked up and mark
   as `Automatable: No`
+- Mark as `Automatable: Yes` if the correct resolution is known,
+  `Automatable: No` if a human must decide
 
-**For Improvements (clarity, structure):**
+**For Low findings (clarity, structure):**
 
 - Quote the current text with surrounding context
 - Provide the improved version
@@ -129,7 +123,7 @@ Organize fixes into logical pull request units:
    multiple files (e.g., contradictory statements that must be unified, or a
    new cross-reference between two docs), group those fixes into a single PR
 3. **Exception — large files:** if a single file has more than 10 fixes, split
-   into separate PRs by severity (Errors + Gaps in one PR, Improvements in
+   into separate PRs by severity (Critical + High in one PR, Low in
    another)
 
 For each PR group, generate:

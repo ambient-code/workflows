@@ -45,8 +45,8 @@ Also read `artifacts/document-review/inventory.md` for context.
 
 Calculate:
 
-- Total findings by severity (Error, Gap, Inconsistency, Stale, Improvement)
-  across all findings files
+- Total findings by severity (Critical, High, Medium, Low) across all findings
+  files
 - Total findings by dimension (Accuracy, Completeness, Consistency, Clarity,
   Currency, Structure, Examples)
 - Findings per document (which docs have the most issues)
@@ -63,8 +63,8 @@ Provide a qualitative assessment for each dimension:
 
 Select the highest-impact findings to highlight:
 
-- All Errors (factually wrong information misleads users)
-- Critical Gaps (missing docs for important features)
+- All Critical findings (factually wrong information, broken commands)
+- All High findings (significant gaps, contradictions, outdated content)
 - Patterns (e.g., "all CLI flag docs are outdated" rather than listing each
   one)
 
@@ -72,11 +72,10 @@ Select the highest-impact findings to highlight:
 
 Suggest an order for addressing issues:
 
-1. Errors first (factually wrong content causes the most harm)
-2. Gaps in critical paths (missing quickstart, missing install guide)
-3. Stale content (outdated info is the next-worst after wrong info)
-4. Inconsistencies (confusing but not wrong)
-5. Improvements (nice to have)
+1. Critical first (factually wrong content, broken commands cause the most harm)
+2. High next (missing docs, contradictions, outdated content)
+3. Medium (confusing but has workarounds)
+4. Low (nice to have improvements)
 
 ### Step 6: Note Skipped Phases
 

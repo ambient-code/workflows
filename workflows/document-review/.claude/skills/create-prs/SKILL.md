@@ -33,7 +33,7 @@ in the fixes file.
 - **One branch per PR.** Each PR group gets its own branch.
 - **Do not force-push.** If a branch already exists, report the conflict
   and skip that PR.
-- **Severity order.** Create PRs containing Error fixes first, then Gaps,
+- **Severity order.** Create PRs containing Critical fixes first, then High,
   then others.
 - **Clean working tree.** Do not start if the working tree has uncommitted
   changes. Inform the user and stop.
