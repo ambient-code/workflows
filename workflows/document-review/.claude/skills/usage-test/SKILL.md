@@ -60,8 +60,12 @@ If the phase cannot proceed, write a skip file to
 ```markdown
 # Usage Test Findings
 
-**Project:** [name]
-**Tested:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Status:** Skipped
 **Reason:** [why — e.g., "install-test did not succeed", "no usage docs found"]
 ```

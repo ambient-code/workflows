@@ -1,7 +1,12 @@
 # Cluster Cleanup Report
 
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Cluster:** [url]
-**Cleaned:** [date]
 **Changes to revert:** N
 **Successfully reverted:** N
 **Failed to revert:** N

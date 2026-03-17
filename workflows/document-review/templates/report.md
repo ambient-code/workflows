@@ -1,9 +1,10 @@
 # Documentation Review Report
 
-**Project:** [name]
-**Generated:** [date]
-**Documents reviewed:** N of M
-**Total findings:** N
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
 
 ## Findings Summary
 

@@ -1,7 +1,11 @@
 # Installation Test Findings
 
-**Project:** [name]
-**Tested:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Cluster:** [cluster URL]
 **Documents tested:** N
 **Steps executed:** N

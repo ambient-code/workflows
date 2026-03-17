@@ -1,7 +1,12 @@
 # Cluster Change Log
 
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Cluster:** [url]
-**Session started:** [date/time]
 **Total changes:** N
 
 ## Changes

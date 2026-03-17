@@ -1,7 +1,11 @@
 # Documentation Inventory
 
-**Project:** [name]
-**Scanned:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Scope:** [full project | specific paths]
 
 ## Summary

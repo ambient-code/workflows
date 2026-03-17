@@ -200,9 +200,9 @@ exist and how they're organized. Build a list of all document paths to review.
 ### Step 2: Initialize the Findings File
 
 Write the file header to `artifacts/document-review/findings-review.md` using
-the template at `templates/findings-review.md`. Fill in the project name, date,
-and document count. Leave the summary table counts as `N` — you will update
-them at the end.
+the template at `templates/findings-review.md`. Fill in the date, repository,
+and instruction. Leave the summary table counts as `N` — you will update them
+at the end.
 
 Write the `## Findings by Document` heading. The file is now ready to receive
 per-document findings incrementally.
@@ -264,8 +264,7 @@ Read the findings file you have built. Count findings for each
 dimension × severity cell. Update the summary table at the top of
 `artifacts/document-review/findings-review.md` with the actual counts,
 replacing the placeholder `N` values. Include row totals (per dimension) and
-column totals (per severity). Update the `Documents reviewed: N of M` line
-with the actual count.
+column totals (per severity).
 
 ## Output
 

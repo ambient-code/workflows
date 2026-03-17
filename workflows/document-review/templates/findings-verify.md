@@ -1,7 +1,11 @@
 # Code Verification Findings
 
-**Project:** [name]
-**Verified:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Source files checked:** N
 
 ## Verification Summary

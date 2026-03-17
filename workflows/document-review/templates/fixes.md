@@ -1,10 +1,13 @@
 # Documentation Fix Suggestions
 
-**Project:** [name]
-**Repository:** [remote URL]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Base branch:** [branch name]
 **Base commit:** [short SHA]
-**Generated:** [date]
 **Total suggestions:** N
 **Automatable:** N
 **Needs human input:** N

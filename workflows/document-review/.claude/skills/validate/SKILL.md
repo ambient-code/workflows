@@ -40,10 +40,8 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- The header must not contain unfilled placeholders like `[name]` or `[date]`.
-- `Documents reviewed: N of M` — N and M must be actual numbers, and N should
-  equal the total documents in the inventory (unless a scoped review was
-  requested).
+- The header must not contain unfilled placeholders like `[date]`, `[repository]`,
+  or `[task and goal description]`.
 
 **3. Summary table — Are statistics present and consistent?**
 
@@ -81,7 +79,8 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- Header must not contain unfilled placeholders like `[name]` or `[date]`.
+- Header must not contain unfilled placeholders like `[date]`, `[repository]`,
+  or `[task and goal description]`.
 - `Cluster`, `Documents tested`, `Steps executed`, `Steps passed`, and
   `Steps failed` must all have real values.
 
@@ -118,7 +117,8 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- Header must not contain unfilled placeholders like `[name]` or `[date]`.
+- Header must not contain unfilled placeholders like `[date]`, `[repository]`,
+  or `[task and goal description]`.
 - `Cluster`, `Documents tested`, `Interactions executed`, `Interactions
   passed`, and `Interactions failed` must all have real values.
 
@@ -197,7 +197,7 @@ Return your validation result in exactly this format:
 [If FAIL, list each failure:]
 
 - **Coverage gap**: Documents not reviewed: `path/a.md`, `path/b.md`
-- **Unfilled placeholder**: Header still contains `[name]`
+- **Unfilled placeholder**: Header still contains `[repository]`
 - **Missing field**: Finding 3 in `README.md` is missing **Evidence**
 - **Weak evidence**: Finding 2 in `CONTRIBUTING.md` has no direct quote
 

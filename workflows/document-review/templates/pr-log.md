@@ -1,8 +1,11 @@
 # Pull Request Log
 
-**Project:** [name]
-**Repository:** [remote URL]
-**Generated:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **PRs created:** N
 **PRs created as draft:** N
 **Total fixes applied:** N

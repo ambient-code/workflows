@@ -69,8 +69,12 @@ the final report can include it. Use this format:
 ```markdown
 # Installation Test Findings
 
-**Project:** [name]
-**Tested:** [date]
+**Date:** [date]
+**Repository:** [repository]
+**Instruction:** [task and goal description]
+
+---
+
 **Status:** Skipped
 **Reason:** [why — e.g., "CLUSTER_URL not set", "cluster login failed: unauthorized", "no installation docs found"]
 ```
