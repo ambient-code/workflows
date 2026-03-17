@@ -99,11 +99,12 @@ Follow the template at `templates/report.md` exactly. Write to
 Write every finding under its severity heading. Each finding must include:
 
 - **Dimension** — which quality dimension is affected
-- **Location** — file path and section/line
+- **File** — file path and line in backticks (e.g., `docs/guide.md:42`)
 - **Source** — which phase(s) detected it (review, verify, install-test,
   usage-test)
-- **Description** — what the issue is
+- **Issue** — what the problem is
 - **Evidence** — quoted text, code snippet, or command output
+- **Fix** — the correction, if known with high confidence (omit if unsure)
 
 Omit any severity section that has zero findings (e.g., if there are no
 Critical findings, omit the `## Critical` section entirely).

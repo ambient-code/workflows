@@ -24,10 +24,11 @@
 ### C1. [title]
 
 - **Dimension:** Accuracy
-- **Location:** [file:section]
+- **File:** `path/to/document.md:42`
 - **Source:** review | verify | install-test | usage-test
-- **Description:** [what is wrong]
+- **Issue:** [what is wrong]
 - **Evidence:** [quoted text or output]
+- **Fix:** [correction, if known with high confidence]
 
 ### C2. [title]
 
@@ -38,9 +39,9 @@
 ### H1. [title]
 
 - **Dimension:** Completeness
-- **Location:** [file:section]
+- **File:** `path/to/document.md:85`
 - **Source:** review | verify | install-test | usage-test
-- **Description:** [what is wrong]
+- **Issue:** [what is wrong]
 - **Evidence:** [quoted text or output]
 
 ### H2. [title]

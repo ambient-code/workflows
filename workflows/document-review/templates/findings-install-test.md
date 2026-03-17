@@ -37,9 +37,9 @@ issues, missing prerequisites, or implicit steps.]
 - **Command:** `oc apply -f config.yaml`
 - **Expected result:** [what docs say should happen]
 - **Actual result:** [what actually happened]
-- **Severity:** Critical
 - **Dimension:** Accuracy
 - **Resolution:** [what the correct command/step is]
+- **Fix:** [corrected command or step, if known with high confidence]
 
 #### Step N: [brief description]
 
@@ -53,10 +53,9 @@ issues, missing prerequisites, or implicit steps.]
 
 ### Issue 1: [brief description]
 
-- **Severity:** Critical | High
 - **Dimension:** Structure | Completeness
-- **Documents:** [which docs]
-- **Description:** [what's wrong with the ordering or flow]
+- **Files:** [which docs]
+- **Issue:** [what's wrong with the ordering or flow]
 - **Correct order:** [what the order should be]
 
 ## Troubleshooting Guide

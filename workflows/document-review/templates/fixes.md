@@ -32,9 +32,8 @@
 #### Fix 1: [brief description]
 
 **File:** `path/to/document.md`
-**Severity:** Critical
 **Automatable:** Yes
-**Location:** Section "[heading]", line N
+**File:** `path/to/document.md:N`
 
 **Context** (target text is between `>>>` and `<<<`):
 
@@ -63,9 +62,8 @@ and the default changed from 3000 to 8080. Confirmed in `src/cli.py:45`:
 #### Fix 2: [brief description — needs input]
 
 **File:** `path/to/document.md`
-**Severity:** High
 **Automatable:** No
-**Location:** After section "[heading]", line N
+**File:** `path/to/document.md:N`
 
 **Context** (insert after this block):
 

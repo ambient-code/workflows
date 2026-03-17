@@ -110,9 +110,8 @@ Follow the template at `templates/findings-verify.md` exactly. Write findings to
 
 Each verification finding should include:
 
-- **Severity**: Critical, High, or Low
 - **Dimension**: Accuracy or Completeness
-- **Documentation location**: File, section, and line
+- **File**: Documentation file path and line in backticks (e.g., `README.md:85`)
 - **Code location**: Source file and line
 - **Documented claim**: What the docs say
 - **Actual behavior**: What the code does

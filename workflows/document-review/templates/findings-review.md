@@ -28,12 +28,12 @@
 
 #### Finding 1
 
-- **Severity:** Critical
 - **Dimension:** Accuracy
-- **Location:** Section "Installation", line 42
-- **Description:** The documented command uses a flag that doesn't exist.
+- **File:** `path/to/document.md:42`
+- **Issue:** The documented command uses a flag that doesn't exist.
 - **Evidence:** `pip install --global mypackage`
   (`--global` is not a valid pip flag)
+- **Fix:** Change `--global` to `--user` or remove the flag entirely.
 
 #### Finding 2
 
@@ -47,7 +47,6 @@
 
 ### Issue 1
 
-- **Severity:** Medium
-- **Documents:** doc-a.md, doc-b.md
-- **Description:** ...
+- **Files:** `doc-a.md`, `doc-b.md`
+- **Issue:** ...
 - **Evidence:** ...

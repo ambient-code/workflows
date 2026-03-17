@@ -231,11 +231,11 @@ document:
      consistency, abstraction level, "why" context, onward paths).
    - For mixed docs, apply both sets of checks to the relevant sections.
 7. **Record** findings with:
-   - **Severity**: Critical, High, Medium, or Low
    - **Dimension**: Which quality dimension is affected
-   - **Location**: File path and section heading or line reference
-   - **Description**: What the issue is
+   - **File**: File path and line in backticks (e.g., `docs/guide.md:42`)
+   - **Issue**: What the problem is
    - **Evidence**: Quote the problematic text
+   - **Fix**: The correction, if known with high confidence (omit if unsure)
    - **Audience impact**: How this affects the target audience
 8. **Append** the document's section to `artifacts/document-review/findings-review.md`
    immediately — including the document heading, audience assessment, and all

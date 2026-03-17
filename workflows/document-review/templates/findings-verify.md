@@ -23,7 +23,6 @@
 
 #### Verification Finding 1
 
-- **Severity:** Critical
 - **Dimension:** Accuracy
 - **Doc location:** README.md, "Configuration" section, line 85
 - **Code location:** src/config.py:42
@@ -35,14 +34,15 @@
   DEFAULT_MAX_RETRIES = 5  # src/config.py:42
   ```
 
+- **Fix:** Change "default: 3" to "default: 5".
+
 ## Undocumented Features
 
 ### Feature 1
 
-- **Severity:** High
 - **Dimension:** Completeness
 - **Code location:** src/cli.py:120
-- **Description:** The `--dry-run` flag exists in code but is not documented
+- **Issue:** The `--dry-run` flag exists in code but is not documented
 - **Evidence:**
 
   ```python

@@ -54,11 +54,10 @@ Run these checks in order. Record every failure.
 **4. Finding structure — Does each finding have required fields?**
 
 - Every finding must have all of these fields:
-  - **Severity** (one of: Critical, High, Medium, Low)
   - **Dimension** (one of: Accuracy, Completeness, Consistency, Clarity,
     Currency, Structure, Examples)
-  - **Location** (file path and section/line reference)
-  - **Description** (what the issue is)
+  - **File** (file path and line in backticks)
+  - **Issue** (what the problem is)
   - **Evidence** (quoted text from the document)
 - Flag any finding that is missing a required field.
 
@@ -96,7 +95,6 @@ Run these checks in order. Record every failure.
   - **Command** (what was executed)
   - **Expected result** (what docs say)
   - **Actual result** (what happened)
-  - **Severity**
   - **Dimension**
 - Flag any finding missing a required field.
 
@@ -135,7 +133,6 @@ Run these checks in order. Record every failure.
   - **Interaction** (what was executed)
   - **Expected result** (what docs say)
   - **Actual result** (what happened)
-  - **Severity**
   - **Dimension**
 - Flag any finding missing a required field.
 
@@ -170,7 +167,6 @@ Run these checks in order. Record every failure.
 **4. Finding structure — Does each finding have required fields?**
 
 - Every finding must have:
-  - **Severity**
   - **Dimension**
   - **Doc location** (file and section/line)
   - **Code location** (source file and line)
