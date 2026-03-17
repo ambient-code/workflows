@@ -61,7 +61,7 @@ If the phase cannot proceed, write a skip file to
 # Usage Test Findings
 
 **Date:** [date]
-**Repository:** [repository]
+**Repository:** [repository] @ [commit SHA]
 **Instruction:** [task and goal description]
 
 ---

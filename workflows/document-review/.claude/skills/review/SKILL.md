@@ -200,7 +200,7 @@ exist and how they're organized. Build a list of all document paths to review.
 ### Step 2: Initialize the Findings File
 
 Write the file header to `artifacts/findings-review.md` using
-the template at `templates/findings-review.md`. Fill in the date, repository,
+the template at `templates/findings-review.md`. Fill in the date, repository, commit SHA,
 and instruction. Leave the summary table counts as `N` — you will update them
 at the end.
 

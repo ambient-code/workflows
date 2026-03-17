@@ -40,7 +40,7 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- The header must not contain unfilled placeholders like `[date]`, `[repository]`,
+- The header must not contain unfilled placeholders like `[date]`, `[repository]`, `[commit SHA]`,
   or `[task and goal description]`.
 
 **3. Summary table — Are statistics present and consistent?**
@@ -78,7 +78,7 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- Header must not contain unfilled placeholders like `[date]`, `[repository]`,
+- Header must not contain unfilled placeholders like `[date]`, `[repository]`, `[commit SHA]`,
   or `[task and goal description]`.
 - `Cluster`, `Documents tested`, `Steps executed`, `Steps passed`, and
   `Steps failed` must all have real values.
@@ -115,7 +115,7 @@ Run these checks in order. Record every failure.
 
 **2. Metadata — Are placeholders filled in?**
 
-- Header must not contain unfilled placeholders like `[date]`, `[repository]`,
+- Header must not contain unfilled placeholders like `[date]`, `[repository]`, `[commit SHA]`,
   or `[task and goal description]`.
 - `Cluster`, `Documents tested`, `Interactions executed`, `Interactions
   passed`, and `Interactions failed` must all have real values.

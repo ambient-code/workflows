@@ -1,7 +1,7 @@
 # Documentation Inventory
 
 **Date:** [date]
-**Repository:** [repository]
+**Repository:** [repository] @ [commit SHA]
 **Instruction:** [task and goal description]
 
 ---
