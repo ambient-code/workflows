@@ -31,8 +31,16 @@ in the fixes file.
   Skip any fix with `Automatable: No` and record it. If a PR group contains
   only non-automatable fixes, skip the entire PR.
 - **One branch per PR.** Each PR group gets its own branch.
-- **Do not force-push.** If a branch already exists, report the conflict
-  and skip that PR.
+- **Idempotent execution.** Before processing any PR groups, snapshot all
+  open PRs by the current user in the repository (see Step 2). For each PR
+  group, search the snapshot for PRs with overlapping titles or
+  descriptions. For any potential matches, compare the PR's diff (saved
+  locally during Step 2) against the planned fixes. If the diff already addresses the
+  same changes, skip the PR group and record it as "already exists". This
+  makes `/create-prs` safe to run multiple times without creating
+  duplicates.
+- **Do not force-push.** If a branch already exists and has no matching
+  open PR, report the conflict and skip that PR.
 - **Severity order.** Create PRs containing Critical fixes first, then High,
   then others.
 - **Clean working tree.** Do not start if the working tree has uncommitted
@@ -70,13 +78,43 @@ git fetch origin <base-branch>
 ```
 
 - Record the starting branch so you can return to it at the end
+- Read the repository's `CONTRIBUTING.md` (if it exists) and note any PR
+  requirements — title conventions, commit message format, branch naming,
+  required labels, sign-off rules, etc. Apply these conventions when
+  creating branches, commits, and PRs in Step 3. If `CONTRIBUTING.md` does
+  not exist, use the defaults defined in this skill.
+- Snapshot all open PRs by the current user for duplicate detection:
+
+```bash
+gh pr list --author "@me" --state open --json number,title,body,headRefName \
+  > artifacts/tmp/existing-prs.json
+```
+
+Then fetch the diff for each open PR so all data is available locally:
+
+```bash
+for pr in $(jq -r '.[].number' artifacts/tmp/existing-prs.json); do
+  gh pr diff "$pr" > "artifacts/tmp/pr-${pr}.diff"
+done
+```
+
+These snapshots are used in Step 3 to detect duplicates before creating each PR.
 
 ### Step 3: Create Each Pull Request
 
 Process PR groups in severity order (highest-severity fixes first). For each
 PR group:
 
-#### 3a. Create a branch
+#### 3a. Check for duplicate PRs
+
+Read `artifacts/tmp/existing-prs.json` and search for PRs with overlapping
+titles or descriptions. For any potential match, read its diff from
+`artifacts/tmp/pr-<number>.diff` and compare it against the fixes planned
+for this PR group. If the existing PR already addresses the same changes,
+skip this PR group and record it as "already exists" with a reference to
+the existing PR number.
+
+#### 3b. Create a branch
 
 ```bash
 git checkout -b docs/fix-<slug> origin/<base-branch>
@@ -86,7 +124,7 @@ Derive the slug from the PR title: lowercase, replace spaces and special
 characters with hyphens, truncate to 50 characters. If the branch already
 exists, skip this PR and record it as skipped.
 
-#### 3b. Apply each fix
+#### 3c. Apply each fix
 
 For each fix in the PR group:
 
@@ -106,7 +144,7 @@ git checkout <base-branch>
 git branch -D docs/fix-<slug>
 ```
 
-#### 3c. Commit
+#### 3d. Commit
 
 Stage and commit the changes:
 
@@ -123,13 +161,13 @@ EOF
 Use a commit message that summarizes the fixes applied. For multi-fix PRs,
 list each fix briefly.
 
-#### 3d. Push
+#### 3e. Push
 
 ```bash
 git push -u origin docs/fix-<slug>
 ```
 
-#### 3e. Create the PR
+#### 3f. Create the PR
 
 Use the title and description from the fixes file:
 
@@ -148,12 +186,12 @@ EOF
   --head docs/fix-<slug>
 ```
 
-#### 3f. Record the result
+#### 3g. Record the result
 
 Note the PR URL, number of fixes applied, any skipped fixes, and whether it
 was created as a draft.
 
-#### 3g. Return to base
+#### 3h. Return to base
 
 ```bash
 git checkout <starting-branch>
@@ -164,9 +202,27 @@ git checkout <starting-branch>
 Follow the template at `templates/pr-log.md`. Write to
 `artifacts/pr-log.md`.
 
+### Step 5: Update the Report with PR Links
+
+If `artifacts/report.md` exists, update it by adding a **PR** field to each
+finding that was addressed by a created PR.
+
+For each PR that was successfully created, match its fixes back to report
+findings by comparing the file path and issue description. When a match is
+found, add a **PR** field to that finding with the PR link:
+
+```markdown
+- **PR:** [#N](url) *(draft)*
+```
+
+Insert the **PR** field after the **Fix** field (or after **Evidence** if
+there is no **Fix** field). If a finding was not addressed by any PR, leave
+it unchanged.
+
 ## Output
 
 - `artifacts/pr-log.md`
+- `artifacts/report.md` (updated with PR links, if it existed)
 - GitHub pull requests (created on the remote)
 
 ## When This Phase Is Done

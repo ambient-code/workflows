@@ -105,6 +105,8 @@ Write every finding under its severity heading. Each finding must include:
 - **Issue** — what the problem is
 - **Evidence** — quoted text, code snippet, or command output
 - **Fix** — the correction, if known with high confidence (omit if unsure)
+- **PR** — link to a fix PR, if one was created by `/create-prs` (omit
+  initially; added later by the create-prs phase)
 
 Omit any severity section that has zero findings (e.g., if there are no
 Critical findings, omit the `## Critical` section entirely).

@@ -29,6 +29,7 @@
 - **Issue:** [what is wrong]
 - **Evidence:** [quoted text or output]
 - **Fix:** [correction, if known with high confidence]
+- **PR:** [#N](url) *(draft)* — added by `/create-prs` if a fix PR was created
 
 ### C2. [title]
 
