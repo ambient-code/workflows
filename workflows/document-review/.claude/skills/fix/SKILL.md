@@ -35,6 +35,10 @@ needs-human-input so a PR agent knows how to handle it.
 - **Precise text matching.** Include 2–4 lines of surrounding context above and
   below the target text so the consuming agent can locate it uniquely in the
   file, even if similar text appears elsewhere.
+- **Preserve list and table order.** When a fix inserts, removes, or moves
+  items in a list or table, maintain the existing grouping and ordering
+  convention (alphabetical, logical, by category, etc.). Place new items where
+  they fit within that convention rather than appending them at the end.
 - **Classify every fix.** Mark each fix as `Automatable: Yes` (exact current
   and replacement text provided, no ambiguity) or `Automatable: No` (requires
   human decision, missing information, or new content that cannot be fully
