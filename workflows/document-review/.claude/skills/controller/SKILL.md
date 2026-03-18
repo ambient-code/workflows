@@ -105,8 +105,9 @@ Report and fix read from all findings files (whichever exist).
 | Handle-feedback | `artifacts/feedback-log.md` |
 
 Handle-feedback (`/handle-feedback`) runs independently — typically via a
-cron job — and does not go through the controller. It reads
-`artifacts/pr-log.md` directly and operates without prior workflow context.
+cron job — and does not go through the controller. It discovers PRs by
+querying GitHub for the `acp:document-review` label and operates without
+prior workflow context.
 
 ## How to Execute a Phase
 
