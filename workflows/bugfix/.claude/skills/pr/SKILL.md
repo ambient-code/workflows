@@ -5,6 +5,14 @@ description: Create a pull request for a bug fix, handling fork workflows, authe
 
 # Create Pull Request Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are preparing to submit a bug fix as a pull request. This skill provides a
 systematic, failure-resistant process for getting code from the working directory
 into a PR. It handles the common obstacles: authentication, fork workflows,
@@ -598,4 +606,4 @@ Report your results:
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.

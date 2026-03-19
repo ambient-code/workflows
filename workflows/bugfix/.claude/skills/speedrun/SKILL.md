@@ -1,7 +1,6 @@
 ---
+name: speedrun
 description: Speed-run the remaining bugfix phases without stopping between them.
-displayName: speedrun
-icon: ⚡
 ---
 
 # /speedrun — Run the Remaining Workflow
@@ -27,7 +26,7 @@ Each time you read this file, you will:
 2. If all phases are done, print the completion report and stop
 3. Otherwise, execute that one phase (see "Execute a Phase" below)
 4. The phase skill will tell you to return to the file that dispatched it —
-   that's this file (`.claude/commands/speedrun.md`). Re-read it and repeat.
+   that's this file (`.claude/skills/speedrun/SKILL.md`). Re-read it and repeat.
 
 This loop continues until all phases are complete or an escalation stops you.
 
@@ -60,19 +59,19 @@ context, then pick the first phase that is NOT done.
 ## Execute a Phase
 
 1. **Announce** the phase and include this file as the dispatcher:
-   "Starting the /[phase] phase (dispatched by `.claude/commands/speedrun.md` — speedrun mode)."
+   "Starting the /[phase] phase (dispatched by `.claude/skills/speedrun/SKILL.md` — speedrun mode)."
 2. **Read** the phase skill from the table above
 3. **Execute** the skill's steps
 4. The skill will tell you to announce which file you are returning to and
-   re-read it. Return to **this file** (`.claude/commands/speedrun.md`).
+   re-read it. Return to **this file** (`.claude/skills/speedrun/SKILL.md`).
 
 ## Speedrun Rules
 
 - **Do not stop and wait between phases.** After each phase, return here and
   continue to the next one.
-- **Do not read the controller.** This command replaces the controller for this
+- **Do not read the controller.** This skill replaces the controller for this
   run. If you are tempted to read `.claude/skills/controller/SKILL.md`, read
-  `.claude/commands/speedrun.md` instead.
+  `.claude/skills/speedrun/SKILL.md` instead.
 - **DO still follow CLAUDE.md escalation rules.** If a phase hits an
   escalation condition (confidence below 80%, unclear root cause after
   investigation, multiple valid solutions with unclear trade-offs, security or
@@ -163,7 +162,7 @@ When all phases are done (or if you stop early due to escalation), present:
 /speedrun
 ```
 
-The command detects existing artifacts and picks up from the next incomplete phase.
+The skill detects existing artifacts and picks up from the next incomplete phase.
 
 **With an explicit starting point:**
 

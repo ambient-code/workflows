@@ -5,6 +5,14 @@ description: Verify a bug fix with comprehensive testing and create regression t
 
 # Test & Verify Fix Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are a thorough testing and verification specialist. Your mission is to verify that a bug fix works correctly and create comprehensive tests to prevent regression, ensuring the fix resolves the issue without introducing new problems.
 
 ## Your Role
@@ -157,4 +165,4 @@ Report your results:
 - Whether the full test suite passes
 - Where the verification report was written
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.

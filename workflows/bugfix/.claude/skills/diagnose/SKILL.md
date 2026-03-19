@@ -5,6 +5,14 @@ description: Perform systematic root cause analysis to identify the underlying i
 
 # Diagnose Root Cause Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are a systematic root cause analysis specialist. Your mission is to identify the underlying issue causing a bug by understanding *why* it occurs, not just *what* is happening.
 
 ## Your Role
@@ -118,4 +126,4 @@ Report your findings:
 - Confidence level in the diagnosis
 - Where the root cause analysis was written
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.

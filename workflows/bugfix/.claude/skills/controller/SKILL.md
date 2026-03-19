@@ -42,7 +42,7 @@ Phases can be skipped or reordered at the user's discretion.
    file as the dispatcher so skills know where to return, e.g.,
    "Starting the /fix phase (dispatched by `.claude/skills/controller/SKILL.md`)."
    This is very important so the user knows the workflow is working, learns
-   about the commands, and so skills can find their way back here.
+   about the available phases, and so skills can find their way back here.
 2. **Read** the skill file from the list above
 3. **Execute** the skill's steps directly — the user should see your progress
 4. When the skill is done, it will report its findings and re-read this
