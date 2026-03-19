@@ -133,12 +133,25 @@ Organize fixes into logical pull request units:
 For each PR group, generate:
 
 - A short PR title (under 70 characters)
-- A PR description summarizing the changes with rationale
+- A PR description (see below)
 - An `Automatable` status for the whole PR: `Yes` (all fixes automatable),
   `Partial` (mix), or `No` (all fixes need input)
 - If any fix needs human input, a "Human Input Needed" checklist in the PR
   description listing the specific decisions or information the reviewer must
   provide
+
+**PR description quality.** The description must be self-contained — a reviewer
+should understand the problem, the fix, and the justification without reading
+any other artifact. Write the `## Summary` as a concise explanation of what was
+wrong and why, not a list of fix numbers. Include:
+
+- What the discrepancy or problem is, stated plainly
+- The specific files and locations changed (with line numbers or section names)
+- The source of truth that justifies the change (e.g. code snippet, test
+  output, other docs that agree)
+
+Do not reference finding IDs, fix numbers, or external reports — the PR must
+advocate for itself.
 
 ### Step 4: Write the Fixes
 

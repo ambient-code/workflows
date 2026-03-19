@@ -102,12 +102,18 @@ access.
 ```markdown
 ## Summary
 
-- Fix 1: Correct `--port` flag name and default value
-- Fix 2: Add troubleshooting section for connection errors — **needs reviewer input**
+Fixes incorrect `--port` flag name and default value in CLI reference.
+The flag was renamed to `--listen-port` and the default changed from 3000
+to 8080 in v2.0. Confirmed in `src/cli.py:45`.
+
+Changes:
+- `docs/cli-reference.md:42` — flag name and default in options table
+- `docs/cli-reference.md:87` — corrected example in troubleshooting section
 
 ## Human Input Needed
 
-- [ ] Fix 2: Specify the correct port-forward command for local access
+- [ ] Specify the correct port-forward command for local access (the service
+  exposes multiple ports)
 ```
 
 ### PR 2: [title]
