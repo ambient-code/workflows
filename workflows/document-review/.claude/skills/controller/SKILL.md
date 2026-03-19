@@ -47,7 +47,7 @@ workflow by executing phases and handling transitions between them.
    Generate inline fix suggestions for each finding.
 
 9. **Create PRs** (`/create-prs`) — `.claude/skills/create-prs/SKILL.md`
-   Create draft GitHub pull requests from automatable fix suggestions.
+   Create GitHub pull requests from automatable fix suggestions.
    Non-automatable fixes are skipped.
 
 10. **Speedrun** (`/speedrun`)

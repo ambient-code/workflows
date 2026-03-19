@@ -144,8 +144,7 @@ contents before applying fixes.
 
 ### PR creation rules
 
-- **Always create PRs as drafts.** Every PR must be a draft so a human
-  reviewer can verify the changes before merging.
+- **Create PRs in ready state** so reviewers are notified immediately.
 - Only include `Automatable: Yes` fixes in PRs.
 
 ### PR creation checklist
@@ -157,7 +156,7 @@ contents before applying fixes.
 - [ ] Commit messages reference the fix descriptions
 - [ ] PR title matches the suggested title
 - [ ] PR description includes the suggested description
-- [ ] PR is created as a draft
+- [ ] PR is created in ready state
 - [ ] No unrelated changes are included
 
 ### Ordering

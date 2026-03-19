@@ -7,7 +7,6 @@
 ---
 
 **PRs created:** N
-**PRs created as draft:** N
 **Total fixes applied:** N
 **Fixes skipped:** N
 
@@ -15,7 +14,7 @@
 
 | Status | Count |
 |--------|-------|
-| Created (draft) | N |
+| Created | N |
 | Skipped (not automatable) | N |
 | Skipped (context drift) | N |
 | Skipped (branch conflict) | N |
@@ -26,7 +25,7 @@
 
 - **URL:** [PR URL]
 - **Branch:** `docs/fix-[slug]`
-- **Status:** Draft
+- **Status:** Open
 - **Fixes applied:** N
 - **Fixes skipped:** N
 

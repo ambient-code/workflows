@@ -25,8 +25,8 @@ in the fixes file.
 - **Verify context before applying.** Before changing any text, confirm the
   Context block matches the current file contents. If context has drifted
   (file was modified since the review), skip that fix and report it.
-- **Always create drafts.** Every PR must be created as a draft so a human
-  reviewer can verify the changes before merging.
+- **Create PRs in ready state.** PRs are created as ready for review so
+  reviewers are notified and the feedback loop starts immediately.
 - **Skip non-automatable fixes.** Only apply fixes with `Automatable: Yes`.
   Skip any fix with `Automatable: No` and record it. If a PR group contains
   only non-automatable fixes, skip the entire PR.
@@ -193,7 +193,7 @@ git push -u origin docs/fix-<slug>
 Use the title and description from the fixes file:
 
 ```bash
-gh pr create --draft \
+gh pr create \
   --title "<PR title from fixes file>" \
   --body "$(cat <<'EOF'
 <PR description from fixes file>
@@ -211,7 +211,7 @@ EOF
 #### 3g. Record the result
 
 Note the PR URL, number of fixes applied, any skipped fixes, and whether it
-was created as a draft.
+was created.
 
 #### 3h. Return to base
 
@@ -234,7 +234,7 @@ findings by comparing the file path and issue description. When a match is
 found, add a **PR** field to that finding with the PR link:
 
 ```markdown
-- **PR:** [#N](url) *(draft)*
+- **PR:** [#N](url)
 ```
 
 Insert the **PR** field after the **Fix** field (or after **Evidence** if
@@ -251,7 +251,7 @@ it unchanged.
 
 Report:
 
-- Number of draft PRs created
+- Number of PRs created
 - Total fixes applied across all PRs
 - Fixes skipped (non-automatable, context drift, or branch conflicts)
 - Links to all created PRs
