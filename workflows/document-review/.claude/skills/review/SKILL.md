@@ -26,8 +26,11 @@ you are not cross-referencing against source code (that's `/verify`).
   that leads to skipped documents and incomplete coverage.
 - **Be specific.** Every finding must cite the exact file, section, or line
   where the issue occurs.
-- **Show evidence.** Quote the problematic text. Don't just say "unclear" —
-  explain why.
+- **Show evidence.** Every finding must include a direct quote from the
+  document — the actual text that is wrong, missing, or unclear. Use a
+  fenced code block or blockquote. Never describe evidence indirectly
+  (e.g., "the section does not mention X"); instead quote what the section
+  *does* say and explain why it falls short.
 - **Don't nitpick style.** Focus on content quality over formatting
   preferences. Minor markdown formatting issues are not worth reporting unless
   they affect readability.
@@ -38,9 +41,17 @@ you are not cross-referencing against source code (that's `/verify`).
 
 Evaluate each document against these 7 dimensions:
 
-1. **Accuracy** — Are statements factually correct? Flag claims that seem
-   suspect based on what you can determine from the documentation alone. Note
-   that `/verify` does deeper code cross-referencing.
+1. **Accuracy** — Are statements factually correct? This includes:
+   - Version numbers, command syntax, or flag names that contradict other
+     documents or the project's own configuration files
+   - Empty or broken code blocks that claim to show a command or output
+   - Placeholder values (e.g., `username`, `password`) presented as if they
+     are real values a user should copy verbatim
+   - Statements that contradict what the reader would actually experience
+   Flag claims that seem suspect based on what you can determine from the
+   documentation alone. Note that `/verify` does deeper code
+   cross-referencing, but obvious factual errors belong here — don't defer
+   everything to verify.
 
 2. **Completeness** — Does the document cover its topic fully? Are there
    obvious omissions? Are prerequisites listed? Are edge cases mentioned?
@@ -67,7 +78,9 @@ Evaluate each document against these 7 dimensions:
    - **Syntax validity.** Does each code block look syntactically valid for
      the language shown (per the language tag or surrounding context)? Flag
      obviously broken syntax — unclosed brackets, unterminated strings,
-     invalid YAML indentation — as a Critical finding.
+     invalid YAML indentation — as a Critical finding. Empty code blocks
+     (a fenced block with no content) that claim to show a command or
+     output are Critical (Accuracy), not just an Examples issue.
    - **Placeholder clarity.** Are user-supplied values clearly distinguished
      from literal values? Flag values that look real but are meant to be
      replaced (e.g., `192.168.1.100` as a placeholder IP, `my-password` as

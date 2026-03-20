@@ -94,13 +94,15 @@ doc/**/*
 
 ### Step 3: Catalog Each Document
 
-For each documentation file found, record:
+For each documentation file found, **read at least the first 40 lines** to
+determine its topic and audience — do not guess from the filename alone.
+Record:
 
 - **Path**: Relative path from project root
 - **Format**: md, rst, txt, adoc, html, etc.
-- **Size**: Approximate line count or word count
-- **Topic**: What the document covers (infer from title, headings, and first
-  few lines)
+- **Size**: Approximate line count (use `wc -l` or count while reading)
+- **Topic**: What the document covers (determined from title, headings, and
+  opening content — not inferred from path)
 - **Audience**: Who this appears to be written for:
   - End users (installation, usage, configuration)
   - Developers (API reference, architecture, contributing)

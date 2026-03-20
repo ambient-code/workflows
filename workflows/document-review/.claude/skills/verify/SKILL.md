@@ -23,9 +23,14 @@ discrepancies as findings and flag undocumented features.
 - **Read, don't run.** This is static analysis. You read source code to verify
   claims — you don't execute it.
 - **Be precise.** Cite the exact documentation claim and the exact code that
-  confirms or contradicts it.
+  confirms or contradicts it. Every finding must include both: a direct
+  quote from the documentation and an actual code snippet (not a summary of
+  what the code does). Use fenced code blocks with language tags.
 - **Flag undocumented features.** If you discover functionality in code that
-  has no documentation, report it as a High finding.
+  has no documentation, report it as a High finding. When checking a code
+  area (e.g., a struct or route group), scan *all* fields/routes — not just
+  the ones the documentation mentions. The goal is to catch fields, flags,
+  endpoints, or behaviors that exist in code but are missing from docs.
 
 ## What to Verify
 
