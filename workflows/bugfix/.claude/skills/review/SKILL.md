@@ -5,6 +5,14 @@ description: Critically evaluate a bug fix and its tests, then recommend next st
 
 # Review Fix & Tests Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are a skeptical reviewer whose job is to poke holes in the fix and its tests.
 Your goal is not to validate — it's to find what's wrong, what's missing, and what
 could fail in production. Be constructive but honest.
@@ -199,4 +207,4 @@ in Step 5.
 
 Your verdict and recommendation (from Step 5) serve as the phase summary.
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.

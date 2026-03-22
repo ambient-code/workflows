@@ -19,31 +19,26 @@ bugfix/
 ├── .ambient/
 │   └── ambient.json          # Workflow configuration
 ├── .claude/
-│   ├── commands/             # Slash commands (thin wrappers → skills)
-│   │   ├── reproduce.md
-│   │   ├── diagnose.md
-│   │   ├── fix.md
-│   │   ├── test.md
-│   │   ├── review.md
-│   │   ├── document.md
-│   │   └── pr.md
-│   └── skills/               # Detailed process definitions
+│   └── skills/               # All workflow logic lives here
+│       ├── controller/SKILL.md   # Phase transitions and recommendations
+│       ├── assess/SKILL.md
 │       ├── reproduce/SKILL.md
 │       ├── diagnose/SKILL.md
 │       ├── fix/SKILL.md
 │       ├── test/SKILL.md
 │       ├── review/SKILL.md
 │       ├── document/SKILL.md
-│       └── pr/SKILL.md
+│       ├── pr/SKILL.md
+│       └── speedrun/SKILL.md    # Runs all remaining phases in sequence
 ├── CLAUDE.md                 # Behavioral guidelines
 └── README.md                 # This file
 ```
 
-### How Commands and Skills Work Together
+### How Skills Work
 
-Each **command** is a thin wrapper that invokes a corresponding **skill**. When you run `/diagnose`, the command file tells the agent to read the Diagnose skill from `.claude/skills/diagnose/SKILL.md` and apply it — passing along any arguments you provided plus existing session context.
+Each phase is implemented as a **skill** in `.claude/skills/{name}/SKILL.md`. When you run `/assess`, `/fix`, etc., the corresponding skill is invoked directly. Each phase skill checks whether it was dispatched by the controller or speedrun; if invoked standalone, it reads the controller first to ensure proper workflow context.
 
-This separation keeps commands simple and consistent while the skills contain the full process details.
+The **controller** skill manages phase transitions and recommends next steps. The **speedrun** skill bypasses the controller and runs all remaining phases in sequence without stopping.
 
 ## Workflow Phases
 

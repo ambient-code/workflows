@@ -11,9 +11,10 @@ Systematic bug resolution through these phases:
 7. **Document** (`/document`) — Release notes and documentation
 8. **PR** (`/pr`) — Submit a pull request
 
-The workflow controller lives at `.claude/skills/controller/SKILL.md`.
-It defines how to execute phases, recommend next steps, and handle transitions.
-Phase skills are at `.claude/skills/{name}/SKILL.md`.
+All phases are implemented as skills at `.claude/skills/{name}/SKILL.md`.
+The workflow controller at `.claude/skills/controller/SKILL.md` manages phase
+transitions and recommendations. The `/speedrun` skill at
+`.claude/skills/speedrun/SKILL.md` runs all remaining phases without stopping.
 Artifacts go in `artifacts/bugfix/`.
 
 ## Principles

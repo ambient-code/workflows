@@ -339,11 +339,8 @@ git checkout -b feature/bugfix-improvements
 # Edit the workflow configuration
 vim workflows/bugfix/.ambient/ambient.json
 
-# Add or modify a command
-vim workflows/bugfix/.claude/commands/diagnose.md
-
 # Add or modify a skill
-vim workflows/bugfix/.claude/skills/root-cause-analysis/SKILL.md
+vim workflows/bugfix/.claude/skills/diagnose/SKILL.md
 
 # Edit persistent context
 vim workflows/bugfix/CLAUDE.md
@@ -492,8 +489,8 @@ Claude can sometimes mix these up, especially when:
 **1. Use explicit paths:**
 
 ```text
-❌ "Create a new command for the diagnose phase"
-✅ "Create a new command at workflows/bugfix/.claude/commands/diagnose.md"
+❌ "Create a new skill for the diagnose phase"
+✅ "Create a new skill at workflows/bugfix/.claude/skills/diagnose/SKILL.md"
 ```
 
 **2. Be explicit about context:**

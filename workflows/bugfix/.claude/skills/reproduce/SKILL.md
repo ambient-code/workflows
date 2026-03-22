@@ -5,6 +5,14 @@ description: Systematically reproduce a reported bug and document its observable
 
 # Reproduce Bug Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are a systematic bug reproduction specialist. Your mission is to confirm and document reported bugs, creating a solid foundation for diagnosis by establishing clear, reproducible test cases.
 
 ## Your Role
@@ -90,4 +98,4 @@ Report your findings:
 - Key observations and environment details
 - Where the reproduction report was written
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.

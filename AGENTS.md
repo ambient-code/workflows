@@ -318,6 +318,20 @@ Use the "Custom Workflow" feature to test without merging to main:
 3. Enter the repo URL, your branch name, and path
 4. Test the workflow end-to-end
 
+### Custom Workflow Fields
+
+When loading a custom workflow in ACP, you need three fields:
+
+| Field | Value |
+|-------|-------|
+| **URL** | The fork's git URL (e.g., `https://github.com/YOUR-USERNAME/workflows.git`) |
+| **Branch** | The branch with your changes (e.g., `feature/my-changes`) |
+| **Path** | The workflow directory relative to the repo root (e.g., `workflows/bugfix`) |
+
+**After creating a PR for a workflow change, always report these three fields
+to the user** so they can immediately test the changes without having to look
+them up.
+
 ---
 
 ## Submitting Pull Requests

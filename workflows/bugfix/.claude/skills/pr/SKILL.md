@@ -5,6 +5,14 @@ description: Create a pull request for a bug fix, handling fork workflows, authe
 
 # Create Pull Request Skill
 
+## Dispatch
+
+If you were dispatched by the controller or by speedrun, continue below.
+Otherwise, read `.claude/skills/controller/SKILL.md` first — it will send
+you back here with the proper workflow context.
+
+---
+
 You are preparing to submit a bug fix as a pull request. This skill provides a
 systematic, failure-resistant process for getting code from the working directory
 into a PR. It handles the common obstacles: authentication, fork workflows,
@@ -43,13 +51,44 @@ These are determined during pre-flight checks. Record each value as you go.
 
 | Placeholder | Source | Example |
 | --- | --- | --- |
-| `GH_USER` | Step 1a: `gh api user` or `/installation/repositories` (for bots) | `jsmith` |
-| `UPSTREAM_OWNER/REPO` | Step 1d: `gh repo view --json nameWithOwner` | `acme/myproject` |
-| `FORK_OWNER` | Step 2: owner portion of fork's `nameWithOwner`, or `GH_USER` if newly created | `jsmith` |
+| `AUTH_TYPE` | Step 0: `gh auth status` + `gh api user` | `user-token` / `github-app` / `none` |
+| `GH_USER` | Step 0: `gh api user` or `/installation/repositories` (for bots) | `jsmith` |
+| `UPSTREAM_OWNER/REPO` | Step 2c: `gh repo view --json nameWithOwner` | `acme/myproject` |
+| `FORK_OWNER` | Step 3: owner portion of fork's `nameWithOwner`, or `GH_USER` if newly created | `jsmith` |
 | `REPO` | The repository name (without owner) | `myproject` |
-| `BRANCH_NAME` | Step 4: the branch you create | `bugfix/issue-42-null-check` |
+| `BRANCH_NAME` | Step 5: the branch you create | `bugfix/issue-42-null-check` |
 
-### Step 0: Locate the Project Repository
+### Step 0: Determine Auth Context
+
+Run this FIRST, before any other work. The auth type determines the entire
+flow — if you skip this, every subsequent step will use the wrong strategy.
+
+```bash
+gh auth status
+```
+
+Then determine your identity:
+
+```bash
+# Works for normal user tokens:
+gh api user --jq .login 2>/dev/null
+
+# If that fails (403), you're running as a GitHub App/bot.
+# Get the real user from the app installation:
+gh api /installation/repositories --jq '.repositories[0].owner.login'
+```
+
+The `/installation/repositories` endpoint works because GitHub Apps are
+installed on user accounts — the repo owner is the actual user.
+
+Record `GH_USER` and `AUTH_TYPE`:
+
+- If `gh api user` succeeded: `AUTH_TYPE` = `user-token`, `GH_USER` = the login
+- If `gh api user` failed but `/installation/repositories` worked:
+  `AUTH_TYPE` = `github-app`, `GH_USER` = the repo owner login
+- If `gh auth status` itself failed: `AUTH_TYPE` = `none`
+
+### Step 1: Locate the Project Repository
 
 The bugfix workflow runs from the workflow directory, but the code changes live
 in the project repository. Before doing any git work:
@@ -65,37 +104,11 @@ commands run from there.
 If the user provides a path or the repo is obvious from session context
 (prior commands, artifacts), use that directly.
 
-### Step 1: Pre-flight Checks
+### Step 2: Pre-flight Checks
 
 Run ALL of these before doing anything else. Do not skip any.
 
-**1a. Check GitHub CLI authentication and determine GH_USER:**
-
-```bash
-gh auth status
-```
-
-- If authenticated, determine `GH_USER` — the **real user's** GitHub username
-  (not the bot). Try these in order:
-
-```bash
-# Works for normal user tokens:
-gh api user --jq .login 2>/dev/null
-
-# If that fails (403), you're running as a GitHub App/bot.
-# Get the real user from the app installation:
-gh api /installation/repositories --jq '.repositories[0].owner.login'
-```
-
-  The `/installation/repositories` endpoint works because GitHub Apps are
-  installed on user accounts — the repo owner is the actual user.
-
-- If not authenticated: note this — several later steps depend on `gh`. But
-  do NOT dump all manual instructions yet. Continue the remaining pre-flight
-  checks (1b–1e) to gather as much information as possible from git alone.
-  After pre-flight, you will present options to the user.
-
-**1b. Check git configuration:**
+**2a. Check git configuration:**
 
 ```bash
 git config user.name
@@ -103,7 +116,7 @@ git config user.email
 ```
 
 - If both are set: proceed.
-- If missing and `gh` is authenticated: set them using `GH_USER` from Step 1a:
+- If missing and `gh` is authenticated: set them using `GH_USER` from Step 0:
 
 ```bash
 git config user.name "GH_USER"
@@ -113,7 +126,7 @@ git config user.email "GH_USER@users.noreply.github.com"
 - If missing and `gh` is NOT authenticated: set reasonable defaults so commits
   work. Use `"bugfix-workflow"` / `"bugfix@workflow.local"` as placeholders.
 
-**1c. Inventory existing remotes:**
+**2b. Inventory existing remotes:**
 
 ```bash
 git remote -v
@@ -129,7 +142,7 @@ the user's fork. Common patterns:
 | `fork` | user's name | Fork (read-write) |
 | `upstream` | upstream org | Upstream (read-only) |
 
-**1d. Identify the upstream repo:**
+**2c. Identify the upstream repo:**
 
 If `gh` is authenticated:
 
@@ -145,7 +158,7 @@ git remote get-url origin | sed -E 's#.*/([^/]+/[^/]+?)(\.git)?$#\1#'
 
 Record the result as `UPSTREAM_OWNER/REPO` — you'll need it later.
 
-**1e. Check current branch and changes:**
+**2d. Check current branch and changes:**
 
 ```bash
 git status
@@ -155,14 +168,46 @@ git diff --stat
 Confirm there are actual changes to commit. If there are no changes, stop
 and tell the user.
 
-**Pre-flight summary:** Before moving on, you should now know:
-`UPSTREAM_OWNER/REPO`, which remotes exist, and whether there are changes to
-commit. You may also know `GH_USER` (if auth is available).
+### Step 2e: Pre-flight Gate (REQUIRED)
 
-**If `gh` is authenticated:** Continue to Step 2. Do NOT skip Step 2 based on
-the account type — even org bots and GitHub Apps need a fork.
+**Do not proceed to Step 3 until you have printed the following filled-in
+table.** Every row must have a value or an explicit "unknown". If you cannot
+fill in a row, that itself is important information that determines the flow.
 
-**If `gh` is NOT authenticated — STOP and ask the user.** Present their
+```
+Pre-flight summary:
+| Placeholder          | Value              |
+| -------------------- | ------------------ |
+| AUTH_TYPE             | ___                |
+| GH_USER              | ___                |
+| UPSTREAM_OWNER/REPO  | ___                |
+| EXISTING_REMOTES     | ___                |
+| HAS_CHANGES          | yes / no           |
+| CURRENT_BRANCH       | ___                |
+```
+
+### Expected Flow by Auth Type
+
+Now that you know `AUTH_TYPE`, here is what to expect for the rest of this
+skill. Read the row that matches your `AUTH_TYPE` so you are prepared for
+expected failures instead of surprised by them.
+
+**`user-token`:** Fork check → push to fork → `gh pr create` → done.
+This is the happy path.
+
+**`github-app`:** Fork check → push to fork → `gh pr create` MAY fail
+with "Resource not accessible by integration" (this is expected when the
+bot is installed on the user's account, not the upstream org). If it fails,
+provide the user a pre-filled compare URL (Step 8 fallback / Rung 2). Some
+repos grant the app sufficient permissions, so always try `gh pr create`
+first.
+
+**`none`:** You cannot push or create PRs. Stop and ask the user (see below),
+then prepare the branch and PR description for them to submit manually.
+
+---
+
+**If `AUTH_TYPE` is `none` — STOP and ask the user.** Present their
 options clearly:
 
 > GitHub CLI authentication is not available in this environment, which means
@@ -182,19 +227,23 @@ options clearly:
 
 **Wait for the user to respond.** Then proceed accordingly:
 
-- Option 1: User sets up auth → re-run Step 1a, continue normally
-- Option 2: User provides fork → set `FORK_OWNER` from it, skip to Step 3
-- Option 3: Continue through Steps 2–5 (branch, commit, PR description) but
-  skip Steps 6–7 (push, PR creation). At the end, provide the user with
+- Option 1: User sets up auth → re-run Step 0, continue normally
+- Option 2: User provides fork → set `FORK_OWNER` from it, skip to Step 4
+- Option 3: Continue through Steps 5–6 (branch, commit, PR description) but
+  skip Steps 7–8 (push, PR creation). At the end, provide the user with
   the exact push and PR creation commands — but only ONE set of clear
   instructions, not a wall of text
 
-### Step 2: Ensure a Fork Exists
+**If `AUTH_TYPE` is `user-token` or `github-app`:** Continue to Step 3.
+Do NOT skip Step 3 based on the account type — even org bots and GitHub
+Apps need a fork.
+
+### Step 3: Ensure a Fork Exists
 
 You almost certainly do NOT have push access to the upstream repo. Use a fork.
 
 **Determining FORK_OWNER:** The fork owner is almost always `GH_USER` (the
-authenticated GitHub username from Step 1a). When the `gh repo list` command
+authenticated GitHub username from Step 0). When the `gh repo list` command
 below returns a fork, its `nameWithOwner` will be in `FORK_OWNER/REPO` format —
 use the owner portion. If the user creates a new fork, `FORK_OWNER` = `GH_USER`.
 
@@ -204,8 +253,8 @@ use the owner portion. If the user creates a new fork, `FORK_OWNER` = `GH_USER`.
 gh repo list GH_USER --fork --json nameWithOwner,parent --jq '.[] | select(.parent.owner.login == "UPSTREAM_OWNER" and .parent.name == "REPO") | .nameWithOwner'
 ```
 
-Replace `GH_USER` with the value from Step 1a. Replace `UPSTREAM_OWNER` and
-`REPO` with the two parts of `UPSTREAM_OWNER/REPO` from Step 1d (e.g., for
+Replace `GH_USER` with the value from Step 0. Replace `UPSTREAM_OWNER` and
+`REPO` with the two parts of `UPSTREAM_OWNER/REPO` from Step 2c (e.g., for
 `acme/myproject`, use `UPSTREAM_OWNER` = `acme` and `REPO` = `myproject`).
 
 **Note:** The GitHub API returns the parent as separate `.parent.owner.login`
@@ -214,7 +263,7 @@ and `.parent.name` fields — it does NOT have a `.parent.nameWithOwner` field.
 The output will be `FORK_OWNER/REPO` (e.g., `jsmith/myproject`). Record
 the owner portion as `FORK_OWNER`.
 
-**If a fork exists:** use it — skip ahead to Step 3.
+**If a fork exists:** use it — skip ahead to Step 4.
 
 **If NO fork exists — HARD STOP.** You cannot continue without a fork.
 Do not try to push to upstream. Do not create a patch file. Do not try
@@ -237,19 +286,19 @@ Once the user confirms, try creating the fork:
 gh repo fork UPSTREAM_OWNER/REPO --clone=false
 ```
 
-- If this succeeds: continue to Step 3.
+- If this succeeds: continue to Step 4.
 - If this fails (sandbox/permission issue): tell the user to create the fork
   manually using the URL above. **Stop again and wait for the user to confirm
   the fork exists before continuing.**
 
-Do not proceed to Step 3 until a fork actually exists and you have confirmed
+Do not proceed to Step 4 until a fork actually exists and you have confirmed
 it with:
 
 ```bash
 gh repo view GH_USER/REPO --json nameWithOwner --jq .nameWithOwner
 ```
 
-### Step 3: Configure the Fork Remote
+### Step 4: Configure the Fork Remote
 
 Once a fork exists (or was found), ensure there's a git remote pointing to it.
 
@@ -267,7 +316,7 @@ git remote add fork https://github.com/FORK_OWNER/REPO.git
 Use `fork` as the remote name. If `origin` already points to the fork, that's
 fine — just use `origin` in subsequent commands instead of `fork`.
 
-### Step 3a: Check Fork Sync Status
+### Step 4a: Check Fork Sync Status
 
 **Why this check exists:** When a user's fork is out of sync with upstream,
 particularly when upstream has added workflow files (`.github/workflows/`) that
@@ -337,10 +386,10 @@ git fetch fork
 # Rebase the feature branch onto the synced fork/main
 git rebase fork/main
 
-# Continue to Step 4 (create branch)
+# Continue to Step 5 (create branch)
 ```
 
-### Step 4: Create a Branch
+### Step 5: Create a Branch
 
 ```bash
 git checkout -b bugfix/BRANCH_NAME
@@ -355,22 +404,10 @@ Branch naming conventions:
 If a branch already exists with the changes (from a prior `/fix` phase), use
 it instead of creating a new one.
 
-### Step 5: Stage and Commit
+### Step 6: Stage and Commit
 
-**Stage changes selectively** — don't blindly `git add .`:
-
-```bash
-# Review what would be staged
-git diff --stat
-
-# Stage the relevant files
-git add path/to/changed/files
-
-# Verify staging
-git status
-```
-
-**Commit with a structured message:**
+Stage changes selectively (`git add path/to/files`, not `git add .`), review
+with `git status`, then commit using conventional commit format:
 
 ```bash
 git commit -m "fix(SCOPE): SHORT_DESCRIPTION
@@ -380,39 +417,48 @@ DETAILED_DESCRIPTION
 Fixes #ISSUE_NUMBER"
 ```
 
-Follow conventional commit format. The scope should identify the affected
-component. Reference the issue number if one exists.
+Use prior artifacts (root cause analysis, implementation notes) to write an
+accurate commit message. Don't make up details.
 
-If prior artifacts exist (root cause analysis, implementation notes), use them
-to write an accurate commit message. Don't make up details.
+**Include the PR description in the commit body.** When a PR has a single
+commit, GitHub auto-fills the PR description from the commit message. This
+ensures the PR form is pre-populated even when `gh pr create` fails (a
+common case for bot environments). If `artifacts/bugfix/docs/pr-description.md`
+exists, append its content after the `Fixes #N` line. If it doesn't exist,
+compose a brief PR body from session context (problem, root cause, fix, testing)
+and include that instead.
 
-### Step 6: Push to Fork
+### Step 7: Push to Fork
 
 ```bash
+# Ensure git uses gh for authentication
+gh auth setup-git
+
+# Push the branch
 git push -u fork bugfix/BRANCH_NAME
 ```
 
 **If this fails:**
 
-- **Authentication error**: Check `gh auth status` again. The user may need
-  to re-authenticate or the sandbox may be blocking network access.
+- **Authentication / credential error**: Verify `gh auth status` succeeds and
+  that `gh auth setup-git` ran without errors. The user may need to
+  re-authenticate or the sandbox may be blocking network access.
 - **Remote not found**: Verify the fork remote URL is correct.
 - **Permission denied**: The fork remote may be pointing to upstream, not the
   actual fork. Verify with `git remote get-url fork`.
 
-If push requires sandbox permissions, tell the user: "The push needs network
-access. Please run: `git push -u fork BRANCH_NAME`"
-
-### Step 7: Create the Draft PR
+### Step 8: Create the Draft PR
 
 **Important context on bot permissions:** If you are running as a GitHub App
 bot (e.g., `ambient-code[bot]`), `gh pr create --repo UPSTREAM_OWNER/REPO`
-will almost certainly fail with `Resource not accessible by integration`.
-This is because the bot is installed on the **user's** account, not the
-upstream org — so it can push to the fork but cannot create PRs on upstream.
-This is expected, not an error to debug. Go directly to the fallback below.
+may fail with `Resource not accessible by integration`. This happens when the
+bot is installed on the **user's** account but not the upstream org. Some repos
+grant the app sufficient permissions, so always try `gh pr create` first —
+but if it fails with a 403, this is expected. Do not debug further; go
+directly to the fallback below.
 
-**Try `gh pr create` first** (it works for normal user tokens):
+**Try `gh pr create` first** (works for user tokens; may also work for bots
+on some repos):
 
 ```bash
 gh pr create \
@@ -424,81 +470,60 @@ gh pr create \
   --body-file artifacts/bugfix/docs/pr-description.md
 ```
 
-**Key flags explained:**
-
-- `--repo`: The upstream repository (where the PR goes). REQUIRED for cross-fork PRs.
-- `--head`: Must be `FORK_OWNER:BRANCH_NAME` format for fork-based PRs. Without the
-  owner prefix, GitHub looks for the branch on the upstream repo and fails.
-- `--base`: The target branch on upstream (usually `main`).
-- `--draft`: Always submit as draft first.
-- `--body-file`: Use the PR description artifact if `/document` was run.
-
-**If `--body-file` artifact doesn't exist**, use `--body` with inline content:
-
-```bash
-gh pr create \
-  --draft \
-  --repo UPSTREAM_OWNER/REPO \
-  --head FORK_OWNER:bugfix/BRANCH_NAME \
-  --base main \
-  --title "fix(SCOPE): SHORT_DESCRIPTION" \
-  --body "## Problem
-WHAT_WAS_BROKEN
-
-## Root Cause
-WHY_IT_WAS_BROKEN
-
-## Fix
-WHAT_THIS_PR_CHANGES
-
-## Testing
-HOW_THE_FIX_WAS_VERIFIED
-
-## Confidence
-HIGH_MEDIUM_LOW — BRIEF_JUSTIFICATION
-
-## Rollback
-HOW_TO_REVERT_IF_SOMETHING_GOES_WRONG
-
-## Risk Assessment
-LOW_MEDIUM_HIGH — WHAT_COULD_BE_AFFECTED
-
-Fixes #ISSUE_NUMBER"
-```
+`--head` must be `FORK_OWNER:BRANCH_NAME` format (with the owner prefix) for
+cross-fork PRs. If `--body-file` doesn't exist, use `--body` with content
+composed from session artifacts.
 
 **If `gh pr create` fails (403, "Resource not accessible by integration", etc.):**
 
-This is the expected outcome when running as a GitHub App bot. Do NOT retry,
-do NOT debug further, do NOT fall back to a patch file. Instead:
+This is a common and expected outcome when running as a GitHub App bot.
+Do NOT retry, do NOT debug further, do NOT fall back to a patch file. Instead:
 
 1. **Write the PR description** to `artifacts/bugfix/docs/pr-description.md`
-   (if not already written). This ensures the user has the body ready to paste.
+   (if not already written).
 
-2. **Give the user a pre-filled GitHub compare URL:**
+2. **Give the user a pre-filled GitHub compare URL** with `title` and `body`
+   query parameters so the PR form opens fully populated:
 
    ```text
-   https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:bugfix/BRANCH_NAME?expand=1
+   https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:bugfix/BRANCH_NAME?expand=1&title=URL_ENCODED_TITLE&body=URL_ENCODED_BODY
    ```
 
-   This URL opens GitHub's "Open a pull request" form with the branches
-   pre-selected and the description field ready to fill in.
+   URL-encode the title and body. If the encoded URL would exceed ~8KB
+   (browser limit), omit the `body` parameter — the commit message body
+   from Step 6 will still auto-fill the description for single-commit PRs.
 
-3. **Provide the PR title and body** so the user can paste them in. Show the
-   title as a single line and the body as a code block for easy copying.
-
-4. **Remind the user** to check "Create draft pull request" if they want
+3. **Remind the user** to check "Create draft pull request" if they want
    it as a draft.
 
-**If "branch not found"**: The push in Step 6 may have failed silently.
+4. **Provide clone-and-checkout commands** so the user can test locally:
+
+   ```text
+   ## Test the branch locally
+
+   # Fresh clone:
+   git clone https://github.com/FORK_OWNER/REPO.git
+   cd REPO
+   git checkout BRANCH_NAME
+
+   # Or if you already have the repo cloned:
+   git remote add fork https://github.com/FORK_OWNER/REPO.git   # if not already added
+   git fetch fork BRANCH_NAME
+   git checkout -b BRANCH_NAME fork/BRANCH_NAME
+   ```
+
+**If "branch not found"**: The push in Step 7 may have failed silently.
 Verify with `git ls-remote fork bugfix/BRANCH_NAME`.
 
-### Step 8: Confirm and Report
+### Step 9: Confirm and Report
 
 After the PR is created (or the URL is provided), summarize:
 
-- PR URL (or manual creation URL)
+- PR URL (or manual creation URL with pre-filled title and body)
 - What was included in the PR
 - What branch it targets
+- Clone-and-checkout commands for local testing (if the PR was created via
+  compare URL fallback — the user may need to verify the fix on their machine)
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
 ## Fallback Ladder
@@ -513,13 +538,15 @@ Diagnose it using the Error Recovery table and retry.
 
 ### Rung 2: Manual PR via GitHub Compare URL
 
-If `gh pr create` fails but the branch is pushed to the fork (this is the
-**expected** outcome when running as a GitHub App bot):
+If `gh pr create` fails but the branch is pushed to the fork (this is a
+**common and expected** outcome when running as a GitHub App bot):
 
 1. **Write the PR body** to `artifacts/bugfix/docs/pr-description.md`
-2. **Provide the compare URL**: `https://github.com/UPSTREAM_OWNER/REPO/compare/main...FORK_OWNER:BRANCH?expand=1`
-3. **Show the PR title and body** for the user to paste in
-4. **Note**: this is a good outcome — the user gets a pre-filled PR form
+2. **Provide the compare URL with `title` and `body` query params** so the
+   PR form opens fully populated (see Step 8 failure path for format)
+3. **Provide clone-and-checkout commands** for local testing
+4. **Note**: between the commit message body (Step 6) and the URL params,
+   the user should see the PR description auto-filled with no manual copying
 
 ### Rung 3: User creates fork, you push and PR
 
@@ -571,9 +598,10 @@ or network access is completely blocked:
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `gh auth status` fails | Not logged in | User must run `gh auth login` |
+| `git push` "could not read Username" | git credential helper not configured | Run `gh auth setup-git` then retry push |
 | `git push` permission denied | Pushing to upstream, not fork | Verify remote URL, switch to fork |
-| `git push` "refusing to allow...without `workflows` permission" | Fork out of sync with upstream (missing workflow files) | Run Step 3a: sync fork, then rebase and retry push |
-| `gh pr create` 403 / "Resource not accessible" | Bot installed on user, not upstream org | Give user the compare URL (Rung 2) — this is expected |
+| `git push` "refusing to allow...without `workflows` permission" | Fork out of sync with upstream (missing workflow files) | Run Step 4a: sync fork, then rebase and retry push |
+| `gh pr create` 403 / "Resource not accessible" | Bot installed on user, not upstream org | Give user the compare URL (Rung 2) — this is expected for most bot setups |
 | `gh repo fork` fails | Sandbox blocks forking | User creates fork manually |
 | Branch not found on remote | Push failed silently | Re-run `git push`, check network |
 | No changes to commit | Changes already committed or not staged | Check `git status`, `git log` |
@@ -598,4 +626,4 @@ Report your results:
 - What was included
 - Any follow-up actions needed (mark ready for review, add reviewers, etc.)
 
-Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/commands/speedrun.md` for next phase.") and **re-read that file** for next-step guidance.
+Then announce which file you are returning to (e.g., "Returning to `.claude/skills/controller/SKILL.md`." or "Returning to `.claude/skills/speedrun/SKILL.md` for next phase.") and **re-read that file** for next-step guidance.
