@@ -90,10 +90,9 @@ If you see `connection refused` when accessing the service:
 exposes multiple ports and the documentation doesn't specify which one to use
 for local access.
 
-**Rationale:** During install-test, users encountered "connection refused"
-errors at step 5 of the quickstart with no troubleshooting guidance. The exact
-port-forward command depends on which port the maintainers intend users to
-access.
+**Rationale:** Users may encounter "connection refused" errors at step 5 of
+the quickstart with no troubleshooting guidance. The exact port-forward command
+depends on which port the maintainers intend users to access.
 
 ---
 

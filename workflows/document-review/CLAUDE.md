@@ -5,18 +5,14 @@ Systematic documentation review through these phases:
 1. **Scan** (`/scan`) — Discover and catalog all documentation files
 2. **Review** (`/review`) — Deep quality analysis against 7 dimensions
 3. **Verify** (`/verify`) — *(Optional)* Cross-reference docs against source code
-4. **Install-test** (`/install-test`) — *(Optional)* Execute installation instructions on a cluster
-5. **Usage-test** (`/usage-test`) — *(Optional)* Interact with the installed project and verify usage docs
-6. **Cleanup** (`/cleanup`) — Revert cluster changes from install-test and usage-test (runs automatically)
-7. **Report** (`/report`) — Consolidate all findings into a single deduplicated report
-8. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
-9. **Create PRs** (`/create-prs`) — *(Optional)* Create GitHub pull requests from fix suggestions
-10. **Handle Feedback** (`/handle-feedback`) — *(Optional)* Monitor PRs for reviewer comments and act on feedback
-11. **Speedrun** (`/speedrun`) — Run scan → review + verify → report in one shot
+4. **Report** (`/report`) — Consolidate all findings into a single deduplicated report
+5. **Fix** (`/fix`) — *(Optional)* Generate inline fix suggestions
+6. **Create PRs** (`/create-prs`) — *(Optional)* Create GitHub pull requests from fix suggestions
+7. **Handle Feedback** (`/handle-feedback`) — *(Optional)* Monitor PRs for reviewer comments and act on feedback
+8. **Speedrun** (`/speedrun`) — Run scan → review + verify → report in one shot
 
-Review, verify, and install-test are independent — they can run in parallel as
-sub-agents after scan completes. Each writes to its own findings file.
-Usage-test runs after a successful install-test, before cleanup. A validation
+Review and verify are independent — they can run in parallel as sub-agents
+after scan completes. Each writes to its own findings file. A validation
 sub-agent checks their output for coverage, structure, and evidence quality,
 retrying once on failure.
 

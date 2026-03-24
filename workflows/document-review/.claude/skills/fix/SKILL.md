@@ -52,15 +52,8 @@ Read whichever findings files exist:
 
 - `artifacts/findings-review.md` (from `/review`)
 - `artifacts/findings-verify.md` (from `/verify`)
-- `artifacts/findings-install-test.md` (from `/install-test`)
-- `artifacts/findings-usage-test.md` (from `/usage-test`)
 
 Optionally read `artifacts/report.md` for priority guidance.
-
-If install-test or usage-test findings exist, pay special attention to the
-**Troubleshooting Guide** sections — use them to generate error-handling
-guidance, troubleshooting tips, and corrected commands for the installation
-and usage documentation.
 
 Collect repository metadata for the output file:
 

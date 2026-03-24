@@ -23,34 +23,18 @@ workflow by executing phases and handling transitions between them.
    documented APIs, CLI flags, config options, and behavior descriptions match
    the implementation.
 
-4. **Install-test** (`/install-test`) — `.claude/skills/install-test/SKILL.md`
-   Execute documented installation instructions on a live cluster. Compare
-   actual results against documented expectations and track common errors
-   with their solutions. Logs all cluster changes for cleanup.
-
-5. **Usage-test** (`/usage-test`) — `.claude/skills/usage-test/SKILL.md`
-   Interact with the installed project as a user would. Execute documented
-   usage instructions (API calls, CLI commands, workflows) and verify the
-   documentation accurately reflects the actual experience. Only runs after
-   a successful install-test.
-
-6. **Cleanup** (`/cleanup`) — `.claude/skills/cleanup/SKILL.md`
-   Revert all cluster changes made during install-test and usage-test. Reads
-   the change log and deletes resources in reverse order. Reports any changes
-   that could not be reverted.
-
-7. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
+4. **Report** (`/report`) — `.claude/skills/report/SKILL.md`
    Consolidate all findings into a single deduplicated report grouped by
    severity.
 
-8. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
+5. **Fix** (`/fix`) — `.claude/skills/fix/SKILL.md`
    Generate inline fix suggestions for each finding.
 
-9. **Create PRs** (`/create-prs`) — `.claude/skills/create-prs/SKILL.md`
+6. **Create PRs** (`/create-prs`) — `.claude/skills/create-prs/SKILL.md`
    Create GitHub pull requests from automatable fix suggestions.
    Non-automatable fixes are skipped.
 
-10. **Speedrun** (`/speedrun`)
+7. **Speedrun** (`/speedrun`)
    Run scan → review + verify (parallel) → validate → report automatically,
    pausing only for critical decisions.
 
@@ -59,26 +43,17 @@ Phases can be skipped or reordered at the user's discretion.
 ## Dependency Graph
 
 ```text
-scan ──┬──> review (sub-agent) ──────────────────┬──> validate ──> report ──> fix ──> create-prs
-       ├──> verify (sub-agent) ──────────────────┤       ↑  │
-       └──> install-test (sub-agent) ────────────┘       └──┘
-                    │                                (retry on fail,
-                    ├──> usage-test (if succeeded)    max 1 retry)
-                    └──> cleanup
+scan ──┬──> review (sub-agent) ──┬──> validate ──> report ──> fix ──> create-prs
+       └──> verify (sub-agent) ──┘       ↑  │
+                                         └──┘
+                                    (retry on fail,
+                                     max 1 retry)
 ```
 
 - **Scan** must run first — all other phases depend on the inventory.
-- **Review**, **verify**, and **install-test** are independent of each other.
-  All read the inventory and write to separate findings files. They can run
-  in parallel as sub-agents.
-- **Usage-test** runs after **install-test** succeeds. It interacts with the
-  installed project as a user would, testing documented usage instructions
-  against the live installation. It appends its cluster changes to the same
-  change log. It does NOT run if install-test was skipped or failed.
-- **Cleanup** runs after **usage-test** completes (or directly after
-  **install-test** if usage-test was skipped). It reads the change log and
-  reverts all cluster modifications from both install-test and usage-test.
-  Cleanup runs before validation.
+- **Review** and **verify** are independent of each other. Both read the
+  inventory and write to separate findings files. They can run in parallel
+  as sub-agents.
 - **Validate** checks sub-agent output for coverage, structure, and evidence
   quality. On failure, the failing sub-agent is re-dispatched with specific
   feedback. Maximum 1 retry per sub-agent.
@@ -90,10 +65,6 @@ scan ──┬──> review (sub-agent) ─────────────
 |-------|--------|
 | Review | `artifacts/findings-review.md` |
 | Verify | `artifacts/findings-verify.md` |
-| Install-test | `artifacts/findings-install-test.md` |
-| Install-test | `artifacts/cluster-changes.md` (change log) |
-| Usage-test | `artifacts/findings-usage-test.md` |
-| Cleanup | `artifacts/cleanup-report.md` |
 | Create-prs | `artifacts/pr-log.md` |
 
 Report and fix read from all findings files (whichever exist).
@@ -136,8 +107,7 @@ one after another — do not stop between them to ask what to do next.
      `/scan`), execute them in order
    - If commands are independent (e.g., `/review` and `/verify`), run them in
      parallel as sub-agents — same as during speedrun
-   - When the user explicitly includes `/install-test`, it triggers usage-test
-     and cleanup automatically. Validation runs after findings phases
+   - Validation runs after findings phases
 4. **Report combined results** at the end, after all commands have completed
 5. **Then stop and wait** — recommend next steps as usual
 
@@ -158,103 +128,23 @@ user requests several), use the Agent tool to launch them as parallel
 sub-agents:
 
 1. **Announce** which sub-agents you're launching in parallel
-2. **Check whether cluster credentials are set** by running:
-
-   ```bash
-   echo "CLUSTER_URL=${CLUSTER_URL:-(not set)}" && echo "CLUSTER_USERNAME=${CLUSTER_USERNAME:-(not set)}" && echo "CLUSTER_PASSWORD=${CLUSTER_PASSWORD:+(set)}"
-   ```
-
-3. **Spawn Agent calls simultaneously:**
+2. **Spawn Agent calls simultaneously:**
    - Agent (review): Read `.claude/skills/review/SKILL.md` and execute it.
      Write output to `artifacts/findings-review.md`.
    - Agent (verify): Read `.claude/skills/verify/SKILL.md` and execute it.
      Write output to `artifacts/findings-verify.md`.
-   - Agent (install-test): **Only include this agent when the user explicitly
-     requested it** (e.g., `/install-test`, or a multi-command prompt that
-     includes install-test). Cluster credentials (`$CLUSTER_URL`,
-     `$CLUSTER_USERNAME`, `$CLUSTER_PASSWORD`) must also be set. Never
-     auto-dispatch install-test just because credentials are available — the
-     user must ask for it. Read `.claude/skills/install-test/SKILL.md` and
-     execute it. Write output to `artifacts/findings-install-test.md`. The
-     skill itself handles the case where no installation docs exist (writes a
-     skip file), so do not pre-filter based on document content.
-4. **Wait** for all agents to complete
-5. **Run usage-test** if install-test was dispatched and succeeded (see
-   "Usage Test" below)
-6. **Run cluster cleanup** if install-test was dispatched (see "Cluster
-   Cleanup" below)
-7. **Run validation** (see below)
-8. **Summarize** the combined results to the user
+3. **Wait** for all agents to complete
+4. **Run validation** (see below)
+5. **Summarize** the combined results to the user
 
 When running a single phase (e.g., user invokes only `/review`), execute it
-directly — no sub-agent needed. Still run validation afterward. If the single
-phase is `/install-test`, run usage-test (if install succeeded), then cleanup,
-then validation.
-
-## Usage Test
-
-After install-test completes — whether it ran as a sub-agent or was invoked
-directly — check whether the installation succeeded. If it did, dispatch the
-usage-test agent before cleanup.
-
-### How to Run Usage Test
-
-1. **Read** `artifacts/findings-install-test.md`. Check the
-   status — if it says `**Status:** Skipped` or shows critical installation
-   failures, skip usage-test.
-2. **Announce** to the user: "Running usage-test to verify documented
-   interactions against the live installation."
-3. **Spawn a usage-test Agent:** Give it these instructions:
-   - Read `.claude/skills/usage-test/SKILL.md` and follow it.
-   - Read `artifacts/inventory.md`.
-   - Read `artifacts/findings-install-test.md`.
-   - Execute documented usage interactions on the cluster.
-   - Write findings to `artifacts/findings-usage-test.md`.
-   - Append any cluster changes to
-     `artifacts/cluster-changes.md`.
-4. **Report the result** to the user — how many interactions were tested and
-   how many passed/failed.
-
-### When the User Runs /usage-test Directly
-
-The user can invoke `/usage-test` at any time if a project is already installed
-on the cluster. Execute it directly (no sub-agent needed). Run cleanup
-afterward, then validation.
-
-## Cluster Cleanup
-
-After usage-test and install-test complete — whether they ran as sub-agents or
-were invoked directly — **always dispatch the cleanup agent** before proceeding
-to validation or recommending next steps. Cleanup reverts changes from both
-install-test and usage-test.
-
-### How to Run Cleanup
-
-1. **Check** that `artifacts/cluster-changes.md` exists. If it
-   does not exist (install-test was skipped or produced no changes), skip
-   cleanup.
-2. **Announce** to the user: "Running cluster cleanup to revert changes made
-   during install-test and usage-test."
-3. **Spawn a cleanup Agent:** Give it these instructions:
-   - Read `.claude/skills/cleanup/SKILL.md` and follow it.
-   - Read `artifacts/cluster-changes.md`.
-   - Revert all changes and write the report to
-     `artifacts/cleanup-report.md`.
-4. **Report the result** to the user:
-   - If all changes reverted successfully, confirm the cluster is clean.
-   - If any reverts failed, list what requires manual cleanup.
-
-### When the User Runs /cleanup Directly
-
-The user can invoke `/cleanup` at any time to revert cluster changes from a
-previous install-test run. Execute it directly (no sub-agent needed) using the
-same process above.
+directly — no sub-agent needed. Still run validation afterward.
 
 ## Validation Loop
 
-After review, verify, and/or install-test complete, validate their output using
-a validation sub-agent. This catches coverage gaps, missing fields, and weak
-evidence before the findings flow into report and fix.
+After review and/or verify complete, validate their output using a validation
+sub-agent. This catches coverage gaps, missing fields, and weak evidence
+before the findings flow into report and fix.
 
 ### How to Run Validation
 
@@ -262,8 +152,7 @@ evidence before the findings flow into report and fix.
    - Read `.claude/skills/validate/SKILL.md` and follow it.
    - Read `artifacts/inventory.md`.
    - Read whichever findings files exist (`artifacts/findings-review.md`,
-     `artifacts/findings-verify.md`, `artifacts/findings-install-test.md`,
-     `artifacts/findings-usage-test.md`).
+     `artifacts/findings-verify.md`).
    - Return the validation result.
 2. **Check the result:**
    - If all checked files **PASS** → proceed to next step.
@@ -318,7 +207,7 @@ happened.
 ### Typical Flow
 
 ```text
-scan → review + verify + install-test (parallel) → usage-test → cleanup → validate → report → (optional) fix
+scan → review + verify (parallel) → validate → report → (optional) fix
 ```
 
 ### What to Recommend
@@ -330,9 +219,7 @@ make sense:
 
 - Recommend `/review` — the natural next step
 - Offer `/verify` if documentation references lots of code (APIs, CLI flags)
-- Offer `/install-test` if `$CLUSTER_URL`, `$CLUSTER_USERNAME`, and `$CLUSTER_PASSWORD` are set (the
-  skill itself handles the case where no installation docs exist)
-- Mention that review, verify, and install-test can run in parallel
+- Mention that review and verify can run in parallel
 - Offer `/speedrun` if the user wants to go fast
 
 **After review (and validation):**
@@ -343,18 +230,6 @@ make sense:
 **After verify (and validation):**
 
 - Recommend `/report` to consolidate all findings
-
-**After install-test (usage-test runs if install succeeded, then cleanup, then validation):**
-
-- Recommend `/report` to consolidate all findings
-- Note that the troubleshooting guides from both install-test and usage-test
-  will feed into `/fix`
-- If cleanup had failures, mention what requires manual attention
-
-**After usage-test (cleanup runs automatically, then validation):**
-
-- Recommend `/report` to consolidate all findings
-- Note that the usage-test troubleshooting guide will feed into `/fix`
 
 **After report:**
 
@@ -427,18 +302,9 @@ invoked without an existing inventory, run `/scan` first and inform the user.
 - **Never auto-advance.** Always wait for the user between phases (except
   during speedrun or when the user provides multiple commands in a single
   prompt).
-- **Cluster phases are opt-in only.** Never dispatch install-test, usage-test,
-  or cleanup unless the user explicitly requested them. These phases are time
-  consuming and involve live cluster actions — do not trigger them
-  automatically just because credentials are available.
-- **When install-test is requested, run the full chain.** After a successful
-  install-test, run usage-test, then cleanup, before proceeding to validation.
-- **Always clean up after cluster phases.** Run cleanup after every
-  install-test (and usage-test) execution before proceeding to validation or
-  next steps.
-- **Always validate.** Run validation after every review, verify,
-  install-test, or usage-test execution, including retries. The only
-  exception is if the user explicitly asks to skip.
+- **Always validate.** Run validation after every review or verify execution,
+  including retries. The only exception is if the user explicitly asks to
+  skip.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.
 - **Respect the target project.** This workflow reviews external project
