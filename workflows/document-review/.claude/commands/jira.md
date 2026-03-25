@@ -15,11 +15,13 @@ items.
 ## Usage
 
 ```text
-/jira <project-key> [component=<name>] [labels=<a,b,c>] [fixversion=<name>] [team=<name>]
+/jira <project-key> [component=<name>] [labels=<a,b,c>] [team=<name>] [status=<name>]
 ```
 
 Arguments override environment variables. If no project key is given, the
-`JIRA_PROJECT` environment variable is used.
+`JIRA_PROJECT` environment variable is used. Any field not provided via
+arguments or environment variables will be prompted for — the user must
+explicitly set a value or confirm it should be left blank.
 
 ### Environment Variables
 
@@ -28,15 +30,14 @@ Arguments override environment variables. If no project key is given, the
 | `JIRA_PROJECT` | Default Jira project key |
 | `JIRA_COMPONENT` | Default component name |
 | `JIRA_LABELS` | Default comma-separated labels |
-| `JIRA_FIX_VERSION` | Default fix version |
 | `JIRA_TEAM` | Default team name |
+| `JIRA_INITIAL_STATUS` | Workflow transition after creation (e.g., `Backlog`) |
 
 ### Examples
 
 ```text
-/jira DOCS
-/jira DOCS component=documentation labels=docs,review
-/jira DOCS fixversion=4.2 team=docs-team
+/jira DOCS component=documentation labels=docs,review team=docs-team status=Backlog
+/jira DOCS component=none labels=none team=none status=New
 ```
 
 ## Process

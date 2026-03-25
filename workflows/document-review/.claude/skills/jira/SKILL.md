@@ -21,19 +21,27 @@ becomes a child issue under a parent epic so the team can track remediation.
 
 ## Inputs
 
-Gather these values before creating any issues. Arguments passed to the `/jira`
-command take precedence over environment variables.
+Every field below must be explicitly specified by the user before issue creation
+begins. A field can be set to a value or explicitly marked as "none" / left
+blank — but the user must state this. Do not assume defaults or skip fields that
+were not mentioned. If any field is missing from the arguments and environment
+variables, prompt the user for it.
 
-| Parameter | Argument | Env Var | Required |
-|-----------|----------|---------|----------|
-| Project key | first positional arg | `JIRA_PROJECT` | Yes |
-| Component | `component=<name>` | `JIRA_COMPONENT` | No |
-| Labels | `labels=<a,b,c>` | `JIRA_LABELS` | No |
-| Fix version | `fixversion=<name>` | `JIRA_FIX_VERSION` | No |
-| Team | `team=<name>` | `JIRA_TEAM` | No |
+Arguments passed to the `/jira` command take precedence over environment
+variables.
 
-If the project key is missing from both the argument and environment, stop and
-ask the user to provide it.
+| Parameter | Argument | Env Var |
+|-----------|----------|---------|
+| Project key | first positional arg | `JIRA_PROJECT` |
+| Component | `component=<name>` | `JIRA_COMPONENT` |
+| Labels | `labels=<a,b,c>` | `JIRA_LABELS` |
+| Team | `team=<name>` | `JIRA_TEAM` |
+| Initial status | `status=<name>` | `JIRA_INITIAL_STATUS` |
+
+The **Initial status** is the workflow transition to apply after creating each
+issue (e.g., `Backlog`, `New`, `To Do`). If set, transition each issue to this
+status immediately after creation. If explicitly left blank, issues stay in the
+workflow's default initial state.
 
 ## Process
 
@@ -63,11 +71,18 @@ For each finding, capture:
 2. Parse comma-separated labels into a list
 3. Verify that `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` are set. If any
    are missing, stop and tell the user which variables need to be configured.
-4. If no project key is available, stop and ask the user
-5. Confirm the plan with the user before creating issues:
+4. Check that **every** metadata field has been explicitly addressed — either
+   set to a value or explicitly left blank. If any field is unspecified (not
+   provided as an argument and not set as an environment variable), stop and
+   ask the user for the missing fields. List each missing field by name so the
+   user can provide a value or confirm it should be left blank.
+5. Confirm the full plan with the user before creating issues:
    - Project key
+   - Component (or "none")
+   - Labels (or "none", in addition to `acp:document-review`)
+   - Team (or "none")
+   - Initial status transition (or "default")
    - Number of findings to file
-   - Any optional fields that will be set
 
 ### Step 3: Create the Epic
 
@@ -101,9 +116,12 @@ for every child issue description in Step 4 (pipe the Markdown through
   entire report is captured in Jira with proper formatting.
 - **Labels**: merge `acp:document-review` with any user-provided labels
 - **Component**: set if provided
-- **Fix version**: set if provided
 
 Record the created epic key (e.g., `PROJ-123`).
+
+If an initial status was specified, transition the epic to that status using
+`POST $JIRA_URL/rest/api/2/issue/<key>/transitions` — first GET the available
+transitions to find the matching transition ID, then POST it.
 
 ### Step 4: Create Child Issues
 
@@ -174,7 +192,9 @@ present, otherwise describe the desired end state based on the issue>
 
 - **Labels**: merge `acp:document-review` with any user-provided labels
 - **Component**: set if provided
-- **Fix version**: set if provided
+
+After creating each child issue, if an initial status was specified, transition
+it using the same approach as the epic (GET available transitions, then POST).
 
 ### Step 5: Report Results
 
