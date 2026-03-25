@@ -10,7 +10,7 @@ items.
 ## Prerequisites
 
 - `artifacts/report.md` must exist (run `/report` first)
-- The `mcp-atlassian` MCP integration must be active in the environment
+- `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` environment variables must be set
 
 ## Usage
 
@@ -46,7 +46,7 @@ Arguments override environment variables. If no project key is given, the
 
 ## Output
 
-Jira issues created via the `mcp-atlassian` MCP integration:
+Jira issues created via the Jira REST API:
 
 - One **Epic** summarizing the full review
 - One **Bug** or **Task** per finding, as children of the epic

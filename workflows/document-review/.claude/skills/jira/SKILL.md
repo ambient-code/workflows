@@ -11,7 +11,11 @@ becomes a child issue under a parent epic so the team can track remediation.
 ## Prerequisites
 
 - `artifacts/report.md` must exist (run `/report` first)
-- The `mcp-atlassian` MCP integration must be active
+- `pandoc` must be installed (used to convert Markdown to Jira wiki markup)
+- The following environment variables must be set for Jira API access:
+  - `JIRA_URL` — base URL of the Jira instance (e.g., `https://myorg.atlassian.net`)
+  - `JIRA_EMAIL` — email address for authentication
+  - `JIRA_API_TOKEN` — API token for authentication
 - A Jira project key must be provided as an argument or via the `JIRA_PROJECT`
   environment variable
 
@@ -57,27 +61,45 @@ For each finding, capture:
 
 1. Check arguments first, then fall back to environment variables
 2. Parse comma-separated labels into a list
-3. If no project key is available, stop and ask the user
-4. Confirm the plan with the user before creating issues:
+3. Verify that `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` are set. If any
+   are missing, stop and tell the user which variables need to be configured.
+4. If no project key is available, stop and ask the user
+5. Confirm the plan with the user before creating issues:
    - Project key
    - Number of findings to file
    - Any optional fields that will be set
 
 ### Step 3: Create the Epic
 
-Use `mcp__mcp-atlassian__jira_create_issue` to create an Epic:
+Use the Jira REST API via `curl` to create an Epic. All API calls use basic
+authentication with `$JIRA_EMAIL:$JIRA_API_TOKEN` and target
+`$JIRA_URL/rest/api/2/issue`.
+
+#### Convert Markdown to Jira wiki markup
+
+Jira REST API v2 description fields use wiki markup, not Markdown. Before
+sending any description, convert it with pandoc:
+
+```bash
+pandoc -f markdown -t jira artifacts/report.md -o /tmp/report-jira.wiki
+```
+
+Use the converted content for the epic description. Apply the same conversion
+for every child issue description in Step 4 (pipe the Markdown through
+`pandoc -f markdown -t jira`).
+
+#### Create the Epic with:
 
 - **Project**: the resolved project key
 - **Issue type**: `Epic`
-- **Summary**: `Documentation Review: <repository>` (use the repository from
-  the report header; if unavailable use the project directory name)
-- **Description**: Build the description from the report metadata and summary
-  table. Include:
-  - Date of the review
-  - Repository and commit SHA
-  - The full dimension x severity summary table
-  - Total finding counts by severity
-- **Labels**: merge `doc-review` with any user-provided labels
+- **Epic Name**: `Documentation Review: <date>` (use the date from the report
+  header)
+- **Summary**: `Documentation Review Report of <date> for <scope>` where
+  `<date>` is the report date and `<scope>` is the repository or repositories
+  listed in the report header (if multiple repos, join them with commas)
+- **Description**: The pandoc-converted content of `artifacts/report.md` so the
+  entire report is captured in Jira with proper formatting.
+- **Labels**: merge `acp:document-review` with any user-provided labels
 - **Component**: set if provided
 - **Fix version**: set if provided
 
@@ -117,14 +139,15 @@ Decide per-finding based on the issue content:
 
 #### Build the Issue
 
-Use `mcp__mcp-atlassian__jira_create_issue` for each finding:
+Use the Jira REST API via `curl` (same auth as Step 3) for each finding:
 
 - **Project**: the resolved project key
 - **Issue type**: `Bug` or `Task` (per classification above)
 - **Parent**: the epic key from Step 3
 - **Summary**: `<ID>. <title>` (e.g., `C1. Incorrect CLI flag in quickstart`)
 - **Priority**: mapped from severity (see table above)
-- **Description**: structured as follows:
+- **Description**: structured as follows (convert to Jira wiki markup via
+  `pandoc -f markdown -t jira` before sending):
 
 ```
 ## Issue
@@ -149,9 +172,7 @@ and context — explain the impact on users or developers>
 present, otherwise describe the desired end state based on the issue>
 ```
 
-- **Labels**: merge the severity in lowercase (e.g., `critical`, `high`),
-  the dimension in lowercase with hyphens (e.g., `accuracy`, `completeness`),
-  `doc-review`, and any user-provided labels
+- **Labels**: merge `acp:document-review` with any user-provided labels
 - **Component**: set if provided
 - **Fix version**: set if provided
 
@@ -162,7 +183,7 @@ After all issues are created, present a summary to the user:
 ```
 ## Jira Issues Created
 
-**Epic:** <EPIC-KEY> — Documentation Review: <repository>
+**Epic:** <EPIC-KEY> — Documentation Review: <date>
 
 | ID | Type | Key | Summary | Priority |
 |----|------|-----|---------|----------|
@@ -175,18 +196,20 @@ After all issues are created, present a summary to the user:
 
 ## Error Handling
 
-- If `mcp__mcp-atlassian__jira_create_issue` fails for a specific finding,
+- If a `curl` call fails or returns an error response for a specific finding,
   log the error, continue with remaining findings, and report failures at
   the end
 - If the epic creation fails, stop and report the error — do not attempt to
   create child issues without a parent epic
-- If the MCP tool is not available, inform the user that the `mcp-atlassian`
-  integration must be active and stop
+- If any of `JIRA_URL`, `JIRA_EMAIL`, or `JIRA_API_TOKEN` are not set, stop
+  and tell the user which variables are missing
+- If `pandoc` is not installed, stop and tell the user to install it
+  (e.g., `brew install pandoc`)
 
 ## Output
 
 This skill does not write to `artifacts/`. Its output is the set of Jira
-issues created via the MCP integration.
+issues created via the Jira REST API.
 
 ## When This Phase Is Done
 

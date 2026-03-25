@@ -32,7 +32,7 @@ workflow by executing phases and handling transitions between them.
 
 6. **Jira** (`/jira`) — `.claude/skills/jira/SKILL.md`
    Create a Jira epic from the report with child bugs and tasks for each
-   finding. Requires the `mcp-atlassian` MCP integration.
+   finding. Uses the Jira REST API via `curl`.
 
 7. **Speedrun** (`/speedrun`)
    Run scan → review + verify (parallel) → report automatically, pausing

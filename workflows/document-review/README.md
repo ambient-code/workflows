@@ -10,7 +10,7 @@ Systematic workflow for reviewing a project's documentation — assessing qualit
 - Cross-references documentation claims against source code using parallel discovery agents
 - Runs review and verify in parallel as sub-agents for speed
 - Generates inline fix suggestions grouped by file
-- Creates Jira epics with child bugs/tasks from the report via MCP
+- Creates Jira epics with child bugs/tasks from the report via Jira REST API
 - Supports a speedrun mode for one-shot review
 
 ## Directory Structure
@@ -94,7 +94,7 @@ Generates inline fix suggestions for each finding. Quotes problematic text, prov
 
 ### 6. Jira (Optional)
 
-Creates a Jira epic from the report with a child bug or task for each finding. Bugs are for findings that impact external users or customers. Tasks are for developer-facing or maintenance items. Requires the `mcp-atlassian` MCP integration to be active. Accepts project key, component, labels, fix version, and team as arguments or environment variables.
+Creates a Jira epic from the report with a child bug or task for each finding. Bugs are for findings that impact external users or customers. Tasks are for developer-facing or maintenance items. Uses the Jira REST API via `curl` (requires `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` environment variables). Accepts project key, component, labels, fix version, and team as arguments or environment variables.
 
 ### 7. Speedrun
 
