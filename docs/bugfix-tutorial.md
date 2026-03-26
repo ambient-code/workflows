@@ -272,13 +272,36 @@ UI. The Ambient Code Platform also supports triggering sessions
 programmatically, so you can incorporate bug fixing into CI/CD pipelines,
 scheduled jobs, or custom tooling.
 
-### How it works
+### Using the REST API
 
 Under the hood, creating a session is a single HTTP POST to the platform's
 backend API. The request body includes the prompt, the repositories to clone,
 and an `activeWorkflow` object that tells the platform which workflow to load.
 Anything that can make an authenticated HTTP request can create a bug fix
 session.
+
+#### Prerequisites
+
+You need three values:
+
+- **`ACP_API_URL`** — the backend API URL. For the UAT environment, use
+  `https://backend-route-ambient-code.apps.rosa.vteam-uat.0ksl.p3.openshiftapps.com/api`.
+  For other environments, take your platform's browser URL (e.g.,
+  `https://ambient-code.apps.my-cluster.example.com`) and replace
+  `ambient-code` with `backend-route-ambient-code`, then append `/api`.
+- **`ACP_PROJECT`** — your project name on the platform.
+- **`ACP_TOKEN`** — a bearer token. Create an Access Key through the platform
+  UI (by clicking on "Access Keys" in the left menu), or use any valid Kubernetes ServiceAccount token
+  with the appropriate RBAC permissions.
+
+> **Important:** Do not use the browser UI URL (the one you log into) as your
+> `ACP_API_URL`. The UI sits behind an OAuth proxy that handles browser-based
+> login but does not forward bearer tokens to the backend. API calls made
+> against the UI URL will fail with `401 User token required` even if the
+> token is valid. The backend route bypasses the OAuth proxy entirely, so
+> bearer tokens reach the API directly.
+
+#### Creating a session
 
 Here is the equivalent `curl` call:
 
@@ -322,6 +345,9 @@ The [`ambient-action`](https://github.com/ambient-code/ambient-action) GitHub
 Action wraps this API call for use in GitHub workflows. You can use it to
 automatically kick off a bug fix session when a new issue is opened, when a
 label is applied, or on any other GitHub event.
+
+Store your backend route URL as `ACP_URL` and your token as `ACP_TOKEN` in
+your repository's GitHub Actions secrets.
 
 The action supports two modes:
 
