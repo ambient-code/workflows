@@ -15,8 +15,14 @@ interface AmbientConfig {
   description: string;       // Required
   systemPrompt: string;      // Required
   startupPrompt: string;     // Required
+  enabled?: boolean;         // Optional (default: true)
+  greeting?: string;         // Optional
   results?: {                // Optional
     [artifactName: string]: string;  // Glob pattern for artifact location
+  };
+  rubric?: {                 // Optional
+    activationPrompt: string;
+    schema: object;
   };
 }
 ```
@@ -163,6 +169,73 @@ All artifacts go in `artifacts/specsmith/`:
 
 ---
 
+### `enabled` (boolean, optional)
+
+**Purpose**: Controls whether the workflow appears in the platform UI and API
+
+**Default**: `true`
+
+**Guidelines**:
+
+- Set to `false` to hide a workflow from the OOTB workflow listing
+- Workflows with `enabled: false` are completely excluded from the API response
+- Omitting the field is equivalent to `enabled: true`
+- Useful for hiding work-in-progress or deprecated workflows without removing them
+
+**Examples**:
+
+```json
+"enabled": false
+"enabled": true
+```
+
+---
+
+### `greeting` (string, optional)
+
+**Purpose**: User-facing welcome message displayed immediately when the workflow is selected, rendered with a typewriter effect
+
+**Guidelines**:
+
+- Displayed instantly without LLM generation
+- Use markdown formatting (lists, bold, etc.)
+- List available slash commands
+- Keep concise — this is the first thing users see
+
+**Example**:
+
+```json
+"greeting": "Welcome to PRD & RFE Creation!\n\nAvailable commands:\n• /prd.discover — Start product discovery\n• /prd.create — Draft the PRD\n\nType /prd.discover to get started."
+```
+
+---
+
+### `rubric` (object, optional)
+
+**Purpose**: Defines evaluation criteria for scoring workflow output quality
+
+**Structure**:
+
+- `activationPrompt` (string): Instructions for when and how to evaluate
+- `schema` (object): JSON Schema describing the scoring fields
+
+**Example**:
+
+```json
+"rubric": {
+  "activationPrompt": "After creating the output, evaluate quality and produce a score out of 25.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "completeness": {"type": "number", "description": "Score (1-5)"},
+      "clarity": {"type": "number", "description": "Score (1-5)"}
+    }
+  }
+}
+```
+
+---
+
 ### `results` (object, optional)
 
 **Purpose**: Map artifact names to output file paths/patterns
@@ -256,7 +329,10 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
 
 **Optional Fields**:
 
+- `enabled` can be omitted (defaults to `true`)
+- `greeting` can be omitted (falls back to LLM-generated greeting)
 - `results` can be omitted (defaults to empty object)
+- `rubric` can be omitted (no quality evaluation)
 
 **No Strict Validation**:
 
@@ -429,9 +505,9 @@ workflow-repo/
 
 ## Summary
 
-The `ambient.json` schema is intentionally simple with only 5 fields, but the `systemPrompt` field is where workflows become powerful. A well-crafted systemPrompt can define complex multi-phase workflows with specialized agents, API integrations, and sophisticated output structures.
+The `ambient.json` schema has 4 required fields and 4 optional fields, but the `systemPrompt` field is where workflows become powerful. A well-crafted systemPrompt can define complex multi-phase workflows with specialized agents, API integrations, and sophisticated output structures.
 
-**Minimum viable ambient.json**: 4 required string fields
-**Maximum sophistication**: Thousands of characters in systemPrompt defining complete development workflows
+**Minimum viable ambient.json**: 4 required string fields (`name`, `description`, `systemPrompt`, `startupPrompt`)
+**Maximum sophistication**: Thousands of characters in systemPrompt defining complete development workflows, with `greeting`, `results`, and `rubric` for richer UX
 
 The platform is lenient - missing optional fields default gracefully, allowing both simple and complex workflow configurations.
