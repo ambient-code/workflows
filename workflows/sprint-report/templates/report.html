@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{REPORT_TITLE}} - {{TEAM_NAME}}</title>
+<style>
+  :root {
+    --risk-high: #dc2626;
+    --risk-moderate: #f59e0b;
+    --risk-healthy: #16a34a;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --positive: #16a34a;
+    --positive-bg: #dcfce7;
+    --warn: #f59e0b;
+    --warn-bg: #fef3c7;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --neutral: #6b7280;
+    --neutral-bg: #f3f4f6;
+    --bg: #ffffff;
+    --bg-alt: #f9fafb;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+    --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--bg-alt);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  .page-wrapper {
+    max-width: 1320px;
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+    box-shadow: 0 0 40px rgba(0,0,0,0.06);
+    display: flex;
+    position: relative;
+  }
+  .page-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .report-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: #fff;
+    padding: 48px 56px 40px;
+  }
+  .report-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .report-header .subtitle {
+    font-size: 16px;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .header-meta-item {
+    font-size: 13px;
+    color: #cbd5e1;
+  }
+  .header-meta-item strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .content {
+    padding: 0 56px 56px;
+  }
+
+  .section {
+    margin-top: 40px;
+  }
+  .section-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+  }
+  .section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .health-badge-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 12px;
+  }
+  .health-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .health-score-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .health-score-label strong {
+    color: var(--text-secondary);
+  }
+  .health-badge.high-risk {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 2px solid var(--danger);
+  }
+  .health-badge.moderate-risk {
+    background: var(--warn-bg);
+    color: var(--warn);
+    border: 2px solid var(--warn);
+  }
+  .health-badge.healthy {
+    background: var(--positive-bg);
+    color: var(--positive);
+    border: 2px solid var(--positive);
+  }
+  .health-badge .badge-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .kpi-card {
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .kpi-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+  .kpi-info-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-muted);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.15s;
+  }
+  .kpi-info-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .kpi-card .kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .kpi-card .kpi-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .kpi-card .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .kpi-card.danger .kpi-value { color: var(--danger); }
+  .kpi-card.warn .kpi-value { color: var(--warn); }
+  .kpi-card.positive .kpi-value { color: var(--positive); }
+  .kpi-card.neutral .kpi-value { color: var(--text-secondary); }
+  .kpi-detail {
+    display: none;
+    grid-column: 1 / -1;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    animation: kpi-detail-in 0.2s ease;
+  }
+  .kpi-detail.active {
+    display: block;
+  }
+  @keyframes kpi-detail-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .kpi-detail h4 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .kpi-detail .kpi-detail-what {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .kpi-detail .kpi-detail-action {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .kpi-detail .kpi-detail-thresholds {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .kpi-detail .kpi-detail-scoring {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  .progress-bar-container {
+    margin: 20px 0;
+  }
+  .progress-bar {
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    background: var(--neutral-bg);
+    border: 1px solid var(--border);
+  }
+  .progress-bar .seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    transition: width 0.5s ease;
+  }
+  .progress-bar .seg.done { background: var(--positive); }
+  .progress-bar .seg.review { background: var(--accent); }
+  .progress-bar .seg.testing { background: #8b5cf6; }
+  .progress-bar .seg.inprog { background: var(--warn); }
+  .progress-bar .seg.new { background: var(--neutral); }
+  .progress-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+  }
+  .progress-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .progress-legend .l-done::before { background: var(--positive); }
+  .progress-legend .l-review::before { background: var(--accent); }
+  .progress-legend .l-testing::before { background: #8b5cf6; }
+  .progress-legend .l-inprog::before { background: var(--warn); }
+  .progress-legend .l-new::before { background: var(--neutral); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--bg-alt);
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: var(--bg-alt); }
+
+  .status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .status.resolved { background: #dbeafe; color: #1e40af; }
+  .status.review { background: #e0e7ff; color: #3730a3; }
+  .status.testing { background: #ede9fe; color: #5b21b6; }
+  .status.inprogress { background: #fef3c7; color: #92400e; }
+  .status.new { background: #f3f4f6; color: #374151; }
+
+  .issue-key {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  a.issue-key:hover {
+    text-decoration: underline;
+  }
+
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    font-size: 14px;
+  }
+  .callout.positive {
+    background: var(--positive-bg);
+    border-color: var(--positive);
+  }
+  .callout.warning {
+    background: var(--warn-bg);
+    border-color: var(--warn);
+  }
+  .callout.danger {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+  }
+  .callout strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .dimension-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  .dimension-header {
+    padding: 16px 20px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dimension-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .dimension-header .dim-num {
+    background: var(--accent);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .dimension-body {
+    padding: 20px;
+  }
+  .dimension-body ul {
+    margin: 8px 0 8px 20px;
+  }
+  .dimension-body li {
+    margin-bottom: 6px;
+  }
+  .dimension-body p {
+    margin-bottom: 10px;
+  }
+
+  .antipattern-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .antipattern-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    border-left: 4px solid var(--danger);
+  }
+  .antipattern-card .ap-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--danger);
+    margin-bottom: 6px;
+  }
+  .antipattern-card .ap-evidence {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .antipattern-card .ap-impact {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .action-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .action-card .action-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .action-card .action-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .action-card .action-impact {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .action-card .action-evidence {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .coaching-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .coaching-card-header {
+    padding: 14px 20px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .coaching-card-body {
+    padding: 16px 20px;
+  }
+  .coaching-card-body ul {
+    margin: 8px 0 8px 20px;
+  }
+  .coaching-card-body li {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .coaching-card-body ol {
+    margin: 8px 0 8px 20px;
+  }
+  .coaching-card-body ol li {
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  .coaching-card-body p {
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .flow-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .flow-card h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: var(--accent);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .flow-card ul {
+    margin: 0 0 0 18px;
+    font-size: 13px;
+  }
+  .flow-card li {
+    margin-bottom: 6px;
+  }
+
+  .appendix-table {
+    font-size: 12px;
+    overflow-x: auto;
+  }
+  .appendix-table table {
+    min-width: 900px;
+  }
+  .appendix-table td, .appendix-table th {
+    padding: 8px 10px;
+  }
+  .appendix-table .notes-col {
+    font-size: 11px;
+    color: var(--text-secondary);
+    max-width: 200px;
+  }
+
+  .sprint-pills {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .sprint-pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--neutral-bg);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .sprint-pill.current {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .toc-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .toc {
+    position: sticky;
+    top: 24px;
+    padding: 20px 16px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+  .toc strong {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    padding-left: 10px;
+  }
+  .toc a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .toc a:hover {
+    color: var(--accent);
+    background: var(--bg-alt);
+  }
+  .toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--bg-alt);
+    font-weight: 600;
+  }
+
+  .btn-print {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    font-family: var(--font);
+  }
+  .btn-print:hover { background: #1d4ed8; }
+
+  .report-footer {
+    padding: 24px 56px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.5;
+    background: var(--bg-alt);
+  }
+
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    .page-wrapper { box-shadow: none; max-width: none; }
+    .report-header { padding: 24px 32px; }
+    .content { padding: 0 32px 32px; }
+    .badge-dot { animation: none !important; }
+    .section { page-break-inside: avoid; page-break-before: auto; }
+    .dimension-card { page-break-inside: avoid; }
+    .toc-sidebar { display: none; }
+    .page-wrapper { display: block; max-width: none; }
+    .btn-print { display: none; }
+    .kpi-info-btn { display: none; }
+    .kpi-detail { display: none !important; }
+    .report-footer { page-break-before: always; }
+    a { color: inherit; text-decoration: none; }
+    .antipattern-card, .action-card, .coaching-card { page-break-inside: avoid; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a2e;
+      --bg-alt: #16213e;
+      --border: #374151;
+      --text: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #60a5fa;
+      --accent-light: #1e3a5f;
+      --positive: #4ade80;
+      --positive-bg: #064e3b;
+      --warn: #fbbf24;
+      --warn-bg: #78350f;
+      --danger: #f87171;
+      --danger-bg: #7f1d1d;
+      --neutral: #9ca3af;
+      --neutral-bg: #374151;
+    }
+    .report-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .status.resolved { background: #1e3a5f; color: #93c5fd; }
+    .status.review { background: #312e81; color: #a5b4fc; }
+    .status.testing { background: #4c1d95; color: #c4b5fd; }
+    .status.inprogress { background: #78350f; color: #fcd34d; }
+    .status.new { background: #374151; color: #d1d5db; }
+    tbody tr:hover { background: #1e293b; }
+  }
+
+  @media (max-width: 960px) {
+    .toc-sidebar { display: none; }
+    .page-wrapper { display: block; max-width: 1100px; }
+  }
+  @media (max-width: 768px) {
+    .report-header { padding: 24px; }
+    .content { padding: 0 24px 32px; }
+    .report-footer { padding: 20px 24px; }
+    .header-meta { gap: 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<!-- ===== SIDEBAR TABLE OF CONTENTS ===== -->
+<div class="toc-sidebar">
+  <nav class="toc" id="toc">
+    <strong>Navigation</strong>
+    <a href="#section-1">Executive Summary</a>
+    <a href="#section-2">Key Observations</a>
+    <a href="#section-3">Dimension Analysis</a>
+    <a href="#section-4">Anti-Patterns</a>
+    <a href="#section-5">Flow Improvement</a>
+    <a href="#section-6">Backlog Improvement</a>
+    <a href="#section-7">Top Actions</a>
+    <a href="#section-8">Coaching Notes</a>
+    <a href="#section-9">Observations</a>
+    <a href="#section-appendix">Item Tracker</a>
+  </nav>
+</div>
+
+<div class="page-main">
+
+<!-- ===== REPORT HEADER ===== -->
+<header class="report-header">
+  <h1>{{REPORT_TITLE}}</h1>
+  <div class="subtitle">{{TEAM_NAME}}</div>
+  <div class="header-meta">
+    <div class="header-meta-item"><strong>Report Date</strong><br>{{REPORT_DATE}}</div>
+    <div class="header-meta-item"><strong>Sprint</strong><br>{{SPRINT_LABEL}}</div>
+    <div class="header-meta-item"><strong>Team Size</strong><br>{{TEAM_SIZE}} members</div>
+    <div class="header-meta-item"><strong>Team</strong><br>{{TEAM_MEMBERS}}</div>
+  </div>
+</header>
+
+<div class="content">
+
+<!-- ===== SECTION 1: EXECUTIVE SUMMARY ===== -->
+<div class="section" id="section-1">
+  <div class="section-number">Section 1</div>
+  <h2>Executive Summary</h2>
+
+  <!-- Health Rating Badge
+       {{HEALTH_RATING_CLASS}}: one of "high-risk", "moderate-risk", "healthy"
+       {{HEALTH_RATING}}:       one of "HIGH RISK", "MODERATE RISK", "HEALTHY"
+       {{HEALTH_SCORE}}:        numeric score (0-10+) -->
+  <div class="health-badge-wrapper">
+    <div class="health-badge {{HEALTH_RATING_CLASS}}">
+      <span class="badge-dot"></span>
+      {{HEALTH_RATING}}
+    </div>
+    <span class="health-score-label">Score: <strong>{{HEALTH_SCORE}}</strong>/10+</span>
+    <button class="kpi-info-btn" onclick="toggleKpiDetail('health-rating')" title="How is this rating determined?" style="position:static;">i</button>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-health-rating">
+    <h4>How the Health Rating Works</h4>
+    <div class="kpi-detail-what">
+      The rating is calculated from a <strong>risk score</strong> &mdash; the sum of points across multiple dimensions of sprint health. A higher score means more areas of concern.
+    </div>
+    <div class="kpi-detail-what" style="margin-top: 8px;">
+      <strong>Rating thresholds:</strong><br>
+      &#x1f7e2; <strong>HEALTHY</strong> (0&ndash;2): Delivering predictably with good process discipline.<br>
+      &#x1f7e1; <strong>MODERATE RISK</strong> (3&ndash;5): Mostly on track but process gaps could compound over time.<br>
+      &#x1f534; <strong>HIGH RISK</strong> (6+): Significant delivery problems requiring focused attention.
+    </div>
+    <div class="kpi-detail-what" style="margin-top: 8px;">
+      <strong>What contributes to the score:</strong>
+      <table style="font-size: 12px; margin-top: 6px; width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">Delivery rate &lt; 50%</td><td style="padding: 3px 8px; text-align:right;">+3</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">Delivery rate 50&ndash;69%</td><td style="padding: 3px 8px; text-align:right;">+2</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">Delivery rate 70&ndash;84%</td><td style="padding: 3px 8px; text-align:right;">+1</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">AC coverage &lt; 30%</td><td style="padding: 3px 8px; text-align:right;">+2</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">AC coverage 30&ndash;69%</td><td style="padding: 3px 8px; text-align:right;">+1</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">3+ zombie items</td><td style="padding: 3px 8px; text-align:right;">+2</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">1&ndash;2 zombie items</td><td style="padding: 3px 8px; text-align:right;">+1</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">&gt; 30% items never started</td><td style="padding: 3px 8px; text-align:right;">+2</td></tr>
+        <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 3px 8px;">15&ndash;30% items never started</td><td style="padding: 3px 8px; text-align:right;">+1</td></tr>
+        <tr><td style="padding: 3px 8px;">Priority coverage &lt; 30%</td><td style="padding: 3px 8px; text-align:right;">+1</td></tr>
+      </table>
+    </div>
+    <div class="kpi-detail-action" style="margin-top: 10px;">
+      Use this as a retro conversation starter: &ldquo;We scored {{HEALTH_SCORE}} this sprint &mdash; what are the 1&ndash;2 biggest contributors we can address next sprint?&rdquo; The goal is steady improvement toward HEALTHY, not perfection in one sprint.
+    </div>
+  </div>
+
+  <!-- KPI Cards Grid
+       Each card: class "danger", "warn", "positive", or "neutral" controls color.
+       data-kpi must match the kpi-detail id suffix for the toggle to work. -->
+  <div class="kpi-grid">
+
+    <!-- KPI: Delivery Rate -->
+    <div class="kpi-card {{DELIVERY_RATE_CLASS}}" data-kpi="delivery-rate">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('delivery-rate')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{DELIVERY_RATE_VALUE}}</div>
+      <div class="kpi-label">Delivery Rate</div>
+      <div class="kpi-sub">{{DELIVERY_RATE_SUB}}</div>
+    </div>
+
+    <!-- KPI: Items Never Started -->
+    <div class="kpi-card {{NEVER_STARTED_CLASS}}" data-kpi="never-started">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('never-started')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{NEVER_STARTED_VALUE}}</div>
+      <div class="kpi-label">Items Never Started</div>
+      <div class="kpi-sub">{{NEVER_STARTED_SUB}}</div>
+    </div>
+
+    <!-- KPI: Acceptance Criteria -->
+    <div class="kpi-card {{AC_COVERAGE_CLASS}}" data-kpi="ac-coverage">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('ac-coverage')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{AC_COVERAGE_VALUE}}</div>
+      <div class="kpi-label">Acceptance Criteria</div>
+      <div class="kpi-sub">AC coverage</div>
+    </div>
+
+    <!-- KPI: Oldest Open Item -->
+    <div class="kpi-card {{OLDEST_ITEM_CLASS}}" data-kpi="oldest-item">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('oldest-item')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{OLDEST_ITEM_VALUE}}</div>
+      <div class="kpi-label">Oldest Open Item</div>
+      <div class="kpi-sub">{{OLDEST_ITEM_KEY}}</div>
+    </div>
+
+    <!-- KPI: Avg Cycle Time -->
+    <div class="kpi-card {{CYCLE_TIME_CLASS}}" data-kpi="cycle-time">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('cycle-time')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{CYCLE_TIME_VALUE}}</div>
+      <div class="kpi-label">Avg Cycle Time</div>
+      <div class="kpi-sub">{{CYCLE_TIME_SUB}}</div>
+    </div>
+
+    <!-- KPI: Max Sprint Carryover -->
+    <div class="kpi-card {{CARRYOVER_CLASS}}" data-kpi="carryover">
+      <button class="kpi-info-btn" onclick="toggleKpiDetail('carryover')" title="What does this mean?">i</button>
+      <div class="kpi-value">{{CARRYOVER_VALUE}}</div>
+      <div class="kpi-label">Max Sprint Carryover</div>
+      <div class="kpi-sub">Sprints for longest-carried item</div>
+    </div>
+
+  </div>
+
+  <!-- KPI Detail Panels (toggled by info buttons) -->
+  <div class="kpi-detail" id="kpi-detail-delivery-rate">
+    <h4>Delivery Rate</h4>
+    <div class="kpi-detail-what">Percentage of committed story points completed by sprint end. The core measure of sprint commitment reliability.</div>
+    <div class="kpi-detail-action">A consistently low rate means the team is over-committing, getting pulled into unplanned work, or hitting unanticipated blockers. The fix is &ldquo;commit to less and finish it.&rdquo;</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; 85%+ &nbsp; &#x1f7e1; 50&ndash;84% &nbsp; &#x1f534; &lt;50%</div>
+    <div class="kpi-detail-scoring">Risk score: +1 (70&ndash;84%) &nbsp; +2 (50&ndash;69%) &nbsp; +3 (&lt;50%)</div>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-never-started">
+    <h4>Items Never Started</h4>
+    <div class="kpi-detail-what">Percentage of items that remained in &ldquo;New&rdquo; status for the entire sprint &mdash; committed but never picked up.</div>
+    <div class="kpi-detail-action">These reveal a disconnect between planning and capacity. The team is treating the sprint backlog like a wish list rather than a commitment. Coach the team to only pull in what they genuinely intend to start.</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; &lt;15% &nbsp; &#x1f7e1; 15&ndash;30% &nbsp; &#x1f534; &gt;30%</div>
+    <div class="kpi-detail-scoring">Risk score: +1 (15&ndash;30%) &nbsp; +2 (&gt;30%)</div>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-ac-coverage">
+    <h4>Acceptance Criteria</h4>
+    <div class="kpi-detail-what">Percentage of items with acceptance criteria written in their description. Measures definition-of-ready discipline.</div>
+    <div class="kpi-detail-action">Without AC, &ldquo;done&rdquo; is subjective. Low coverage leads to rework, mid-item scope creep, and review delays. This is a leading indicator &mdash; fix it and downstream metrics (cycle time, delivery rate) tend to improve.</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; 70%+ &nbsp; &#x1f7e1; 30&ndash;69% &nbsp; &#x1f534; &lt;30%</div>
+    <div class="kpi-detail-scoring">Risk score: +1 (30&ndash;69%) &nbsp; +2 (&lt;30%)</div>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-oldest-item">
+    <h4>Oldest Open Item</h4>
+    <div class="kpi-detail-what">Age in days of the oldest unfinished item in the sprint. A high number flags stale work that should be descoped or re-evaluated.</div>
+    <div class="kpi-detail-action">Old items create cognitive drag &mdash; they clutter the board, distort metrics, and signal that it&rsquo;s acceptable to leave things unfinished. Action: close it, descope it, or break it into something achievable this sprint.</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; &lt;30d &nbsp; &#x1f7e1; 30&ndash;90d &nbsp; &#x1f534; 90d+</div>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-cycle-time">
+    <h4>Avg Cycle Time</h4>
+    <div class="kpi-detail-what">Average days from when an item entered the sprint (or was created, if newer) to resolution. Measures how fast work flows through the sprint.</div>
+    <div class="kpi-detail-action">High cycle time + high delivery rate = finishing things but slowly (large items). High cycle time + low delivery rate = work getting stuck. Look for WIP overload, blocked queues, or handoff delays.</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; &lt;14d &nbsp; &#x1f7e1; 14&ndash;30d &nbsp; &#x1f534; 30d+</div>
+  </div>
+  <div class="kpi-detail" id="kpi-detail-carryover">
+    <h4>Max Sprint Carryover</h4>
+    <div class="kpi-detail-what">The highest number of sprints any single item has been carried through. Identifies the worst &ldquo;zombie&rdquo; &mdash; work that keeps rolling forward without completion.</div>
+    <div class="kpi-detail-action">An item carried 4+ sprints usually points to unclear ownership, missing prerequisites, or work that should have been descoped. Find it, ask &ldquo;what&rsquo;s blocking this from being done or removed?&rdquo; &mdash; the root cause often reveals a systemic issue.</div>
+    <div class="kpi-detail-thresholds">Thresholds: &#x1f7e2; 1 &nbsp; &#x1f7e1; 2&ndash;3 &nbsp; &#x1f534; 4+</div>
+    <div class="kpi-detail-scoring">Risk score: +1 (1&ndash;2 zombies) &nbsp; +2 (3+ zombies)</div>
+  </div>
+
+  <!-- Story Points Progress Bar
+       Each segment: set style="width:XX%" and title text.
+       Use 0% width for empty segments. -->
+  <div class="progress-bar-container">
+    <strong style="font-size:13px; color: var(--text-secondary); margin-bottom:6px; display:block;">Story Points by Status</strong>
+    <div class="progress-bar">
+      <div class="seg done" style="width:{{DONE_PCT}}%" title="Resolved: {{DONE_PTS}} pts ({{DONE_ITEMS}} items)">{{DONE_PTS}} pts</div>
+      <div class="seg review" style="width:{{REVIEW_PCT}}%" title="Review: {{REVIEW_PTS}} pts ({{REVIEW_ITEMS}} items)">{{REVIEW_PTS_LABEL}}</div>
+      <div class="seg testing" style="width:{{TESTING_PCT}}%" title="Testing: {{TESTING_PTS}} pts ({{TESTING_ITEMS}} items)">{{TESTING_PTS_LABEL}}</div>
+      <div class="seg inprog" style="width:{{INPROG_PCT}}%" title="In Progress: {{INPROG_PTS}} pts ({{INPROG_ITEMS}} items)">{{INPROG_PTS_LABEL}}</div>
+      <div class="seg new" style="width:{{NEW_PCT}}%" title="New: {{NEW_PTS}} pts ({{NEW_ITEMS}} items)">{{NEW_PTS_LABEL}}</div>
+    </div>
+    <div class="progress-legend">
+      <span class="l-done">Resolved ({{DONE_PTS}} pts, {{DONE_ITEMS}} items)</span>
+      <span class="l-review">Review ({{REVIEW_PTS}} pts, {{REVIEW_ITEMS}} items)</span>
+      <span class="l-testing">Testing ({{TESTING_PTS}} pts, {{TESTING_ITEMS}} items)</span>
+      <span class="l-inprog">In Progress ({{INPROG_PTS}} pts, {{INPROG_ITEMS}} items)</span>
+      <span class="l-new">New / Not Started ({{NEW_PTS}} pts, {{NEW_ITEMS}} items)</span>
+    </div>
+  </div>
+
+  <!-- #1 Recommended Action callout -->
+  <div class="callout recommendation" style="margin-top: 20px; border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(37,99,235,0.02)); padding: 16px 20px;">
+    <strong style="font-size: 14px; color: var(--accent);">#1 Recommended Action</strong>
+    <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.5;">{{TOP_RECOMMENDATION}}</p>
+  </div>
+</div>
+
+<!-- Positive Signals callout -->
+<div class="callout positive" style="margin-top: 24px;">
+  <strong>Positive Signals</strong>
+  <ul style="margin: 8px 0 0 20px; font-size: 14px;">
+    <!-- Repeat <li> for each positive signal -->
+    <li>{{POSITIVE_SIGNAL}}</li>
+  </ul>
+</div>
+
+<!-- Optional: Special conditions callout (e.g. onboarding items detected)
+     Use class "warning" or "danger" as appropriate. Omit if not applicable. -->
+<div class="callout warning" style="margin-top: 12px;">
+  <strong>{{CALLOUT_TITLE}}</strong>
+  {{CALLOUT_BODY}}
+</div>
+
+
+<!-- ===== SECTION 2: KEY SPRINT OBSERVATIONS ===== -->
+<div class="section" id="section-2">
+  <div class="section-number">Section 2</div>
+  <h2>Key Sprint Observations</h2>
+
+  <table>
+    <thead>
+      <tr><th>Observation</th><th>Detail</th><th>Impact</th></tr>
+    </thead>
+    <tbody>
+      <!-- Repeat this <tr> pattern for each key observation -->
+      <tr>
+        <td><strong>{{OBSERVATION_TITLE}}</strong></td>
+        <td>{{OBSERVATION_DETAIL}}</td>
+        <td>{{OBSERVATION_IMPACT}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ===== SECTION 3: DIMENSION ANALYSIS ===== -->
+<div class="section" id="section-3">
+  <div class="section-number">Section 3</div>
+  <h2>Dimension Analysis</h2>
+
+  <!-- Repeat this dimension-card pattern for each of the 8 dimensions:
+       1. Sprint Commitment Reliability
+       2. Scope Stability
+       3. Flow Efficiency
+       4. Story Size & Work Decomposition
+       5. Work Distribution
+       6. Blocker Analysis
+       7. Backlog Health
+       8. Delivery Predictability
+
+       For dimension 5 (Work Distribution), replace <ul> with a table:
+         <table>
+           <thead><tr><th>Assignee</th><th>Items</th><th>Points</th><th>Completed</th><th>Completion Rate</th></tr></thead>
+           <tbody><tr><td>...</td>...</tr></tbody>
+         </table>
+
+       For dimension 7 (Backlog Health), include a Priority Distribution bar chart:
+         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px;">
+           <span style="width: 70px; text-align: right; color: var(--text-secondary);">{{PRIORITY_LABEL}}</span>
+           <div style="flex: 1; height: 18px; background: var(--neutral-bg); border-radius: 3px; overflow: hidden;">
+             <div style="width: {{PRIORITY_PCT}}%; height: 100%; background: {{PRIORITY_COLOR}}; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; color: #fff; font-size: 11px; font-weight: 600;">{{PRIORITY_COUNT}}</div>
+           </div>
+         </div>
+         Priority colors: Critical=#dc2626, Major=#f59e0b, Normal=#2563eb, Minor=#6b7280, Undefined=#d1d5db
+  -->
+  <div class="dimension-card">
+    <div class="dimension-header">
+      <span class="dim-num">{{DIM_NUMBER}}</span>
+      <h3>{{DIM_TITLE}}</h3>
+    </div>
+    <div class="dimension-body">
+      <h4>Observations</h4>
+      <ul>
+        <li>{{DIM_OBSERVATION}}</li>
+      </ul>
+      <h4>Potential Risks</h4>
+      <ul>
+        <li>{{DIM_RISK}}</li>
+      </ul>
+      <h4>Coaching Recommendations</h4>
+      <ul>
+        <li>{{DIM_RECOMMENDATION}}</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ===== SECTION 4: ANTI-PATTERNS ===== -->
+<div class="section" id="section-4">
+  <div class="section-number">Section 4</div>
+  <h2>Agile Anti-Patterns Detected</h2>
+
+  <div class="antipattern-grid">
+    <!-- Repeat this antipattern-card for each detected anti-pattern -->
+    <div class="antipattern-card">
+      <div class="ap-name">{{ANTIPATTERN_NAME}}</div>
+      <div class="ap-evidence">{{ANTIPATTERN_EVIDENCE}}</div>
+      <div class="ap-impact">{{ANTIPATTERN_IMPACT}}</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== SECTION 5: FLOW IMPROVEMENT OPPORTUNITIES ===== -->
+<div class="section" id="section-5">
+  <div class="section-number">Section 5</div>
+  <h2>Flow Improvement Opportunities</h2>
+
+  <!-- Include subsections as applicable: Cycle Time Reduction, Throughput Improvement, Delivery Predictability -->
+  <h3>{{FLOW_SUBSECTION_TITLE}}</h3>
+  <ul>
+    <li><strong>{{FLOW_ACTION_TITLE}}</strong> {{FLOW_ACTION_DETAIL}}</li>
+  </ul>
+</div>
+
+
+<!-- ===== SECTION 6: BACKLOG IMPROVEMENT OPPORTUNITIES ===== -->
+<div class="section" id="section-6">
+  <div class="section-number">Section 6</div>
+  <h2>Backlog Improvement Opportunities</h2>
+
+  <h3>Structural Issues</h3>
+  <ol>
+    <li><strong>{{BACKLOG_ISSUE}}</strong> &mdash; {{BACKLOG_ISSUE_DETAIL}}</li>
+  </ol>
+
+  <h3>Recommendations</h3>
+  <ul>
+    <li><strong>{{BACKLOG_REC_TITLE}}</strong> {{BACKLOG_REC_DETAIL}}</li>
+  </ul>
+</div>
+
+
+<!-- ===== SECTION 7: TOP ACTIONS ===== -->
+<div class="section" id="section-7">
+  <div class="section-number">Section 7</div>
+  <h2>Top 5 Actions for {{NEXT_SPRINT_NAME}}</h2>
+
+  <div class="action-grid">
+    <!-- Repeat this action-card for each action (typically 4-5) -->
+    <div class="action-card">
+      <div class="action-num">{{ACTION_NUMBER}}</div>
+      <div>
+        <div class="action-title">{{ACTION_TITLE}}</div>
+        <div class="action-impact">{{ACTION_IMPACT}}</div>
+        <div class="action-evidence">{{ACTION_EVIDENCE}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== SECTION 8: COACHING NOTES ===== -->
+<div class="section" id="section-8">
+  <div class="section-number">Section 8</div>
+  <h2>Agile Coaching Notes</h2>
+
+  <!-- Coaching Card: Retrospective -->
+  <div class="coaching-card">
+    <div class="coaching-card-header">For the Sprint Retrospective</div>
+    <div class="coaching-card-body">
+      <p><strong>Suggested focus areas:</strong></p>
+      <ul>
+        <li>{{RETRO_FOCUS_AREA}}</li>
+      </ul>
+      <p><strong>Facilitation tips:</strong></p>
+      <ul>
+        <li>{{RETRO_TIP}}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Coaching Card: Sprint Planning -->
+  <div class="coaching-card">
+    <div class="coaching-card-header">For Sprint Planning</div>
+    <div class="coaching-card-body">
+      <p><strong>Key principles:</strong></p>
+      <ul>
+        <li>{{PLANNING_PRINCIPLE}}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Coaching Card: Backlog Refinement -->
+  <div class="coaching-card">
+    <div class="coaching-card-header">For Backlog Refinement</div>
+    <div class="coaching-card-body">
+      <p><strong>Session structure (60 min):</strong></p>
+      <ol>
+        <li>{{REFINEMENT_STEP}}</li>
+      </ol>
+      <p><strong>Definition of Ready checklist:</strong></p>
+      <ul>
+        <li>{{DOR_ITEM}}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== SECTION 9: ADDITIONAL OBSERVATIONS ===== -->
+<div class="section" id="section-9">
+  <div class="section-number">Section 9</div>
+  <h2>Additional Observations</h2>
+  <p style="color:#64748b; margin-bottom:1.5rem;">The following patterns were detected from enrichment data (changelogs, comments, sprint history) and may warrant discussion.</p>
+
+  <!-- Repeat this observation block for each finding.
+       Severity badge colors:
+         Warning: border-left #f59e0b, background #fef3c7, badge-bg #f59e0b
+         Info:    border-left #3b82f6, background #dbeafe, badge-bg #3b82f6
+         Danger:  border-left #dc2626, background #fee2e2, badge-bg #dc2626 -->
+  <div style="border-left:4px solid {{OBS_BORDER_COLOR}}; background:{{OBS_BG_COLOR}}; padding:1rem 1.25rem; border-radius:8px; margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+      <span style="background:{{OBS_BADGE_COLOR}}; color:white; font-size:0.7rem; padding:2px 8px; border-radius:4px; font-weight:600;">{{OBS_SEVERITY}}</span>
+      <strong>{{OBS_TITLE}}</strong>
+    </div>
+    <p style="margin:0; color:#334155;">{{OBS_BODY}}</p>
+    <!-- Optional: affected items list -->
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">Affected: {{OBS_AFFECTED_KEYS}}</p>
+  </div>
+</div>
+
+
+<!-- ===== APPENDIX: SPRINT ITEM TRACKER ===== -->
+<div class="section" id="section-appendix">
+  <div class="section-number">Appendix</div>
+  <h2>Sprint Item Tracker</h2>
+
+  <div class="appendix-table" style="overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Issue Key</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Pts</th>
+          <th>Assignee</th>
+          <th>Age</th>
+          <th>Sprint History</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Repeat this <tr> for each sprint item, sorted by age (newest first).
+             Status class: "resolved", "review", "testing", "inprogress", or "new"
+             Sprint pills: use class "current" for the active sprint, plain for past sprints.
+             Link issue keys to the tracker URL (e.g. Jira). -->
+        <tr>
+          <td><a href="{{ITEM_URL}}" target="_blank" class="issue-key">{{ITEM_KEY}}</a></td>
+          <td>{{ITEM_TYPE}}</td>
+          <td><span class="status {{ITEM_STATUS_CLASS}}">{{ITEM_STATUS}}</span></td>
+          <td>{{ITEM_POINTS}}</td>
+          <td>{{ITEM_ASSIGNEE}}</td>
+          <td>{{ITEM_AGE}}</td>
+          <td><div class="sprint-pills"><!-- Repeat: --><span class="sprint-pill {{SPRINT_PILL_CLASS}}">{{SPRINT_LABEL_SHORT}}</span></div></td>
+          <td class="notes-col">{{ITEM_NOTES}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<footer class="report-footer">
+  This report is intended to support the team's continuous improvement journey. The observations and recommendations are systemic in nature and should be discussed collaboratively. The goal is not to assign blame but to identify process improvements that enable the team to deliver more predictably, with higher quality, and with less stress.
+</footer>
+
+</div><!-- /page-main -->
+</div><!-- /page-wrapper -->
+
+<button class="btn-print" onclick="window.print()" title="Export to PDF via Print">Export PDF</button>
+
+<script>
+function toggleKpiDetail(kpiId) {
+  var panel = document.getElementById('kpi-detail-' + kpiId);
+  var card = document.querySelector('[data-kpi="' + kpiId + '"]');
+  var wasActive = panel.classList.contains('active');
+  document.querySelectorAll('.kpi-detail.active').forEach(function(p) {
+    p.classList.remove('active');
+  });
+  document.querySelectorAll('.kpi-card.selected').forEach(function(c) {
+    c.classList.remove('selected');
+  });
+  if (!wasActive) {
+    panel.classList.add('active');
+    card.classList.add('selected');
+  }
+}
+
+(function() {
+  var tocLinks = document.querySelectorAll('.toc a[href^="#section"]');
+  if (!tocLinks.length) return;
+  var sections = [];
+  tocLinks.forEach(function(link) {
+    var id = link.getAttribute('href').substring(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, link: link });
+  });
+  function onScroll() {
+    var scrollY = window.scrollY + 80;
+    var current = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) {
+        current = sections[i];
+      }
+    }
+    tocLinks.forEach(function(l) { l.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
