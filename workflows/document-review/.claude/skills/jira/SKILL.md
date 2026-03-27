@@ -157,15 +157,6 @@ Decide per-finding based on the issue content:
   - Style or formatting issues
   - Missing code comments or developer-facing docs
 
-#### Map Severity to Priority
-
-| Report Severity | Jira Priority |
-|----------------|---------------|
-| Critical | Highest |
-| High | High |
-| Medium | Medium |
-| Low | Low |
-
 #### Build the Issue
 
 Use the Jira REST API via `curl` (same auth as Step 3) for each finding:
@@ -174,7 +165,6 @@ Use the Jira REST API via `curl` (same auth as Step 3) for each finding:
 - **Issue type**: `Bug` or `Task` (per classification above)
 - **Parent**: the epic key from Step 3
 - **Summary**: `<ID>. <title>` (e.g., `C1. Incorrect CLI flag in quickstart`)
-- **Priority**: mapped from severity (see table above)
 - **Description**: structured as follows (convert to Jira wiki markup via
   `pandoc -f markdown -t jira` before sending):
 
@@ -216,11 +206,11 @@ After all issues are created, present a summary to the user:
 
 **Epic:** <EPIC-KEY> — Documentation Review: <date>
 
-| ID | Type | Key | Summary | Priority |
-|----|------|-----|---------|----------|
-| C1 | Bug  | PROJ-124 | Incorrect CLI flag in quickstart | Highest |
-| H1 | Task | PROJ-125 | Inconsistent config key names | High |
-| ... | ... | ... | ... | ... |
+| ID | Type | Key | Summary |
+|----|------|-----|---------|
+| C1 | Bug  | PROJ-124 | Incorrect CLI flag in quickstart |
+| H1 | Task | PROJ-125 | Inconsistent config key names |
+| ... | ... | ... | ... |
 
 **Total:** N issues (X bugs, Y tasks) under <EPIC-KEY>
 ```
