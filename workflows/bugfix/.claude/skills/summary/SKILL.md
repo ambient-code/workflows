@@ -32,7 +32,7 @@ were never confirmed, decisions made on the user's behalf.
 Scan the artifact root directory to find everything the workflow has produced:
 
 ```bash
-find artifacts/bugfix/ -type f -name '*.md' 2>/dev/null | sort
+find artifacts/bugfix/ -type f -name '*.md' ! -name 'summary.md' 2>/dev/null | sort
 ```
 
 If `artifacts/bugfix/` doesn't exist or is empty, report that no artifacts

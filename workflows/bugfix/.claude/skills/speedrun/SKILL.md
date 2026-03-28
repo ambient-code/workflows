@@ -23,7 +23,7 @@ phases to include or skip.
 Each time you read this file, you will:
 
 1. Determine which phase to run next (see "Determine Next Phase" below)
-2. If all phases are done, print the completion report and stop
+2. If all phases are done (including `/summary`), stop
 3. Otherwise, execute that one phase (see "Execute a Phase" below)
 4. The phase skill will tell you to return to the file that dispatched it —
    that's this file (`.claude/skills/speedrun/SKILL.md`). Re-read it and repeat.
@@ -136,9 +136,9 @@ context, then pick the first phase that is NOT done.
   This is the last thing the user sees — it surfaces findings that might
   otherwise get buried in earlier artifacts.
 
-## Completion Report
+## Completion Report (Early Stop Only)
 
-When all phases are done (or if you stop early due to escalation), present:
+If you stop early due to escalation (before `/summary` runs), present:
 
 ```markdown
 ## Speedrun Complete

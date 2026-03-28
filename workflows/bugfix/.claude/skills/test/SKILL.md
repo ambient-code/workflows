@@ -73,7 +73,7 @@ ls __tests__/setup.* 2>/dev/null
 - **Match the style of existing tests** — use the same assertion patterns,
   mock strategies, and naming conventions you found in Step 1
 - Prefer modern, readable APIs over legacy patterns:
-  - Use `call_args.args[0]` over `call_args[0][0]` (tuple indexing)
+  - Python: use `call_args.args[0]` over `call_args[0][0]` (tuple indexing)
   - Use framework-specific test utilities over generic ones
   - Use named parameters over positional where the API supports it
 

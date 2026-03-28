@@ -199,7 +199,7 @@ finding and let the user decide.
 Save your assessment to `artifacts/bugfix/reports/assessment.md` so that
 subsequent phases (and speedrun resumption) can detect that this phase is
 complete. The file should contain the same content you presented to the user
-in Step 6.
+in Step 7.
 
 ## Output
 

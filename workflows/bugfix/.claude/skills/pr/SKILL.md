@@ -361,7 +361,7 @@ git fetch FORK_REMOTE
 
 # Check for workflow file differences between fork/DEFAULT_BRANCH and local DEFAULT_BRANCH
 # (local DEFAULT_BRANCH should be synced with upstream)
-WORKFLOW_DIFF=$(git diff FORK_REMOTE/DEFAULT_BRANCH..DEFAULT_BRANCH -- .github/workflows/ --name-only 2>/dev/null)
+WORKFLOW_DIFF=$(git diff --name-only FORK_REMOTE/DEFAULT_BRANCH..DEFAULT_BRANCH -- .github/workflows/ 2>/dev/null)
 
 if [ -n "$WORKFLOW_DIFF" ]; then
   echo "Fork is out of sync with upstream (workflow files differ):"
