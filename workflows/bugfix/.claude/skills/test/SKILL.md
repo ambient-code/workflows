@@ -98,13 +98,13 @@ ls __tests__/setup.* 2>/dev/null
 
 This step is not optional. Do not skip it. Do not run only your new tests.
 
-- Run the **entire** test suite — unit tests, integration tests, and E2E tests:
+- Run the **entire** test suite for the project's stack — unit, integration, and E2E:
 
 ```bash
-# Run everything. Don't cherry-pick.
-pytest tests/                          # Python
-npm test                               # Node.js
-go test ./...                          # Go
+# Run the command that matches this project's language/tooling.
+pytest tests/                          # Python projects
+npm test                               # Node.js projects
+go test ./...                          # Go projects
 ```
 
 - If the project has separate test directories (e.g., `tests/unit/`,
