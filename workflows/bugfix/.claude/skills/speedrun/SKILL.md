@@ -47,6 +47,7 @@ context, then pick the first phase that is NOT done.
 | review | `.claude/skills/review/SKILL.md` | `artifacts/bugfix/review/verdict.md` exists |
 | document | `.claude/skills/document/SKILL.md` | `artifacts/bugfix/docs/pr-description.md` exists |
 | pr | `.claude/skills/pr/SKILL.md` | A PR URL has been shared in conversation |
+| summary | `.claude/skills/summary/SKILL.md` | `artifacts/bugfix/summary.md` exists |
 
 ### Rules
 
@@ -127,6 +128,13 @@ context, then pick the first phase that is NOT done.
 
 - Follow the PR skill's full process including its fallback ladder.
 - If PR creation fails after exhausting fallbacks, report and stop.
+
+### summary
+
+- Always run this as the final phase. It replaces the Completion Report below.
+- The summary skill scans all artifacts and presents a synthesized overview.
+  This is the last thing the user sees — it surfaces findings that might
+  otherwise get buried in earlier artifacts.
 
 ## Completion Report
 

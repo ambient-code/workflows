@@ -34,6 +34,10 @@ executing phases and handling transitions between them.
 8. **PR** (`/pr`) — `.claude/skills/pr/SKILL.md`
    Push the branch to a fork and create a draft pull request.
 
+9. **Summary** (`/summary`) — `.claude/skills/summary/SKILL.md`
+   Scan all artifacts and present a synthesized summary of findings, decisions,
+   and status. Can also be invoked at any point mid-workflow.
+
 Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
@@ -67,7 +71,7 @@ happened.
 ### Typical Flow
 
 ```text
-assess → reproduce → diagnose → fix → test → review → document → pr
+assess → reproduce → diagnose → fix → test → review → document → pr → summary
 ```
 
 ### What to Recommend

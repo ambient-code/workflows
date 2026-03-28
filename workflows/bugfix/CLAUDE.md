@@ -10,6 +10,7 @@ Systematic bug resolution through these phases:
 6. **Review** (`/review`) — *(Optional)* Critically evaluate fix and tests
 7. **Document** (`/document`) — Release notes and documentation
 8. **PR** (`/pr`) — Submit a pull request
+9. **Summary** (`/summary`) — Synthesize all artifacts into a final status report
 
 All phases are implemented as skills at `.claude/skills/{name}/SKILL.md`.
 The workflow controller at `.claude/skills/controller/SKILL.md` manages phase
