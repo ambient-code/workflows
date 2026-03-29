@@ -127,11 +127,7 @@ Create `.ambient/ambient.json` without comments (production-ready JSON):
   "name": "{Workflow Display Name}",
   "description": "{User's description}",
   "systemPrompt": "{Generated system prompt based on workflow type}",
-  "startupPrompt": "{Generated startup prompt}",
-  "results": {
-    "{Artifact Type 1}": "artifacts/{workflow-name}/{path}",
-    "{Artifact Type 2}": "artifacts/{workflow-name}/{path}"
-  }
+  "startupPrompt": "{Generated startup prompt}"
 }
 ```
 
@@ -159,22 +155,15 @@ Before using any slash commands, ensure the workspace is initialized.
 ```
 
 **Startup Prompt Template:**
+
+NOTE: The `startupPrompt` is sent TO the agent as a hidden user message at
+session start. The user never sees it -- they only see the agent's response.
+Write it as a directive telling the agent how to begin, not as a canned greeting.
+
 ```
-Welcome! I'm your {Workflow Type} assistant.
-
-🎯 WHAT I DO:
-{1-2 sentence explanation of workflow purpose}
-
-📋 WORKFLOW PHASES:
-{List phases with brief description}
-
-🚀 AVAILABLE COMMANDS:
-{List each command with one-line description}
-
-💡 GETTING STARTED:
-Run /{first-command} to {action}, or tell me what you'd like to work on.
-
-What would you like to accomplish today?
+Greet the user and introduce yourself as a {Workflow Type} assistant. Briefly
+explain what you do ({1-2 sentence purpose}), list the available commands
+({list commands}), and ask what they'd like to work on. Keep it concise.
 ```
 
 Show progress:
@@ -443,7 +432,7 @@ You can customize this workflow by:
 1. **Modifying agents:** Edit files in `.claude/agents/`
 2. **Adding commands:** Create new command files in `.claude/commands/`
 3. **Adjusting configuration:** Update `.ambient/ambient.json`
-4. **Changing output paths:** Modify the `results` section in config
+4. **Changing output paths:** Update artifact paths in `systemPrompt`
 
 ## Best Practices
 
@@ -518,62 +507,28 @@ This document provides detailed information about the configuration fields in `.
 
 ### startupPrompt
 - **Type:** string
-- **Purpose:** Initial message when workflow activates
+- **Purpose:** Sent to the agent as a hidden user message at session start; the user never sees it, only the agent's response
 - **Current Value:** See `.ambient/ambient.json`
 - **Guidelines:**
-  - Greet user warmly
-  - List available commands
-  - Provide clear next steps
+  - Write as a directive to the agent (e.g., "Greet the user and introduce yourself as...")
+  - Tell the agent to list available commands and ask what the user needs
+  - Do NOT write it as a canned greeting -- the agent generates its own response
 
 ## Optional Fields
 
 ### results
 - **Type:** object with string values
-- **Purpose:** Maps artifact types to file paths
+- **Purpose:** Documents which artifact types the workflow produces and where
+- **Note:** This field is informational only -- the platform does not read it at runtime
 - **Current Value:** See `.ambient/ambient.json`
 - **Guidelines:** Use glob patterns to match multiple files
 
-### version
-- **Type:** string
-- **Example:** "1.0.0"
-- **Purpose:** Track workflow configuration version
-
-### author
-- **Type:** string or object
-- **Example:** {"name": "Your Name", "email": "you@example.com"}
-- **Purpose:** Identify workflow creator
-
-### tags
-- **Type:** array of strings
-- **Example:** ["bug-fix", "debugging", "testing"]
-- **Purpose:** Categorize workflow for discovery
-
-### icon
-- **Type:** string (emoji)
-- **Example:** "🔧"
-- **Purpose:** Visual identifier in UI
-
 ## Customization Examples
-
-### Adding a new output type
-```json
-"results": {
-  "Existing Output": "artifacts/{workflow-name}/existing/**/*.md",
-  "New Output": "artifacts/{workflow-name}/new/**/*.json"
-}
-```
 
 ### Changing artifact location
 Update all references to the artifact path in:
 1. `systemPrompt` - OUTPUT LOCATIONS section
-2. `results` - Update file paths
-3. Command files - Update ## Output sections
-
-### Adding environment configuration
-```json
-"environment": {
-  "ARTIFACTS_DIR": "artifacts/{workflow-name}",
-  "LOG_LEVEL": "info"
+2. Command files - Update ## Output sections
 }
 ```
 
@@ -824,8 +779,7 @@ As you create files, explain:
 ★ Insight ─────────────────────────────────────
 This configuration file controls how Claude behaves in your workflow:
 - systemPrompt: Defines Claude's role and capabilities
-- startupPrompt: The greeting message users see
-- results: Maps output types to file locations
+- startupPrompt: A directive sent to the agent telling it how to greet the user (the user only sees the agent's response)
 
 The prompts use specific sections (KEY RESPONSIBILITIES, WORKFLOW METHODOLOGY)
 to help Claude understand the workflow structure.

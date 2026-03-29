@@ -11,12 +11,12 @@ This document describes all available fields and configuration options for the t
 | `name` | string | Yes | Display name of the workflow |
 | `description` | string | Yes | Brief description of what the workflow does |
 | `systemPrompt` | string | Yes | Instructions for the AI assistant on how to execute the workflow |
-| `startupPrompt` | string | No | Welcome message shown when the workflow starts |
-| `results` | object | No | Map of result categories to file path patterns |
+| `startupPrompt` | string | No | Directive sent to agent as hidden user message at session start (agent responds to it; user sees only the response) |
+| `results` | object | No | Documents artifact types and locations (informational only -- not read by the platform) |
 
 ### Results Configuration
 
-The `results` object maps human-readable names to file path patterns where outputs will be generated:
+The `results` object documents what artifacts the workflow produces. Note that this field is **informational only** -- the platform does not read it at runtime. It serves as documentation for workflow authors and users.
 
 ```json
 {

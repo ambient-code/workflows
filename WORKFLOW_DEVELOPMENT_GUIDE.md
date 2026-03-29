@@ -100,7 +100,7 @@ In addition to standard Claude Code extensions, ACP workflows **require** an `am
   "name": "Fix a bug",
   "description": "Systematic workflow for analyzing, fixing, and verifying software bugs ...",
   "systemPrompt": "You are Amber, the Ambient Code Platform's expert colleague orchestrating systematic bug resolution. You help developers fix ....",
-  "startupPrompt": "Welcome to the Bug Fix Workflow! ... Provide a bug description, issue URL, or symptoms you're experiencing, and I'll orchestrate a systematic fix!",
+  "startupPrompt": "Greet the user and introduce yourself as a bug fix assistant. Ask them to provide a bug description, issue URL, or symptoms to get started.",
   "results": {
     "Bug Reports": "artifacts/bugfix/reports/*.md",
     "Root Cause Analysis": "artifacts/bugfix/analysis/*.md",
@@ -119,8 +119,8 @@ In addition to standard Claude Code extensions, ACP workflows **require** an `am
 | `name` | ✅ | Display name in the UI |
 | `description` | ✅ | Brief explanation shown in workflow selector |
 | `systemPrompt` | ✅ | Core instructions defining Claude's behavior |
-| `startupPrompt` | ✅ | Initial greeting when workflow activates |
-| `results` | ❌ | Maps artifact names to output paths (for UI discovery) |
+| `startupPrompt` | ✅ | Directive sent to agent as hidden user message at session start (agent responds to it; user sees only the response) |
+| `results` | ❌ | Maps artifact names to output paths (informational only -- not read by the platform) |
 
 > 📖 See [AMBIENT_JSON_SCHEMA.md](AMBIENT_JSON_SCHEMA.md) for complete field documentation.
 
@@ -423,7 +423,7 @@ cat > workflows/my-workflow/.ambient/ambient.json << 'EOF'
   "name": "My Workflow",
   "description": "A workflow that does X, Y, and Z",
   "systemPrompt": "You are a helpful assistant for...\n\n## Commands\n- /start - Begin the workflow\n\n## Output\nWrite artifacts to artifacts/my-workflow/",
-  "startupPrompt": "Welcome! Use /start to begin."
+  "startupPrompt": "Greet the user, briefly describe your purpose, and suggest using /start to begin."
 }
 EOF
 
@@ -716,7 +716,7 @@ Before submitting a PR for a new or modified workflow:
 **Commands & Skills:**
 - [ ] Commands are in `.claude/commands/` with `.md` extension
 - [ ] Skills are in `.claude/skills/<name>/SKILL.md` with proper frontmatter
-- [ ] Output paths in `systemPrompt` match `results` configuration
+- [ ] Output paths in `systemPrompt` reference the `artifacts/` directory
 
 **Documentation:**
 - [ ] README.md documents the workflow

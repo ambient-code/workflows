@@ -120,8 +120,8 @@ Optional but common:
 | `name` | Yes | Display name in UI (2-5 words) |
 | `description` | Yes | Brief explanation (1-3 sentences) |
 | `systemPrompt` | Yes | Core instructions defining agent behavior |
-| `startupPrompt` | Yes | Initial greeting when workflow activates |
-| `results` | No | Maps artifact names to output paths |
+| `startupPrompt` | Yes | Directive sent to agent as hidden user message at session start (agent responds to it; user sees only the response) |
+| `results` | No | Maps artifact names to output paths (informational only -- not read by the platform) |
 
 ---
 
@@ -282,7 +282,7 @@ cp -r workflows/template-workflow workflows/{new-workflow-name}
 
 - Create new file in `.claude/commands/`
 - Add the command to the `systemPrompt` command list
-- Update `results` in ambient.json if new artifacts are created
+- Optionally update `results` in ambient.json to document new artifacts (informational only)
 
 **Modifying systemPrompt:**
 
@@ -292,8 +292,8 @@ cp -r workflows/template-workflow workflows/{new-workflow-name}
 
 **Changing artifact paths:**
 
-- Update both `systemPrompt` and `results` field
-- Consider backward compatibility
+- Update `systemPrompt` to reference the new paths
+- Optionally update `results` field to match (informational only)
 
 ### Use workflow-editor for Complex Changes
 
@@ -307,7 +307,7 @@ Before committing changes:
 
 1. **Validate JSON**: Ensure `.ambient/ambient.json` is valid
 2. **Check references**: Commands listed in systemPrompt exist as files
-3. **Verify paths**: Output paths in systemPrompt match `results` patterns
+3. **Verify paths**: Output paths in systemPrompt reference the `artifacts/` directory
 
 ### Testing in ACP
 
@@ -427,16 +427,14 @@ The following commands require `required_permissions: ['all']` to run outside th
 "systemPrompt": "You are a helper.\n\n## Commands\n- /diagnose - Run diagnosis"
 ```
 
-### Inconsistent Paths
+### Inconsistent Artifact Paths
 
 ```json
-// ❌ systemPrompt says one thing, results say another
-"systemPrompt": "Write to artifacts/bugs/",
-"results": { "Reports": "output/reports/*.md" }
+// ❌ systemPrompt references a non-standard artifact path
+"systemPrompt": "Write to output/bugs/"
 
-// ✅ Consistent paths
-"systemPrompt": "Write to artifacts/bugfix/",
-"results": { "Reports": "artifacts/bugfix/*.md" }
+// ✅ Use the standard artifacts directory
+"systemPrompt": "Write to artifacts/bugfix/"
 ```
 
 ---
@@ -472,7 +470,7 @@ The following commands require `required_permissions: ['all']` to run outside th
   "name": "Workflow Name",
   "description": "Brief description",
   "systemPrompt": "You are...\n\n## Commands\n...\n\n## Output\nartifacts/...",
-  "startupPrompt": "Welcome! Use /command to start."
+  "startupPrompt": "Greet the user, briefly introduce yourself, and ask what they'd like to work on."
 }
 ```
 
