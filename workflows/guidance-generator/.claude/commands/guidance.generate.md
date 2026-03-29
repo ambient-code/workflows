@@ -141,18 +141,25 @@ For closed PRs, also fetch the last 2 comments (closing context).
 Process each bucket the same way. Replace `$META_FILE` and `$OUT_FILE` accordingly.
 
 ```bash
+# Strip control characters from a string (keeps printable ASCII + tab + newline)
+sanitize_str() {
+  tr -cd '[:print:]\t\n'
+}
+
 fetch_pr_details() {
   local META_FILE="$1"
   local OUT_FILE="$2"
   local COUNT=$(jq 'length' "$META_FILE")
+  local FAILED=0
 
   echo "[]" > "$OUT_FILE"
 
   for i in $(seq 0 $((COUNT - 1))); do
     NUMBER=$(jq -r ".[$i].number" "$META_FILE")
     STATE=$(jq -r ".[$i].state" "$META_FILE")
-    TITLE=$(jq -r ".[$i].title" "$META_FILE")
-    BRANCH=$(jq -r ".[$i].headRefName" "$META_FILE")
+    # Sanitize string fields at extraction time to strip control characters
+    TITLE=$(jq -r ".[$i].title" "$META_FILE" | sanitize_str)
+    BRANCH=$(jq -r ".[$i].headRefName" "$META_FILE" | sanitize_str)
     LABELS=$(jq -c "[.[$i].labels[].name]" "$META_FILE")
 
     # Fetch files and reviews in one call
@@ -161,23 +168,31 @@ fetch_pr_details() {
 
     FILES=$(echo "$PR_DETAIL" | jq -c '[.files[].path]')
 
-    # Extract only REQUEST_CHANGES review bodies (trimmed to 200 chars)
+    # Extract REQUEST_CHANGES review bodies — sanitize inside jq before truncating
     CHANGES_REQ=$(echo "$PR_DETAIL" | jq -c '[
       .reviews[] |
       select(.state == "CHANGES_REQUESTED") |
-      .body | gsub("\\n"; " ") | .[0:200]
+      .body |
+      gsub("[\\u0000-\\u0008\\u000b-\\u001f\\u007f]"; "") |
+      gsub("\\n|\\r"; " ") |
+      .[0:200]
     ]')
 
-    # For closed PRs: get last 2 comments for closing context
+    # For closed PRs: get last 2 comments, sanitize inside jq
     CLOSE_REASON="null"
     if [ "$STATE" = "CLOSED" ]; then
       CLOSE_REASON=$(gh pr view "$NUMBER" --repo "$REPO" \
         --json comments \
-        --jq '.comments | .[-2:] | map(.body | gsub("\\n"; " ") | .[0:200]) | join(" | ")' \
+        --jq '.comments | .[-2:] | map(
+          .body |
+          gsub("[\\u0000-\\u0008\\u000b-\\u001f\\u007f]"; "") |
+          gsub("\\n|\\r"; " ") |
+          .[0:200]
+        ) | join(" | ")' \
         2>/dev/null | jq -Rs '.')
     fi
 
-    # Append compact record
+    # Build compact record — capture jq errors per PR instead of silently dropping
     RECORD=$(jq -n \
       --argjson number "$NUMBER" \
       --arg state "$STATE" \
@@ -189,11 +204,22 @@ fetch_pr_details() {
       --argjson close_reason "$CLOSE_REASON" \
       '{number: $number, state: $state, title: $title, branch: $branch,
         labels: $labels, files: $files,
-        changes_requested: $changes_requested, close_reason: $close_reason}')
+        changes_requested: $changes_requested, close_reason: $close_reason}' \
+      2>/tmp/guidance-jq-err.txt)
+
+    if [ $? -ne 0 ]; then
+      echo "  WARNING: PR #$NUMBER skipped — jq error: $(cat /tmp/guidance-jq-err.txt)"
+      FAILED=$((FAILED + 1))
+      continue
+    fi
 
     jq --argjson rec "$RECORD" '. + [$rec]' "$OUT_FILE" > "${OUT_FILE}.tmp" \
       && mv "${OUT_FILE}.tmp" "$OUT_FILE"
   done
+
+  if [ "$FAILED" -gt 0 ]; then
+    echo "  WARNING: $FAILED PR(s) skipped due to unparseable content. Check raw data in artifacts."
+  fi
 }
 
 fetch_pr_details \
