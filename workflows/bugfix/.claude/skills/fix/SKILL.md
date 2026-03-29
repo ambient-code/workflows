@@ -59,21 +59,42 @@ Before finalizing the implementation, ensure thoroughness:
 - **Check for complete enumeration**: If implementing switch/case logic or conditional checks, verify you've handled all possible values. Search the codebase for where these values are defined or used.
 - **Example**: If implementing polling that stops on "terminal" session phases, search the codebase for all usages of session phases to build a complete list (Stopped, Completed, Failed, Error) rather than assuming you know them all.
 
-### Step 4: Address Related Code
+### Step 4: Review Error Handling UX
+
+If your fix involves error handling, validation, or user-facing messages,
+review the error paths for clarity:
+
+- **Match error context to error type.** A CLI argument error should use the
+  CLI framework's error type (e.g., `click.BadParameter`), while a
+  configuration file error should use a general exception that says which file
+  and line caused the problem. Don't report config file errors as CLI parameter
+  errors, or vice versa.
+- **Test every error path manually.** Trigger each error condition and read the
+  message from the user's perspective. Is it clear what went wrong? Does it
+  point to the right place to fix it?
+- **Consider different error contexts:**
+  - CLI errors → should reference the flag or argument
+  - Config file errors → should reference the file path and setting
+  - Runtime errors → should include enough context to reproduce
+  - API errors → should include the endpoint and status code
+- **Ensure error messages don't leak internals.** Stack traces, internal paths,
+  and raw exception types are useful for developers but confusing for users.
+
+### Step 5: Address Related Code
 
 - Fix similar patterns identified in root cause analysis
 - Update affected function signatures if necessary
 - Ensure consistency across the codebase
 - Consider adding defensive programming where appropriate
 
-### Step 5: Update Documentation
+### Step 6: Update Documentation
 
 - Update inline code documentation
 - Modify API documentation if interfaces changed
 - Update configuration documentation if settings changed
 - Note any breaking changes clearly
 
-### Step 6: Pre-commit Quality Checks
+### Step 7: Pre-commit Quality Checks
 
 - Run code formatters (e.g., `gofmt`, `black`, `prettier`)
 - Run linters and fix all warnings (e.g., `golangci-lint`, `flake8`, `eslint`)
@@ -81,7 +102,7 @@ Before finalizing the implementation, ensure thoroughness:
 - Check for any new security vulnerabilities introduced
 - Verify no secrets or sensitive data added
 
-### Step 7: Document Implementation
+### Step 8: Document Implementation
 
 Create `artifacts/bugfix/fixes/implementation-notes.md` containing:
 

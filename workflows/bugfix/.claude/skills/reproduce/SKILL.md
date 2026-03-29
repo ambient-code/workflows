@@ -35,10 +35,66 @@ Methodically reproduce bugs and document their behavior so that diagnosis and fi
 
 ### Step 2: Set Up Environment
 
+**Before installing anything**, inspect the project's dependency configuration
+to understand what's needed:
+
+```bash
+# Check for Python project metadata
+cat pyproject.toml 2>/dev/null | head -40
+cat setup.py 2>/dev/null | head -20
+cat requirements.txt 2>/dev/null | head -20
+
+# Check for Node.js project metadata
+cat package.json 2>/dev/null | head -30
+
+# Check for Go project metadata
+cat go.mod 2>/dev/null | head -10
+```
+
+**Key things to look for:**
+
+- **Required language version** (e.g., `requires-python = ">=3.12"`,
+  `"engines": { "node": ">=18" }`, `go 1.22`)
+- **Package manager** (look for `uv.lock`, `poetry.lock`, `Pipfile.lock`,
+  `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`)
+- **Dev dependencies** and test frameworks
+
+**Environment setup by project type:**
+
+| Indicator | Package Manager | Setup Command |
+| --- | --- | --- |
+| `uv.lock` or `[tool.uv]` in pyproject.toml | uv | `uv sync` |
+| `poetry.lock` | Poetry | `poetry install` |
+| `Pipfile.lock` | pipenv | `pipenv install --dev` |
+| `requirements.txt` only | pip | `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt` |
+| `pnpm-lock.yaml` | pnpm | `pnpm install` |
+| `yarn.lock` | Yarn | `yarn install` |
+| `package-lock.json` | npm | `npm ci` |
+| `go.mod` | Go modules | `go mod download` |
+
+**Check for version managers** before concluding a runtime isn't available:
+
+```bash
+# Python
+uv python list 2>/dev/null || pyenv versions 2>/dev/null
+# Node
+nvm ls 2>/dev/null || fnm list 2>/dev/null
+```
+
+Then proceed with the standard setup:
+
 - Verify environment matches the conditions described in the bug report
 - Check dependencies, configuration files, and required data
 - Document any environment variables or special setup needed
 - Ensure you're on the correct branch or commit
+
+**If environment setup fails**, don't keep retrying the same approach. Stop,
+read the error message, and try a different strategy. Common recovery patterns:
+
+- Wrong Python version → use `uv python install X.Y` or `pyenv install X.Y`
+- Missing system dependency → check if there's a Docker/container option
+- Permission errors → check if a virtualenv is needed
+- Build failures → look for a `Makefile`, `justfile`, or `scripts/` directory
 
 ### Step 3: Attempt Reproduction
 
