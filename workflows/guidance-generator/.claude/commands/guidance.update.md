@@ -35,9 +35,14 @@ Updating files and creating PR... https://github.com/org/repo/pull/103
 
 ```
 /guidance.update <repo-url>
+/guidance.update <repo-url> --pr <url-or-number>[,<url-or-number>...]
 ```
 
 - `repo-url`: Full GitHub URL or `org/repo` slug
+- `--pr <refs>`: Comma-separated PR URLs or numbers to merge into existing guidance
+  instead of fetching all PRs since the last-analyzed date. Accepts full URLs
+  (`https://github.com/org/repo/pull/123`) or plain numbers (`123`). The
+  `last-analyzed` date in the file header is still updated to today.
 
 ## Process
 
@@ -52,6 +57,25 @@ gh repo view "$REPO" --json name > /dev/null 2>&1 || {
 }
 
 REPO_SLUG=$(echo "$REPO" | tr '/' '-')
+
+# Parse --pr flag: extract PR numbers from URLs or plain numbers
+SPECIFIC_PR_NUMBERS=""
+if [ -n "$PR_REFS" ]; then
+  IFS=',' read -ra PR_LIST <<< "$PR_REFS"
+  for PR_REF in "${PR_LIST[@]}"; do
+    PR_REF=$(echo "$PR_REF" | tr -d ' ')
+    if [[ "$PR_REF" =~ github\.com/[^/]+/[^/]+/pull/([0-9]+) ]]; then
+      SPECIFIC_PR_NUMBERS="$SPECIFIC_PR_NUMBERS ${BASH_REMATCH[1]}"
+    elif [[ "$PR_REF" =~ ^[0-9]+$ ]]; then
+      SPECIFIC_PR_NUMBERS="$SPECIFIC_PR_NUMBERS $PR_REF"
+    else
+      echo "WARNING: Could not parse PR reference '$PR_REF' — skipping"
+    fi
+  done
+  SPECIFIC_PR_NUMBERS=$(echo "$SPECIFIC_PR_NUMBERS" | tr -s ' ' | sed 's/^ //')
+  echo "Manual PR mode: merging PR(s) $SPECIFIC_PR_NUMBERS into existing guidance"
+fi
+
 mkdir -p "artifacts/guidance/$REPO_SLUG/raw"
 mkdir -p "artifacts/guidance/$REPO_SLUG/analysis"
 mkdir -p "artifacts/guidance/$REPO_SLUG/output"
@@ -119,53 +143,93 @@ fi
 echo "Fetching PRs since $LAST_DATE..."
 ```
 
-### 3. Fetch New PRs Since Last Analysis (Pass 1)
+### 3. Fetch New PRs (Pass 1)
+
+**If `--pr` was specified**, skip the date-based bulk fetch and load only the given PRs:
 
 ```bash
-gh pr list \
-  --repo "$REPO" \
-  --state all \
-  --limit 200 \
-  --search "created:>$LAST_DATE" \
-  --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
-  > "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json"
-
-NEW_TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json")
-echo "Fetched $NEW_TOTAL new PRs since $LAST_DATE"
-
-if [ "$NEW_TOTAL" -eq 0 ]; then
-  echo "No new PRs found since $LAST_DATE. Guidance files are already up to date."
-  rm -rf "/tmp/guidance-gen/$REPO_SLUG"
-  exit 0
+if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
+  # Manual mode: fetch only specified PRs
+  echo "[]" > "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json"
+  for NUMBER in $SPECIFIC_PR_NUMBERS; do
+    PR_META=$(gh pr view "$NUMBER" --repo "$REPO" \
+      --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
+      2>/dev/null)
+    if [ $? -ne 0 ] || [ -z "$PR_META" ]; then
+      echo "WARNING: Could not fetch PR #$NUMBER — skipping"
+      continue
+    fi
+    jq --argjson meta "$PR_META" '. + [$meta]' \
+      "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
+      > "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json.tmp" \
+      && mv "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json.tmp" \
+            "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json"
+  done
+  NEW_TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json")
+  echo "Loaded $NEW_TOTAL specified PR(s)"
+else
+  # Auto mode: fetch all PRs since last-analyzed date
+  gh pr list \
+    --repo "$REPO" \
+    --state all \
+    --limit 200 \
+    --search "created:>$LAST_DATE" \
+    --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
+    > "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json"
+  NEW_TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json")
+  echo "Fetched $NEW_TOTAL new PRs since $LAST_DATE"
+  if [ "$NEW_TOTAL" -eq 0 ]; then
+    echo "No new PRs found since $LAST_DATE. Guidance files are already up to date."
+    rm -rf "/tmp/guidance-gen/$REPO_SLUG"
+    exit 0
+  fi
 fi
 ```
 
 ### 4. Filter New PRs into Buckets
 
-Apply the same filters as `/guidance.generate`:
+In **auto mode**: CVE PRs take priority. In **manual mode (`--pr`)**: if a
+specified PR matches neither pattern, include it in both buckets for Claude to classify.
 
 ```bash
-# CVE bucket
-jq '[
-  .[] | select(
-    (.title | test("CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\\(cve\\):|^Fix CVE"; "i")) or
-    (.headRefName | test("^fix/cve-|^security/cve-"; "i"))
-  )
-]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
+CVE_PATTERN='CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
+CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-'
+BUGFIX_PATTERN='^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+'
+BUGFIX_BRANCH_PATTERN='^(bugfix|fix|bug)/'
+
+jq '[.[] | select(
+  (.title | test("'"$CVE_PATTERN"'"; "i")) or
+  (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i"))
+)]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
   > "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json"
 
-# Bugfix bucket (excluding CVE)
-jq '[
-  .[] | select(
-    (
-      (.title | test("^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+"; "i")) or
-      (.headRefName | test("^(bugfix|fix|bug)/"; "i"))
-    ) and
-    (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
-    (.headRefName | test("^fix/cve-"; "i") | not)
-  )
-]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
+jq '[.[] | select(
+  (
+    (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
+    (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
+  ) and
+  (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
+  (.headRefName | test("^fix/cve-"; "i") | not)
+)]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
   > "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json"
+
+# In manual mode: add unmatched PRs to both buckets
+if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
+  UNMATCHED=$(jq '[.[] | select(
+    ((.title | test("'"$CVE_PATTERN"'"; "i")) or (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i")) | not) and
+    ((.title | test("'"$BUGFIX_PATTERN"'"; "i")) or (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i")) | not)
+  )]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json")
+  UNMATCHED_COUNT=$(echo "$UNMATCHED" | jq 'length')
+  if [ "$UNMATCHED_COUNT" -gt 0 ]; then
+    UNMATCHED_NUMS=$(echo "$UNMATCHED" | jq -r '.[].number' | tr '\n' ',' | sed 's/,$//')
+    echo "  NOTE: PR(s) #$UNMATCHED_NUMS did not match CVE or bugfix patterns — included in both buckets"
+    for META_FILE in "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json" \
+                     "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json"; do
+      jq --argjson extra "$UNMATCHED" '. + $extra' "$META_FILE" > "${META_FILE}.tmp" \
+        && mv "${META_FILE}.tmp" "$META_FILE"
+    done
+  fi
+fi
 
 NEW_CVE=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json")
 NEW_BUGFIX=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json")

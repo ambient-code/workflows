@@ -36,12 +36,17 @@ Artifacts: artifacts/guidance/org-repo/
 
 ```
 /guidance.generate <repo-url> [--cve-only] [--bugfix-only] [--limit N]
+/guidance.generate <repo-url> --pr <url-or-number>[,<url-or-number>...]
 ```
 
 - `repo-url`: Full GitHub URL (e.g., `https://github.com/org/repo`) or `org/repo`
 - `--cve-only`: Skip bugfix analysis
 - `--bugfix-only`: Skip CVE analysis
 - `--limit N`: Max PRs to fetch per bucket (default: 100, min: 20)
+- `--pr <refs>`: Comma-separated PR URLs or numbers to analyze instead of fetching all PRs.
+  Skips bulk fetch entirely. Accepts full URLs (`https://github.com/org/repo/pull/123`)
+  or plain numbers (`123`). The generated file will include a `manual-selection` note
+  in its header.
 
 ## Process
 
@@ -49,6 +54,9 @@ Artifacts: artifacts/guidance/org-repo/
 
 Extract `REPO` in `org/repo` format from the provided URL or slug.
 If not provided, ask: "What is the GitHub repository URL?"
+
+Parse `--pr` into a comma-separated list of PR numbers. Accept both full GitHub
+PR URLs and plain numbers:
 
 ```bash
 # Validate gh auth
@@ -63,6 +71,24 @@ gh repo view "$REPO" --json name > /dev/null 2>&1 || {
 # Derive a safe slug for directory names (replace / with -)
 REPO_SLUG=$(echo "$REPO" | tr '/' '-')
 
+# Parse --pr flag: extract PR numbers from URLs or plain numbers
+SPECIFIC_PR_NUMBERS=""
+if [ -n "$PR_REFS" ]; then
+  IFS=',' read -ra PR_LIST <<< "$PR_REFS"
+  for PR_REF in "${PR_LIST[@]}"; do
+    PR_REF=$(echo "$PR_REF" | tr -d ' ')
+    if [[ "$PR_REF" =~ github\.com/[^/]+/[^/]+/pull/([0-9]+) ]]; then
+      SPECIFIC_PR_NUMBERS="$SPECIFIC_PR_NUMBERS ${BASH_REMATCH[1]}"
+    elif [[ "$PR_REF" =~ ^[0-9]+$ ]]; then
+      SPECIFIC_PR_NUMBERS="$SPECIFIC_PR_NUMBERS $PR_REF"
+    else
+      echo "WARNING: Could not parse PR reference '$PR_REF' — skipping"
+    fi
+  done
+  SPECIFIC_PR_NUMBERS=$(echo "$SPECIFIC_PR_NUMBERS" | tr -s ' ' | sed 's/^ //')
+  echo "Manual PR mode: analyzing PR(s) $SPECIFIC_PR_NUMBERS"
+fi
+
 # Setup directories
 mkdir -p "artifacts/guidance/$REPO_SLUG/raw"
 mkdir -p "artifacts/guidance/$REPO_SLUG/analysis"
@@ -72,51 +98,117 @@ mkdir -p "/tmp/guidance-gen/$REPO_SLUG"
 
 ### 2. Fetch PR Metadata (Pass 1 — lightweight)
 
-Fetch compact metadata for all recent PRs. No PR bodies, no file lists yet.
+**If `--pr` was specified**, skip bulk fetch and build the metadata list directly
+from the given PR numbers:
 
 ```bash
 LIMIT="${LIMIT:-100}"
 
-gh pr list \
-  --repo "$REPO" \
-  --state all \
-  --limit 200 \
-  --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
-  > "/tmp/guidance-gen/$REPO_SLUG/all-prs.json"
-
-TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json")
-echo "Fetched $TOTAL PRs from $REPO"
+if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
+  # Manual mode: fetch metadata only for the specified PRs
+  echo "[]" > "/tmp/guidance-gen/$REPO_SLUG/all-prs.json"
+  for NUMBER in $SPECIFIC_PR_NUMBERS; do
+    PR_META=$(gh pr view "$NUMBER" --repo "$REPO" \
+      --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
+      2>/dev/null)
+    if [ $? -ne 0 ] || [ -z "$PR_META" ]; then
+      echo "WARNING: Could not fetch PR #$NUMBER — skipping"
+      continue
+    fi
+    jq --argjson meta "$PR_META" '. + [$meta]' \
+      "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
+      > "/tmp/guidance-gen/$REPO_SLUG/all-prs.json.tmp" \
+      && mv "/tmp/guidance-gen/$REPO_SLUG/all-prs.json.tmp" \
+            "/tmp/guidance-gen/$REPO_SLUG/all-prs.json"
+  done
+  TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json")
+  echo "Loaded $TOTAL specified PR(s) from $REPO"
+else
+  # Auto mode: bulk fetch all recent PRs
+  gh pr list \
+    --repo "$REPO" \
+    --state all \
+    --limit 200 \
+    --json number,title,state,mergedAt,closedAt,labels,headRefName,latestReviews \
+    > "/tmp/guidance-gen/$REPO_SLUG/all-prs.json"
+  TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json")
+  echo "Fetched $TOTAL PRs from $REPO"
+fi
 ```
 
 ### 3. Filter into Buckets
 
 Use jq to split into CVE and bugfix buckets based on title and branch patterns.
-A PR cannot be in both buckets — CVE PRs take priority.
+
+In **auto mode**: CVE PRs take priority — a PR cannot be in both buckets.
+In **manual mode (`--pr`)**: classify normally, but if a specified PR matches
+neither pattern, include it in both buckets and let Claude determine during
+synthesis which guidance file it informs. Never silently drop a user-specified PR.
 
 ```bash
-# CVE bucket: title or branch matches CVE pattern
-jq --argjson limit "$LIMIT" '[
-  .[] | select(
-    (.title | test("CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\\(cve\\):|^Fix CVE"; "i")) or
-    (.headRefName | test("^fix/cve-|^security/cve-"; "i"))
-  )
-] | .[:$limit]' \
-  "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
-  > "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json"
+CVE_PATTERN='CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
+CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-'
+BUGFIX_PATTERN='^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+'
+BUGFIX_BRANCH_PATTERN='^(bugfix|fix|bug)/'
 
-# Bugfix bucket: title or branch matches bug pattern, exclude CVE PRs
-jq --argjson limit "$LIMIT" '[
-  .[] | select(
+if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
+  # Manual mode: classify each PR, fallback to both buckets if unmatched
+  jq '[.[] | select(
+    (.title | test("'"$CVE_PATTERN"'"; "i")) or
+    (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i"))
+  )]' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
+    > "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json"
+
+  jq '[.[] | select(
     (
-      (.title | test("^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+"; "i")) or
-      (.headRefName | test("^(bugfix|fix|bug)/"; "i"))
+      (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
+      (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
     ) and
     (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
     (.headRefName | test("^fix/cve-"; "i") | not)
-  )
-] | .[:$limit]' \
-  "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
-  > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
+  )]' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
+    > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
+
+  # Any PR that matched neither bucket: add to both with a warning
+  UNMATCHED=$(jq '[.[] | select(
+    ((.title | test("'"$CVE_PATTERN"'"; "i")) or (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i")) | not) and
+    ((.title | test("'"$BUGFIX_PATTERN"'"; "i")) or (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i")) | not)
+  )]' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json")
+  UNMATCHED_COUNT=$(echo "$UNMATCHED" | jq 'length')
+  if [ "$UNMATCHED_COUNT" -gt 0 ]; then
+    UNMATCHED_NUMS=$(echo "$UNMATCHED" | jq -r '.[].number' | tr '\n' ',' | sed 's/,$//')
+    echo "  NOTE: PR(s) #$UNMATCHED_NUMS did not match CVE or bugfix patterns — included in both buckets for Claude to classify"
+    jq --argjson extra "$UNMATCHED" '. + $extra' \
+      "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json" > "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json.tmp" \
+      && mv "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json.tmp" "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json"
+    jq --argjson extra "$UNMATCHED" '. + $extra' \
+      "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json" > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json.tmp" \
+      && mv "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json.tmp" "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
+  fi
+else
+  # Auto mode: strict filtering, CVE takes priority
+  jq --argjson limit "$LIMIT" '[
+    .[] | select(
+      (.title | test("'"$CVE_PATTERN"'"; "i")) or
+      (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i"))
+    )
+  ] | .[:$limit]' \
+    "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
+    > "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json"
+
+  jq --argjson limit "$LIMIT" '[
+    .[] | select(
+      (
+        (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
+        (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
+      ) and
+      (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
+      (.headRefName | test("^fix/cve-"; "i") | not)
+    )
+  ] | .[:$limit]' \
+    "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
+    > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
+fi
 
 CVE_TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json")
 CVE_MERGED=$(jq '[.[] | select(.state == "MERGED")] | length' "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json")
@@ -290,7 +382,16 @@ From the analysis files, generate the final guidance files.
 - Evidence counts are inline and terse: `(N/M merged)`, `(N closed PRs)`
 - No full PR examples — only the distilled pattern
 
-**CVE guidance file template** — write to `artifacts/guidance/<repo-slug>/output/cve-fix-guidance.md`:
+**CVE guidance file template** — write to `artifacts/guidance/<repo-slug>/output/cve-fix-guidance.md`.
+
+When in manual PR mode, the header must note which PRs were used:
+
+```markdown
+# CVE Fix Guidance — <repo>
+<!-- last-analyzed: <YYYY-MM-DD> | cve-merged: N | cve-closed: M | manual-selection: PR#A,PR#B -->
+```
+
+In auto mode, omit the `manual-selection` field:
 
 ```markdown
 # CVE Fix Guidance — <repo>
