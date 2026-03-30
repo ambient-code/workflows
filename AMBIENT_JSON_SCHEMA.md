@@ -1,7 +1,7 @@
 # Complete ambient.json Schema
 
 **Source**: ambient-code/platform repository analysis
-**Date**: 2026-01-25
+**Date**: 2026-03-29
 
 ## Overview
 
@@ -15,14 +15,8 @@ interface AmbientConfig {
   description: string;       // Required
   systemPrompt: string;      // Required
   startupPrompt: string;     // Required
-  enabled?: boolean;         // Optional (default: true)
-  greeting?: string;         // Optional
-  results?: {                // Optional
+  results?: {                // Optional (informational only -- not read by platform)
     [artifactName: string]: string;  // Glob pattern for artifact location
-  };
-  rubric?: {                 // Optional
-    activationPrompt: string;
-    schema: object;
   };
 }
 ```
@@ -147,104 +141,38 @@ All artifacts go in `artifacts/specsmith/`:
 
 ### `startupPrompt` (string, required)
 
-**Purpose**: Initial greeting message when workflow is activated
+**Purpose**: Sent to the agent as a hidden user message at session start. The user never sees this text -- they only see the agent's response. Write it as a directive telling the agent how to begin the session, not as a canned greeting.
 
 **Guidelines**:
 
-- Friendly and welcoming tone
-- Brief introduction to workflow
-- List available commands
-- Quick-start instructions for first-time users
-- 2-5 sentences typical
+- Write as an instruction to the agent (e.g., "Greet the user and introduce yourself as...")
+- Tell the agent what information to include in its greeting (available commands, purpose, etc.)
+- Keep it concise -- 1-3 sentences directing the agent's behavior
+- Do NOT write it as a greeting the user would see directly
 
 **Examples**:
 
 ```json
-"startupPrompt": "Welcome to Specsmith Workflow! I'll help you transform feature ideas into implementation-ready plans through structured interviews. Available commands: /spec.interview, /spec.speedrun, /validate. Start with /spec.interview to begin!"
+"startupPrompt": "Greet the user and introduce yourself as a spec-driven development assistant. Mention the available commands (/spec.interview, /spec.speedrun, /validate) and suggest starting with /spec.interview."
 
-"startupPrompt": "Hi! I'm your Bug Fix assistant. I'll help you triage, analyze, and fix bugs systematically. Use /fix to start the workflow, or ask me about any bug you'd like to investigate."
+"startupPrompt": "Introduce yourself as a bug fix assistant. Briefly explain that you help triage, analyze, and fix bugs systematically. Mention the /fix command and ask the user to describe their bug."
 
-"startupPrompt": "Welcome! I'll help you collect user feedback through structured interviews. I can send results to Jira or GitHub. Use /interview to start, or ask me questions about the workflow."
-```
-
----
-
-### `enabled` (boolean, optional)
-
-**Purpose**: Controls whether the workflow appears in the platform UI and API
-
-**Default**: `true`
-
-**Guidelines**:
-
-- Set to `false` to hide a workflow from the OOTB workflow listing
-- Workflows with `enabled: false` are completely excluded from the API response
-- Omitting the field is equivalent to `enabled: true`
-- Useful for hiding work-in-progress or deprecated workflows without removing them
-
-**Examples**:
-
-```json
-"enabled": false
-"enabled": true
-```
-
----
-
-### `greeting` (string, optional)
-
-**Purpose**: User-facing welcome message displayed immediately when the workflow is selected, rendered with a typewriter effect
-
-**Guidelines**:
-
-- Displayed instantly without LLM generation
-- Use markdown formatting (lists, bold, etc.)
-- List available slash commands
-- Keep concise — this is the first thing users see
-
-**Example**:
-
-```json
-"greeting": "Welcome to PRD & RFE Creation!\n\nAvailable commands:\n• /prd.discover — Start product discovery\n• /prd.create — Draft the PRD\n\nType /prd.discover to get started."
-```
-
----
-
-### `rubric` (object, optional)
-
-**Purpose**: Defines evaluation criteria for scoring workflow output quality
-
-**Structure**:
-
-- `activationPrompt` (string): Instructions for when and how to evaluate
-- `schema` (object): JSON Schema describing the scoring fields
-
-**Example**:
-
-```json
-"rubric": {
-  "activationPrompt": "After creating the output, evaluate quality and produce a score out of 25.",
-  "schema": {
-    "type": "object",
-    "properties": {
-      "completeness": {"type": "number", "description": "Score (1-5)"},
-      "clarity": {"type": "number", "description": "Score (1-5)"}
-    }
-  }
-}
+"startupPrompt": "Greet the user and explain that you help collect user feedback through structured interviews. Mention Jira and GitHub integration and suggest using /interview to start."
 ```
 
 ---
 
 ### `results` (object, optional)
 
-**Purpose**: Map artifact names to output file paths/patterns
+**Purpose**: Map artifact names to output file paths/patterns for documentation purposes
+
+**Note**: This field is **not read by the platform**. It serves as human-readable documentation of what a workflow produces and where. The platform discovers artifacts via the hardcoded `artifacts/` directory.
 
 **Guidelines**:
 
-- Helps platform UI discover generated artifacts
+- Purely informational -- not used by the platform at runtime
+- Useful as documentation for workflow authors and users
 - Uses glob patterns for multiple files
-- Purely informational - doesn't enforce output locations
 - Keys are human-readable artifact names
 - Values are paths relative to workspace root
 
@@ -296,10 +224,10 @@ workflow-repository/
 
 The platform loads ambient.json at startup:
 
-**File**: `platform/components/runners/claude-code-runner/adapter.py:1314`
+**File**: `platform/components/runners/ambient-runner/ambient_runner/platform/config.py`
 
 ```python
-def _load_ambient_config(self, cwd_path: str) -> dict:
+def load_ambient_config(cwd_path: str) -> dict:
     """Load ambient.json configuration from workflow directory."""
     config_path = Path(cwd_path) / ".ambient" / "ambient.json"
     if not config_path.exists():
@@ -312,9 +240,9 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
 
 ### Usage
 
-1. **System prompt injection** (adapter.py:1399): `systemPrompt` is added to Claude's context
-2. **Greeting generation** (main.py:970): `startupPrompt` shown at session start
-3. **Workspace context** (adapter.py:1335): Configuration available to agents
+1. **System prompt injection** (`prompts.py`): `systemPrompt` is appended to the workspace context prompt
+2. **Startup directive** (`app.py`): `startupPrompt` sent to agent as hidden user message at session start
+3. **Workflow metadata API** (`content.py`): `name`, `description`, and other fields returned via `/content/workflow-metadata` endpoint
 
 ---
 
@@ -329,10 +257,7 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
 
 **Optional Fields**:
 
-- `enabled` can be omitted (defaults to `true`)
-- `greeting` can be omitted (falls back to LLM-generated greeting)
-- `results` can be omitted (defaults to empty object)
-- `rubric` can be omitted (no quality evaluation)
+- `results` can be omitted (informational only -- not read by the platform)
 
 **No Strict Validation**:
 
@@ -352,7 +277,7 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
   "name": "Simple Workflow",
   "description": "A minimal workflow configuration",
   "systemPrompt": "You are a helpful assistant. Help users with their tasks.",
-  "startupPrompt": "Hello! How can I help you today?"
+  "startupPrompt": "Greet the user and ask how you can help them today."
 }
 ```
 
@@ -363,7 +288,7 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
   "name": "Feature Planning Workflow",
   "description": "Plan features through structured interviews and generate implementation specs",
   "systemPrompt": "You are a feature planning assistant.\n\n## Commands\n- /interview - Start interview\n- /plan - Generate plan\n\n## Output\nWrite all artifacts to artifacts/planning/",
-  "startupPrompt": "Welcome! Use /interview to start feature planning.",
+  "startupPrompt": "Greet the user and introduce yourself as a feature planning assistant. Mention the /interview and /plan commands and suggest starting with /interview.",
   "results": {
     "Interview Notes": "artifacts/planning/interview.md",
     "Implementation Plan": "artifacts/planning/plan.md"
@@ -378,7 +303,7 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
   "name": "Specsmith Workflow",
   "description": "Transform feature ideas into implementation-ready plans through structured interviews with multi-agent collaboration",
   "systemPrompt": "You are Specsmith, a spec-driven development assistant...\n\n[Extensive system prompt with phases, agents, commands, output structure]\n\n## Phase 1: Interview\n...\n\n## Specialized Agents\n- Quinn (Architect)\n- Maya (Engineer)\n- Alex (QA)\n...",
-  "startupPrompt": "Welcome to Specsmith! I'll transform your feature ideas into implementation-ready plans. Commands: /spec.interview, /spec.speedrun, /validate",
+  "startupPrompt": "Greet the user as Specsmith. Explain that you transform feature ideas into implementation-ready plans. List the commands: /spec.interview, /spec.speedrun, /validate. Suggest starting with /spec.interview.",
   "results": {
     "Interview Notes": "artifacts/specsmith/interview-notes.md",
     "Implementation Plan": "artifacts/specsmith/PLAN.md",
@@ -406,11 +331,9 @@ def _load_ambient_config(self, cwd_path: str) -> dict:
 
 ### Startup Prompt Design
 
-1. **Warm greeting**: Make users feel welcome
-2. **Quick value prop**: What problem does this solve?
-3. **Command list**: Show available actions
-4. **First steps**: How to get started immediately
-5. **Keep it brief**: 3-5 sentences maximum
+1. **Write as a directive**: Tell the agent what to do, not what to say verbatim
+2. **Specify content**: What information should the agent include in its greeting
+3. **Keep it brief**: 1-3 sentences directing the agent's behavior
 
 ### Results Configuration
 
@@ -471,7 +394,7 @@ workflow-repo/
   "name": "My Workflow",
   "description": "Detailed description of purpose",
   "systemPrompt": "You are [role].\n\n## Commands\n- /cmd\n\n## Phases\n1. Step one\n\n## Output\nartifacts/my-workflow/",
-  "startupPrompt": "Welcome! Use /cmd to start.",
+  "startupPrompt": "Greet the user, briefly describe your purpose, and suggest using /cmd to start.",
   "results": {
     "Output": "artifacts/my-workflow/**/*.md"
   }
@@ -484,9 +407,10 @@ workflow-repo/
 
 **Platform Code Locations**:
 
-- Loader: `platform/components/runners/claude-code-runner/adapter.py:1314`
-- Usage: `platform/components/runners/claude-code-runner/adapter.py:1399`
-- Greeting: `platform/components/runners/claude-code-runner/main.py:970`
+- Config loading: `platform/components/runners/ambient-runner/ambient_runner/platform/config.py`
+- System prompt injection: `platform/components/runners/ambient-runner/ambient_runner/platform/prompts.py`
+- Startup prompt execution: `platform/components/runners/ambient-runner/ambient_runner/app.py`
+- Workflow metadata API: `platform/components/runners/ambient-runner/ambient_runner/endpoints/content.py`
 
 **Example Workflows**:
 
@@ -505,9 +429,9 @@ workflow-repo/
 
 ## Summary
 
-The `ambient.json` schema has 4 required fields and 4 optional fields, but the `systemPrompt` field is where workflows become powerful. A well-crafted systemPrompt can define complex multi-phase workflows with specialized agents, API integrations, and sophisticated output structures.
+The `ambient.json` schema has 4 required fields and 1 optional field, keeping the format lightweight and portable. The `systemPrompt` field is where workflows become powerful -- a well-crafted systemPrompt can define complex multi-phase workflows with specialized agents, API integrations, and sophisticated output structures.
 
 **Minimum viable ambient.json**: 4 required string fields (`name`, `description`, `systemPrompt`, `startupPrompt`)
-**Maximum sophistication**: Thousands of characters in systemPrompt defining complete development workflows, with `greeting`, `results`, and `rubric` for richer UX
+**Optional**: `results` for documenting artifact locations (informational only)
 
-The platform is lenient - missing optional fields default gracefully, allowing both simple and complex workflow configurations.
+The platform is lenient -- missing optional fields default gracefully, and extra fields are ignored.
