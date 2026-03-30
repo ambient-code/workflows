@@ -1,0 +1,885 @@
+[
+  {
+    "number": 388,
+    "state": "OPEN",
+    "title": "fix(deps): update Go toolchain from 1.25.8 to 1.26.1",
+    "branch": "ambient/cve-fixer-nightly-1774675800",
+    "labels": [],
+    "files": [
+      "Containerfile",
+      "go.mod",
+      "go.sum"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 383,
+    "state": "CLOSED",
+    "title": "fix(cve): update Go to 1.25.8 to address 3 stdlib CVEs",
+    "branch": "ambient/cve-fixer-nightly-1774600830",
+    "labels": [],
+    "files": [
+      "Containerfile",
+      "go.mod"
+    ],
+    "changes_requested": [],
+    "close_reason": "<!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- walkthrough_start -->  <details> <summary>📝 Walkthrough</summary>  ## Walkthrough  The Go toolchain version has been updated | ## [Codecov](https://app.codecov.io/gh/eval-hub/eval-hub/pull/383?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=eval-hub) R"
+  },
+  {
+    "number": 374,
+    "state": "MERGED",
+    "title": "fix: remove github action for Ambient CVE fixer",
+    "branch": "fix-cve-fixer",
+    "labels": [],
+    "files": [
+      ".cve-fixer.json",
+      ".github/workflows/daily-cve-fixer.yml"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 372,
+    "state": "MERGED",
+    "title": "fix: the ambient cli fails with download error",
+    "branch": "fix-ambient-cli",
+    "labels": [],
+    "files": [
+      ".github/workflows/daily-cve-fixer.yml"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 369,
+    "state": "CLOSED",
+    "title": "docs: Add adapter model URL usage guide",
+    "branch": "fix/RHOAIENG-54862-model-url-ignored",
+    "labels": [],
+    "files": [
+      "docs/adapter-model-url-usage.md"
+    ],
+    "changes_requested": [],
+    "close_reason": "## [Codecov](https://app.codecov.io/gh/eval-hub/eval-hub/pull/369?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=eval-hub) R | Closing this for now as not required."
+  },
+  {
+    "number": 368,
+    "state": "CLOSED",
+    "title": "docs: Add MLflow artifact logging guide for adapters",
+    "branch": "fix/RHOAIENG-54539-mlflow-artifacts",
+    "labels": [],
+    "files": [
+      "docs/mlflow-artifact-logging-guide.md"
+    ],
+    "changes_requested": [],
+    "close_reason": "## [Codecov](https://app.codecov.io/gh/eval-hub/eval-hub/pull/368?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=eval-hub) R | Closing this as not relevant here."
+  },
+  {
+    "number": 367,
+    "state": "CLOSED",
+    "title": "fix: Pass mlflow_experiment_id to adapters for run creation",
+    "branch": "fix/RHOAIENG-54869-mlflow-run-id",
+    "labels": [],
+    "files": [
+      "docs/mlflow-run-id-integration.md",
+      "internal/eval_hub/runtimes/shared/jobspec.go"
+    ],
+    "changes_requested": [],
+    "close_reason": "<!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- walkthrough_start -->  <details> <summary>📝 Walkthrough</summary>  ## Walkthrough  This PR introduces MLflow integration sup"
+  },
+  {
+    "number": 366,
+    "state": "MERGED",
+    "title": "fix(sidecar): exit cleanly on graceful shutdown by implementing Is() on ServerClosedError",
+    "branch": "fix-sidecar-shutdown",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "cmd/eval_runtime_sidecar/main.go",
+      "internal/eval_hub/server/server.go",
+      "internal/eval_runtime_sidecar/server/server.go",
+      "internal/eval_runtime_sidecar/server/server_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 363,
+    "state": "MERGED",
+    "title": "fix: set 'EVALHUB_MODE' env var on adapter contaienr",
+    "branch": "adapter-mode",
+    "labels": [],
+    "files": [
+      "internal/eval_hub/runtimes/k8s/job_builders.go",
+      "internal/eval_hub/runtimes/k8s/job_builders_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 359,
+    "state": "MERGED",
+    "title": "fix: Update resource requests and limits for lighteval",
+    "branch": "fix-lighteval",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "config/providers/lighteval.yaml"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 354,
+    "state": "MERGED",
+    "title": "fix: allow '/mlflow-artifacts' path in proxy",
+    "branch": "sidecar-mlflow",
+    "labels": [],
+    "files": [
+      "internal/eval_hub/runtimes/k8s/job_builders_test.go",
+      "internal/eval_runtime_sidecar/handlers/handlers.go",
+      "internal/eval_runtime_sidecar/handlers/handlers_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 348,
+    "state": "MERGED",
+    "title": "fix: TLS disabled in tests",
+    "branch": "sidecar-tests",
+    "labels": [],
+    "files": [
+      "internal/eval_runtime_sidecar/handlers/handlers_test.go",
+      "internal/eval_runtime_sidecar/proxy/http_client.go",
+      "internal/eval_runtime_sidecar/proxy/http_client_test.go",
+      "internal/eval_runtime_sidecar/server/server_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 347,
+    "state": "MERGED",
+    "title": "fix: sidecar container termination",
+    "branch": "sidecar-termination",
+    "labels": [],
+    "files": [
+      "cmd/eval-runtime-sidecar/main.go",
+      "internal/eval_hub/runtimes/k8s/examples/eval-job.yaml",
+      "internal/eval_hub/runtimes/k8s/job_builders.go",
+      "internal/eval_hub/runtimes/k8s/job_builders_test.go",
+      "internal/eval_runtime_sidecar/termination/watch.go",
+      "internal/eval_runtime_sidecar/termination/watch_test.go",
+      "tests/kubernetes/features/kubernetes_resources.feature",
+      "tests/kubernetes/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 320,
+    "state": "MERGED",
+    "title": "fix: tidy collections APIs",
+    "branch": "collection-traces",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/server/server_test.go",
+      "internal/handlers/collections.go",
+      "internal/handlers/collections_test.go",
+      "internal/handlers/evaluations.go",
+      "internal/handlers/helpers.go",
+      "internal/handlers/providers.go",
+      "tests/features/collections.feature",
+      "tests/features/evaluations.feature"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 319,
+    "state": "MERGED",
+    "title": "fix: remove the tenant check in the storage layer and simplify the delete evaluation",
+    "branch": "storage-fix",
+    "labels": [],
+    "files": [
+      "internal/storage/sql/collections.go",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/providers.go",
+      "internal/storage/sql/sql.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 318,
+    "state": "MERGED",
+    "title": "fix: added experiment tag context: eval-hub",
+    "branch": "marius-experiment-tag",
+    "labels": [],
+    "files": [
+      "internal/mlflow/mlflow.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 315,
+    "state": "MERGED",
+    "title": "fix: remove system resources from the runtime",
+    "branch": "system-lists",
+    "labels": [],
+    "files": [
+      "Containerfile",
+      "README-GO.md",
+      "README.md",
+      "VERSION",
+      "cmd/eval_hub/main.go",
+      "cmd/eval_hub/server/server_test.go",
+      "go.mod",
+      "go.sum",
+      "internal/common/common.go",
+      "internal/common/resolve_provider_test.go",
+      "internal/config/loader_test.go",
+      "internal/handlers/collections_test.go",
+      "internal/handlers/health_test.go",
+      "internal/runtimes/k8s/k8s_runtime.go",
+      "internal/runtimes/k8s/k8s_runtime_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go",
+      "internal/runtimes/local/local_runtime.go",
+      "internal/runtimes/local/local_runtime_test.go",
+      "internal/runtimes/runtime.go",
+      "internal/runtimes/shared/runtime_utils.go",
+      "internal/runtimes/shared/runtime_utils_test.go",
+      "internal/validation/validator.go",
+      "internal/validation/validator_test.go",
+      "tests/features/evaluations.feature",
+      "tests/features/providers.feature",
+      "tests/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 306,
+    "state": "MERGED",
+    "title": "fix(collections): resolve system-defined collections in GET endpoint and event callbacks",
+    "branch": "missing-collections",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/abstractions/storage.go",
+      "internal/handlers/collections.go",
+      "internal/handlers/evaluations.go",
+      "internal/handlers/evaluations_test.go",
+      "internal/runtimes/k8s/k8s_runtime.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go",
+      "internal/runtimes/local/local_runtime.go",
+      "internal/runtimes/local/local_runtime_test.go",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/evaluations_test.go",
+      "tests/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 303,
+    "state": "MERGED",
+    "title": "fix: clean up the storage abstraction",
+    "branch": "storage-cleanup",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/main.go",
+      "cmd/eval_hub/server/server_test.go",
+      "internal/abstractions/storage.go",
+      "internal/config/loader.go",
+      "internal/config/loader_test.go",
+      "internal/handlers/collections.go",
+      "internal/handlers/collections_test.go",
+      "internal/handlers/providers.go",
+      "internal/handlers/providers_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go",
+      "internal/runtimes/local/local_runtime_test.go",
+      "internal/storage/sql/collections.go",
+      "internal/storage/sql/providers.go",
+      "internal/storage/sql/providers_test.go",
+      "internal/validation/validator.go",
+      "internal/validation/validator_test.go",
+      "pkg/api/common.go",
+      "tests/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 302,
+    "state": "MERGED",
+    "title": "fix: add missing mapstructure annotations and validate system providers and collections",
+    "branch": "system-validation",
+    "labels": [],
+    "files": [
+      "config/collections/leaderboard-v2.yaml",
+      "internal/config/loader.go",
+      "internal/config/loader_test.go",
+      "internal/handlers/collections_test.go",
+      "pkg/api/collections.go",
+      "pkg/api/common.go",
+      "pkg/api/evaluations.go",
+      "pkg/api/providers.go",
+      "tests/features/collections.feature"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 296,
+    "state": "MERGED",
+    "title": "fix: Remove the job_id,evalhub_url envs from job pod",
+    "branch": "follow-up",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/examples/eval-job.yaml",
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_config.go",
+      "internal/runtimes/k8s/k8s_runtime.go",
+      "tests/kubernetes/features/kubernetes_resources.feature",
+      "tests/kubernetes/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 291,
+    "state": "MERGED",
+    "title": "fix: fix jobs from a collection",
+    "branch": "job-with-collection",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/server/authorization.go",
+      "cmd/eval_hub/server/execution_context.go",
+      "cmd/eval_hub/server/server.go",
+      "internal/common/common.go",
+      "internal/constants/log_fields.go",
+      "internal/handlers/collections.go",
+      "internal/handlers/evaluations_test.go",
+      "internal/messages/messages.go",
+      "internal/runtimes/k8s/job_builders_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go",
+      "internal/serviceerrors/error_test.go",
+      "internal/storage/common/common.go",
+      "internal/storage/sql/collections.go",
+      "internal/storage/sql/evaluations.go",
+      "pkg/api/evaluations.go",
+      "tests/features/evaluations.feature",
+      "tests/features/step_definitions_test.go",
+      "tests/features/test_data/collection_pass_criteria_from_provider_test.json",
+      "tests/features/test_data/evaluation_job_pass_criteria_from_provider_test.json",
+      "tests/features/test_data/evaluation_job_with_collection.json",
+      "tests/features/test_data/patch_collection_benchmark.json",
+      "tests/features/test_data/patch_collection_benchmark_full.json",
+      "tests/features/test_data/patch_collection_description.json",
+      "tests/features/test_data/patch_collection_invalid.json",
+      "tests/features/test_data/patch_collection_name.json"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 290,
+    "state": "MERGED",
+    "title": "fix: update S3 test data init image handling in job configuration",
+    "branch": "fix-init-container-default",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_builders_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 287,
+    "state": "MERGED",
+    "title": "fix: return bad request instead of 403 if the request is missing requ…",
+    "branch": "marius",
+    "labels": [],
+    "files": [
+      "auth/authorization.go",
+      "auth/rules.go",
+      "auth/rules_test.go",
+      "auth/testdata/rbac_mixed.yaml",
+      "cmd/eval_hub/server/authorization.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 284,
+    "state": "MERGED",
+    "title": "fix: test-all-coverage failure fixes",
+    "branch": "fix-tests",
+    "labels": [],
+    "files": [
+      "tests/features/evaluations.feature"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 282,
+    "state": "MERGED",
+    "title": "fix(storage): scope GetEvaluationJobs list query to WithTenant",
+    "branch": "tenant-filter",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/evaluations_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 281,
+    "state": "MERGED",
+    "title": "fix(k8s): resolve namespace using tenant from evaluation resource",
+    "branch": "ns-fix",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/runtimes/k8s/job_config.go",
+      "internal/runtimes/k8s/job_config_test.go",
+      "internal/runtimes/k8s/k8s_runtime.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 275,
+    "state": "MERGED",
+    "title": "fix: auth rules not enforced",
+    "branch": "fix-sar",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "auth/rules.go",
+      "internal/config/loader.go",
+      "internal/runtimes/k8s/examples/eval-job.yaml",
+      "internal/runtimes/k8s/job_config.go",
+      "tests/kubernetes/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 271,
+    "state": "MERGED",
+    "title": "fix(cli): eval-hub-server cli not picking up args",
+    "branch": "fix/eval-hub-server-cli-args",
+    "labels": [],
+    "files": [
+      "python-server/DEVELOPMENT.md",
+      "python-server/evalhub_server/main.py",
+      "python-server/pyproject.toml",
+      "python-server/tests/test_main.py",
+      "python-server/uv.lock"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 266,
+    "state": "MERGED",
+    "title": "fix: more fixes related to searching lists of resources",
+    "branch": "list-tests",
+    "labels": [],
+    "files": [
+      "Makefile",
+      "internal/handlers/providers.go",
+      "internal/storage/sql/collections.go",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/postgres/statements.go",
+      "internal/storage/sql/providers.go",
+      "internal/storage/sql/shared/statements.go",
+      "internal/storage/sql/sqlite/statements.go",
+      "tests/features/evaluations.feature",
+      "tests/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 265,
+    "state": "MERGED",
+    "title": "fix(build): fix windows platform build",
+    "branch": "fix/windows-build",
+    "labels": [],
+    "files": [
+      "auth/testdata/rbac_mixed.yaml",
+      "internal/runtimes/local/local_runtime.go",
+      "internal/runtimes/local/process_unix.go",
+      "internal/runtimes/local/process_windows.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 263,
+    "state": "MERGED",
+    "title": "fix: added get verb for mlflow experiments + auth config loading",
+    "branch": "marius",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/main.go",
+      "cmd/eval_hub/server/server.go",
+      "config/auth.yaml"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 255,
+    "state": "MERGED",
+    "title": "fix(cancel): cancellation of job should reflect at benchmark level",
+    "branch": "fix/cancel-should-fail-unit-benchmarks",
+    "labels": [],
+    "files": [
+      ".coderabbit.yaml",
+      ".gitignore",
+      "Makefile",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/evaluations_test.go",
+      "pkg/api/evaluations.go",
+      "pkg/api/evaluations_test.go",
+      "tests/features/evaluations.feature"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 247,
+    "state": "MERGED",
+    "title": "fix: fix the cancellation code to always call the runtime (unless already cancelled)",
+    "branch": "evaluations-cancel",
+    "labels": [],
+    "files": [
+      "internal/handlers/evaluations.go",
+      "internal/handlers/evaluations_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 245,
+    "state": "MERGED",
+    "title": "fix: loadProvider ignores explicit config dir for provider file reads",
+    "branch": "config-fix",
+    "labels": [
+      "kind/fix",
+      "area/configuration"
+    ],
+    "files": [
+      "internal/config/loader.go",
+      "internal/config/loader_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 243,
+    "state": "MERGED",
+    "title": "fix: Remove AUTH related envs from job pod",
+    "branch": "model_auth_fixes",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_builders_test.go",
+      "internal/runtimes/k8s/k8s_runtime_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 240,
+    "state": "MERGED",
+    "title": "fix: fix the update logic (and error message) when a job is in a final state",
+    "branch": "update-return-code",
+    "labels": [],
+    "files": [
+      "internal/handlers/evaluations.go",
+      "internal/messages/messages.go",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/evaluations_test.go",
+      "tests/features/evaluations.feature"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 234,
+    "state": "MERGED",
+    "title": "fix: fix code so that the reported caller is not the helper function",
+    "branch": "log-caller",
+    "labels": [],
+    "files": [
+      "Makefile",
+      "cmd/eval_hub/server/execution_context.go",
+      "internal/logging/logger.go",
+      "package-lock.json"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 231,
+    "state": "MERGED",
+    "title": "fix: add filtering by tenant_id",
+    "branch": "query-evaluations",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/server/execution_context.go",
+      "cmd/eval_hub/server/server.go",
+      "internal/abstractions/storage.go",
+      "internal/handlers/evaluations.go",
+      "internal/storage/sql/collections.go",
+      "internal/storage/sql/evaluations.go",
+      "internal/storage/sql/evaluations_test.go",
+      "internal/storage/sql/helper.go",
+      "tests/features/evaluations.feature",
+      "tests/features/step_definitions_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 226,
+    "state": "MERGED",
+    "title": "fix: benchmark results are stored per index",
+    "branch": "benchmark-index",
+    "labels": [],
+    "files": [
+      "internal/storage/common/common.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 225,
+    "state": "MERGED",
+    "title": "fix: local runtime directory structure with benchmark_index",
+    "branch": "fix-local-dir-path",
+    "labels": [],
+    "files": [
+      "docs/src/components/schemas/BenchmarkResult.yaml",
+      "docs/src/components/schemas/BenchmarkTest.yaml",
+      "docs/src/components/schemas/EvaluationJobResults.yaml",
+      "docs/src/components/schemas/EvaluationTest.yaml",
+      "docs/src/components/schemas/ModelAuth.yaml",
+      "internal/runtimes/local/local_runtime.go",
+      "internal/runtimes/local/local_runtime_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 223,
+    "state": "MERGED",
+    "title": "fix: remove redundant message and update swagger",
+    "branch": "redundant-message",
+    "labels": [],
+    "files": [
+      "docs/index-private.html",
+      "docs/index-public.html",
+      "docs/index.html",
+      "docs/openapi-internal.json",
+      "docs/openapi-internal.yaml",
+      "docs/openapi.json",
+      "docs/openapi.yaml",
+      "docs/src/components/schemas/EvaluationResource.yaml",
+      "internal/storage/sql/evaluations.go",
+      "pkg/api/evaluations.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 217,
+    "state": "MERGED",
+    "title": "fix: run k8s benchmark creation sequentially",
+    "branch": "kube_fixes",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/k8s_runtime.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 216,
+    "state": "MERGED",
+    "title": "fix: Detach runtime context from request cancellation",
+    "branch": "context_fix",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/k8s_runtime.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 214,
+    "state": "MERGED",
+    "title": "fix: name kube resources as <jobid>-<guid>",
+    "branch": "guid_fix",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_builders_test.go",
+      "internal/runtimes/k8s/job_config.go",
+      "internal/runtimes/k8s/k8s_helper.go",
+      "internal/runtimes/k8s/k8s_runtime.go",
+      "internal/runtimes/k8s/k8s_runtime_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go",
+      "tests/kubernetes/features/kubernetes_resources.feature",
+      "tests/kubernetes/features/step_definitions_test.go",
+      "tests/kubernetes/features/test_data/evaluation_job_multi_benchmark.json"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 203,
+    "state": "MERGED",
+    "title": "fix(ci): install redocly from package-lock.json in CI",
+    "branch": "tarilabs-20260219-inCIuseLOCK",
+    "labels": [],
+    "files": [
+      ".github/workflows/ci.yml"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 200,
+    "state": "MERGED",
+    "title": "fix(mlflow): re-read auth token from disk on each request to handle k8s token rotation",
+    "branch": "token-refresh",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/config/mlflow_config.go",
+      "internal/mlflow/mlflow.go",
+      "pkg/mlflowclient/client.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 199,
+    "state": "MERGED",
+    "title": "fix: add annotations for the kube resources",
+    "branch": "k8s_name",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/examples/eval-job-configmap.yaml",
+      "internal/runtimes/k8s/examples/eval-job.yaml",
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_builders_test.go",
+      "internal/runtimes/k8s/k8s_runtime_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 198,
+    "state": "MERGED",
+    "title": "fix: remove CA bundle as default",
+    "branch": "certs-fix",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/runtimes/k8s/job_builders.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 197,
+    "state": "MERGED",
+    "title": "fix: collision in Job naming",
+    "branch": "k8s_name",
+    "labels": [],
+    "files": [
+      "internal/runtimes/k8s/job_builders.go",
+      "internal/runtimes/k8s/job_builders_test.go",
+      "internal/runtimes/k8s/k8s_runtime.go",
+      "internal/runtimes/k8s/k8s_runtime_test.go",
+      "internal/runtimes/k8s/k8s_runtime_unit_test.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 189,
+    "state": "MERGED",
+    "title": "fix: Add missing provider id from Job Spec",
+    "branch": "provider-id-fix",
+    "labels": [
+      "kind/fix"
+    ],
+    "files": [
+      "internal/runtimes/k8s/job_config.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 185,
+    "state": "MERGED",
+    "title": "fix: validate benchmark/provider IDs and status events",
+    "branch": "few_fixes",
+    "labels": [],
+    "files": [
+      "cmd/eval_hub/server/server_test.go",
+      "internal/handlers/evaluations.go",
+      "internal/handlers/evaluations_test.go",
+      "internal/handlers/providers_test.go",
+      "internal/messages/messages.go",
+      "pkg/api/evaluations.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  },
+  {
+    "number": 183,
+    "state": "MERGED",
+    "title": "fix: do not rollback when not needed",
+    "branch": "eval-sql-txn",
+    "labels": [],
+    "files": [
+      "Makefile",
+      "internal/abstractions/storage.go",
+      "internal/handlers/evaluations.go",
+      "internal/storage/sql/evaluations.go",
+      "package-lock.json",
+      "package.json",
+      "pkg/api/evaluations.go"
+    ],
+    "changes_requested": [],
+    "close_reason": null
+  }
+]

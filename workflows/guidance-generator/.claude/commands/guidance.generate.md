@@ -376,11 +376,13 @@ DONT_multiple_cves: One CVE per PR — N closed PRs rejected for combining
 
 From the analysis files, generate the final guidance files.
 
-**Hard constraints:**
-- Maximum 80 lines per file
+**Formatting constraints:**
+- Target 80 lines per file — this is a guideline for fresh generation, not a hard truncation
 - No narrative paragraphs — one rule per line or a tight code block
 - Evidence counts are inline and terse: `(N/M merged)`, `(N closed PRs)`
 - No full PR examples — only the distilled pattern
+- If the synthesized output naturally exceeds 80 lines (many strong patterns),
+  include all rules that meet the threshold. Note the line count in the PR description.
 
 **CVE guidance file template** — write to `artifacts/guidance/<repo-slug>/output/cve-fix-guidance.md`.
 
@@ -619,7 +621,7 @@ Artifacts: artifacts/guidance/<repo-slug>/
 - [ ] Per-PR details fetched (files + review REQUEST_CHANGES)
 - [ ] Closed PRs have closing context fetched
 - [ ] Patterns synthesized with 3-PR minimum applied
-- [ ] Guidance files are under 80 lines each
+- [ ] Guidance files aim for ~80 lines (all threshold-passing rules included regardless)
 - [ ] Files written to artifacts/output/
 - [ ] PR created in target repo with correct files in .cve-fix/ and .bugfix/
 - [ ] /tmp cleaned up

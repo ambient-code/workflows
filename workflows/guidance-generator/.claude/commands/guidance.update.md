@@ -378,9 +378,27 @@ Read the cloned guidance files and apply the changes from step 6.
 - Update the merged/closed counts in the header comment
 - Do NOT reorder existing rules — preserve the file structure
 
-After editing, verify the file is still under 80 lines. If adding new rules
-would push it over 80 lines, prioritize: keep all don'ts, keep rules with
-highest evidence counts, drop rules with lowest counts (below 5%).
+After editing, count the lines in each file. Never drop existing rules to
+make room — always append new rules in full. If the file now exceeds 80 lines,
+note it but do not truncate:
+
+```bash
+CVE_LINES=$(wc -l < "$CVE_FILE")
+BUGFIX_LINES=$(wc -l < "$BUGFIX_FILE")
+
+OVERSIZE_NOTE=""
+if [ "$CVE_LINES" -gt 80 ]; then
+  echo "  NOTE: .cve-fix/examples.md is now ${CVE_LINES} lines (target: 80)"
+  OVERSIZE_NOTE="${OVERSIZE_NOTE}\n- \`.cve-fix/examples.md\` is ${CVE_LINES} lines. Consider running \`/guidance.generate\` to rebuild and consolidate."
+fi
+if [ "$BUGFIX_LINES" -gt 80 ]; then
+  echo "  NOTE: .bugfix/guidance.md is now ${BUGFIX_LINES} lines (target: 80)"
+  OVERSIZE_NOTE="${OVERSIZE_NOTE}\n- \`.bugfix/guidance.md\` is ${BUGFIX_LINES} lines. Consider running \`/guidance.generate\` to rebuild and consolidate."
+fi
+```
+
+Include `$OVERSIZE_NOTE` in the PR description if non-empty so the reviewer
+knows the file has grown and can decide whether to trigger a full rebuild.
 
 **Update the header:**
 ```
@@ -500,7 +518,8 @@ Artifacts: artifacts/guidance/<repo-slug>/
 - [ ] Per-PR details fetched for new PRs
 - [ ] New patterns synthesized (new rules, updated counts, contradictions flagged)
 - [ ] Existing files updated in-place (no rewrites, structure preserved)
-- [ ] Both files remain under 80 lines
+- [ ] No existing rules were dropped — only additions and count updates
+- [ ] Files exceeding 80 lines are flagged in PR description (not silently truncated)
 - [ ] Header timestamps updated
 - [ ] PR created in target repo
 - [ ] /tmp cleaned up

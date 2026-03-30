@@ -115,6 +115,19 @@ Rules use an adaptive threshold based on how much data is available in each buck
 This means the workflow always produces something useful, even for repos with
 few fix PRs — while flagging low-confidence output clearly.
 
+## Line Count Behaviour
+
+The 80-line target applies differently depending on the command:
+
+**`/guidance.generate`** — treats 80 lines as a formatting target for new files.
+All rules that meet the evidence threshold are included regardless. If the natural
+output exceeds 80 lines, all rules are kept and the line count is noted in the PR.
+
+**`/guidance.update`** — never drops existing rules to stay under 80 lines.
+New rules are always appended in full. If the file grows past 80 lines, the PR
+description flags it with a suggestion to run `/guidance.generate` to rebuild
+and consolidate the guidance from scratch with the full updated history.
+
 ## Token Efficiency
 
 The workflow uses a two-pass fetch strategy to minimize API calls and context size:
