@@ -34,16 +34,18 @@ Updating files and creating PR... https://github.com/org/repo/pull/103
 ## Arguments
 
 ```
-/guidance.update <repo-url> [<repo-url2> ...]
-/guidance.update <repo-url>[,<repo-url2>,...]
-/guidance.update <repo-url> [<repo-url2> ...] --pr <url-or-number>[,<url-or-number>...]
+/guidance.update <repo-url> [<repo-url2> ...] [--cve-only] [--bugfix-only]
+/guidance.update <repo-url>[,<repo-url2>,...] [--cve-only] [--bugfix-only]
+/guidance.update <repo-url> [<repo-url2> ...] --pr <url-or-number> [<url-or-number> ...]
 ```
 
 - `repo-url`: One or more repos — space-separated or comma-separated (or both).
   Each repo is updated independently and gets its own PR.
-- `--pr <refs>`: Comma-separated PR URLs or numbers. Full URLs are applied only to
-  their matching repo. Plain numbers are applied to all repos. The `last-analyzed`
-  date is still updated to today in all files.
+- `--cve-only`: Only update `.cve-fix/examples.md` — skip bugfix guidance.
+- `--bugfix-only`: Only update `.bugfix/guidance.md` — skip CVE guidance.
+- `--pr <refs>`: PR URLs or numbers — space-separated, comma-separated, or mixed.
+  Full URLs are applied only to their matching repo. Plain numbers are applied to
+  all repos. The `last-analyzed` date is still updated to today in all files.
 
 ## Process
 
@@ -103,6 +105,16 @@ if [ -n "$PR_REFS" ]; then
   GLOBAL_PR_NUMBERS=$(echo "$GLOBAL_PR_NUMBERS" | tr -s ' ' | sed 's/^ //')
 fi
 
+# Parse scope flags (apply to all repos)
+CVE_ONLY=false
+BUGFIX_ONLY=false
+[ "${CVE_ONLY_FLAG:-}" = "true" ] && CVE_ONLY=true
+[ "${BUGFIX_ONLY_FLAG:-}" = "true" ] && BUGFIX_ONLY=true
+if $CVE_ONLY && $BUGFIX_ONLY; then
+  echo "ERROR: --cve-only and --bugfix-only are mutually exclusive."
+  exit 1
+fi
+
 PR_RESULTS=()
 FAILED_REPOS=()
 ```
@@ -151,7 +163,10 @@ FOUND_CVE=false
 FOUND_BUGFIX=false
 LAST_DATE=""
 
-if [ -f "$CVE_FILE" ]; then
+$BUGFIX_ONLY && echo "  --bugfix-only: skipping CVE guidance"
+$CVE_ONLY    && echo "  --cve-only: skipping bugfix guidance"
+
+if [ -f "$CVE_FILE" ] && ! $BUGFIX_ONLY; then
   FOUND_CVE=true
   # Extract date from: <!-- last-analyzed: YYYY-MM-DD | ... -->
   CVE_DATE=$(grep -m1 'last-analyzed:' "$CVE_FILE" | \
@@ -160,7 +175,7 @@ if [ -f "$CVE_FILE" ]; then
   LAST_DATE="$CVE_DATE"
 fi
 
-if [ -f "$BUGFIX_FILE" ]; then
+if [ -f "$BUGFIX_FILE" ] && ! $CVE_ONLY; then
   FOUND_BUGFIX=true
   BUGFIX_DATE=$(grep -m1 'last-analyzed:' "$BUGFIX_FILE" | \
     grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
@@ -281,6 +296,10 @@ if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
     done
   fi
 fi
+
+# Zero out skipped buckets so subsequent steps treat them as empty
+$BUGFIX_ONLY && echo "[]" > "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json"
+$CVE_ONLY    && echo "[]" > "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json"
 
 NEW_CVE=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json")
 NEW_BUGFIX=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json")

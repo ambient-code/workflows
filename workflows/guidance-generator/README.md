@@ -44,8 +44,9 @@ not stop the others. A summary of all PR URLs is printed at the end.
 Flags:
 - `--cve-only` / `--bugfix-only`: generate only one of the two guidance files (all repos)
 - `--limit N`: cap PRs fetched per bucket per repo (default: 100)
-- `--pr <refs>`: comma-separated PR URLs or numbers — skips bulk fetch. Full URLs
-  are applied only to their matching repo; plain numbers apply to all repos.
+- `--pr <refs>`: space-separated, comma-separated, or mixed PR URLs or numbers —
+  skips bulk fetch. Full URLs apply only to their matching repo; plain numbers
+  apply to all repos.
 
 Generates:
 - `.cve-fix/examples.md` — read by the CVE Fixer workflow (step 4.5)
@@ -60,15 +61,19 @@ merges new patterns, and opens a PR with the updates.
 ```
 /guidance.update org/repo1 org/repo2
 /guidance.update org/repo1,org/repo2
-/guidance.update org/repo1 org/repo2 --pr 103,https://github.com/org/repo2/pull/104
+/guidance.update org/repo1 org/repo2 --cve-only
+/guidance.update org/repo1 org/repo2 --pr 103 https://github.com/org/repo2/pull/104
 ```
 
 Each repo is updated independently and gets its own PR.
 
 Flags:
-- `--pr <refs>`: merge only the specified PRs instead of fetching all PRs since
-  the last-analyzed date. Full URLs apply to their matching repo; plain numbers
-  apply to all repos. The `last-analyzed` date is still updated to today.
+- `--cve-only`: only update `.cve-fix/examples.md`, skip bugfix guidance.
+- `--bugfix-only`: only update `.bugfix/guidance.md`, skip CVE guidance.
+- `--pr <refs>`: space-separated, comma-separated, or mixed PR URLs or numbers.
+  Merges only the specified PRs instead of fetching all PRs since the last-analyzed
+  date. Full URLs apply to their matching repo; plain numbers apply to all repos.
+  The `last-analyzed` date is still updated to today.
 
 ## Generated File Format
 

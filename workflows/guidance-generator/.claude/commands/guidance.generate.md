@@ -46,9 +46,9 @@ Artifacts: artifacts/guidance/org-repo/
 - `--cve-only`: Skip bugfix analysis for all repos
 - `--bugfix-only`: Skip CVE analysis for all repos
 - `--limit N`: Max PRs to fetch per bucket per repo (default: 100, min: 20)
-- `--pr <refs>`: Comma-separated PR URLs or numbers. Full URLs
-  (`https://github.com/org/repo/pull/123`) are applied only to their matching repo.
-  Plain numbers (`123`) are applied to all repos.
+- `--pr <refs>`: PR URLs or numbers — space-separated, comma-separated, or mixed.
+  Full URLs (`https://github.com/org/repo/pull/123`) are applied only to their
+  matching repo. Plain numbers (`123`) are applied to all repos.
 
 ## Process
 
