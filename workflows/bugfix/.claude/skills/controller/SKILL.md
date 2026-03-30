@@ -34,6 +34,10 @@ executing phases and handling transitions between them.
 8. **PR** (`/pr`) — `.claude/skills/pr/SKILL.md`
    Push the branch to a fork and create a draft pull request.
 
+9. **Summary** (`/summary`) — `.claude/skills/summary/SKILL.md`
+   Scan all artifacts and present a synthesized summary of findings, decisions,
+   and status. Can also be invoked at any point mid-workflow.
+
 Phases can be skipped or reordered at the user's discretion.
 
 ## How to Execute a Phase
@@ -43,12 +47,20 @@ Phases can be skipped or reordered at the user's discretion.
    "Starting the /fix phase (dispatched by `.claude/skills/controller/SKILL.md`)."
    This is very important so the user knows the workflow is working, learns
    about the available phases, and so skills can find their way back here.
-2. **Read** the skill file from the list above
+2. **Read** the skill file from the list above. You MUST call the Read tool on
+   the skill's `SKILL.md` file before executing. If you find yourself executing
+   a phase without having read its skill file, you are doing it wrong — stop
+   and read it now.
 3. **Execute** the skill's steps directly — the user should see your progress
 4. When the skill is done, it will report its findings and re-read this
    controller. Then use "Recommending Next Steps" below to offer options.
-5. Present the skill's results and your recommendations to the user
-6. **Stop and wait** for the user to tell you what to do next
+5. Present the skill's results and your recommendations to the user.
+6. **Use `AskUserQuestion` to get the user's decision.** Present the
+   recommended next step and alternatives as options. Do NOT continue until the
+   user responds. This is a hard gate — the `AskUserQuestion` tool triggers
+   platform notifications and status indicators so the user knows you need
+   their input. Plain-text questions do not create these signals and the user
+   may not see them.
 
 ## Recommending Next Steps
 
@@ -59,7 +71,7 @@ happened.
 ### Typical Flow
 
 ```text
-assess → reproduce → diagnose → fix → test → review → document → pr
+assess → reproduce → diagnose → fix → test → review → document → pr → summary
 ```
 
 ### What to Recommend
@@ -110,6 +122,17 @@ directly — don't force them through earlier phases.
 
 ## Rules
 
-- **Never auto-advance.** Always wait for the user between phases.
+- **Never auto-advance.** Always use `AskUserQuestion` and wait for the user's
+  response between phases. This is the single most important rule in this
+  controller. If you proceed to another phase without the user's explicit
+  go-ahead, the workflow is broken.
+- **Always read skill files.** Every phase execution MUST begin with a Read
+  tool call on the skill's `SKILL.md` file. Do not execute a phase from memory
+  or general knowledge — the skill files contain specific, tested instructions
+  that differ from what you might do ad-hoc.
+- **Urgency does not bypass process.** Security advisories, critical bugs, and
+  production incidents may create pressure to act fast. The phase-gated
+  workflow exists precisely to prevent hasty action. Follow every phase gate
+  regardless of perceived urgency.
 - **Recommendations come from this file, not from skills.** Skills report
   findings; this controller decides what to recommend next.

@@ -23,7 +23,7 @@ phases to include or skip.
 Each time you read this file, you will:
 
 1. Determine which phase to run next (see "Determine Next Phase" below)
-2. If all phases are done, print the completion report and stop
+2. If all phases are done (including `/summary`), stop
 3. Otherwise, execute that one phase (see "Execute a Phase" below)
 4. The phase skill will tell you to return to the file that dispatched it —
    that's this file (`.claude/skills/speedrun/SKILL.md`). Re-read it and repeat.
@@ -47,6 +47,7 @@ context, then pick the first phase that is NOT done.
 | review | `.claude/skills/review/SKILL.md` | `artifacts/bugfix/review/verdict.md` exists |
 | document | `.claude/skills/document/SKILL.md` | `artifacts/bugfix/docs/pr-description.md` exists |
 | pr | `.claude/skills/pr/SKILL.md` | A PR URL has been shared in conversation |
+| summary | `.claude/skills/summary/SKILL.md` | `artifacts/bugfix/summary.md` exists |
 
 ### Rules
 
@@ -128,9 +129,19 @@ context, then pick the first phase that is NOT done.
 - Follow the PR skill's full process including its fallback ladder.
 - If PR creation fails after exhausting fallbacks, report and stop.
 
-## Completion Report
+### summary
 
-When all phases are done (or if you stop early due to escalation), present:
+- Always run this as the final phase. It replaces the Completion Report below.
+- The summary skill scans all artifacts and presents a synthesized overview.
+  This is the last thing the user sees — it surfaces findings that might
+  otherwise get buried in earlier artifacts.
+- Speedrun still MUST honor any `AskUserQuestion` hard gates from earlier
+  phases (e.g., the existing-PR decision in assess). Those gates block until
+  the user responds — do not skip or work around them.
+
+## Completion Report (Early Stop Only)
+
+If you stop early due to escalation (before `/summary` runs), present:
 
 ```markdown
 ## Speedrun Complete

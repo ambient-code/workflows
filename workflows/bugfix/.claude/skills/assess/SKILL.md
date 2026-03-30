@@ -68,7 +68,49 @@ gh repo clone OWNER/REPO /workspace/repos/REPO
 
 This is read-only exploration — understand the code, don't change it.
 
-### Step 3: Summarize Your Understanding
+### Step 3: Check for Existing Work
+
+Before investing effort, check whether this bug is already being addressed:
+
+- **Check for linked PRs on the issue:**
+
+```bash
+gh issue view NUMBER --repo OWNER/REPO --json body,comments --jq '[.body, .comments[].body] | join("\n")' | grep -i "pull\|PR\|#"
+```
+
+- **Scan recent PR titles for overlap:**
+
+```bash
+gh pr list --repo OWNER/REPO --state open --limit 30 --json number,title,headRefName --jq '.[] | "\(.number)\t\(.title)"'
+```
+
+  Skim the titles for anything related to the bug's component, error, or
+  symptoms. If a PR looks relevant, read its description before proceeding.
+
+- **Check for duplicate or related issues:**
+
+```bash
+gh issue list --repo OWNER/REPO --state open --limit 30 --json number,title --jq '.[] | "\(.number)\t\(.title)"'
+```
+
+If you find an open PR that appears to directly address this bug, **stop here
+and use `AskUserQuestion`** before continuing the assessment. Present the
+options:
+
+- "PR #N appears to address this bug — review it instead of starting fresh"
+- "PR #N is related but doesn't fully cover it — continue with assessment"
+- "Not sure if PR #N is relevant — continue with assessment"
+
+This gate applies in both normal and speedrun mode. Do not continue to Step 4
+until the user responds. The `AskUserQuestion` tool triggers platform
+notifications so the user knows you need their input.
+
+If duplicate or related issues are found (but no PR), note them in the
+assessment and continue — these inform the assessment but don't block it.
+
+If no existing work is found, note that and continue.
+
+### Step 4: Summarize Your Understanding
 
 Present a clear, concise summary to the user covering:
 
@@ -81,7 +123,7 @@ Present a clear, concise summary to the user covering:
 - **Severity/impact:** Your assessment of how serious this is, based on the
   information available
 
-### Step 4: Identify What You Know vs. What's Missing
+### Step 5: Identify What You Know vs. What's Missing
 
 Be explicit about gaps:
 
@@ -93,7 +135,7 @@ Be explicit about gaps:
 - **Assumptions:** Any assumptions you're making — call them out so the user
   can confirm or correct them
 
-### Step 5: Propose a Reproduction Plan
+### Step 6: Propose a Reproduction Plan
 
 Based on your understanding, outline how you would approach reproduction:
 
@@ -105,7 +147,7 @@ Based on your understanding, outline how you would approach reproduction:
 If the bug seems straightforward, the plan can be brief. If it's complex or
 ambiguous, be thorough.
 
-### Step 6: Present to the User
+### Step 7: Present to the User
 
 Deliver your assessment in this structure:
 
@@ -114,6 +156,9 @@ Deliver your assessment in this structure:
 
 **Issue:** [title or one-line summary]
 **Source:** [issue URL, conversation, etc.]
+
+### Existing Work
+[Any related PRs, duplicate issues, or prior attempts — or "None found"]
 
 ### Understanding
 [Your 2-3 sentence summary of the bug]
@@ -139,12 +184,22 @@ Deliver your assessment in this structure:
 Be direct. If the bug report is clear and complete, say so. If it's vague or
 missing critical details, say that too.
 
-### Step 7: Write the Assessment Artifact
+**If the bug doesn't actually apply**, say so clearly and present options:
+
+- "This issue doesn't affect your project — here's why. Want to close it?"
+- "The reported issue doesn't apply directly, but here's a related improvement
+  we could make (with trade-offs): ..."
+- "This appears to be a duplicate of #N — should we close this one?"
+
+Do not proceed to fix something you've concluded isn't broken. Present your
+finding and let the user decide.
+
+### Step 8: Write the Assessment Artifact
 
 Save your assessment to `artifacts/bugfix/reports/assessment.md` so that
 subsequent phases (and speedrun resumption) can detect that this phase is
 complete. The file should contain the same content you presented to the user
-in Step 6.
+in Step 7.
 
 ## Output
 
