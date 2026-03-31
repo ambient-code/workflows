@@ -307,6 +307,93 @@ echo "  CVE bucket: $NEW_CVE new PRs"
 echo "  Bugfix bucket: $NEW_BUGFIX new PRs"
 ```
 
+### 4.5. Fetch Commit Fallback
+
+For any bucket with fewer than 3 new merged PRs since the last-analyzed date,
+scan recent commits as supplementary signal. Skip if `--pr` was specified.
+
+```bash
+fetch_commit_fallback() {
+  local LABEL="$1"
+  local META_FILE="$2"
+  local OUT_FILE="$3"
+  local MSG_PATTERN="$4"
+
+  echo "[]" > "$OUT_FILE"
+
+  [ -n "$SPECIFIC_PR_NUMBERS" ] && return
+
+  local MERGED_COUNT
+  MERGED_COUNT=$(jq '[.[] | select(.state == "MERGED")] | length' "$META_FILE")
+
+  if [ "$MERGED_COUNT" -ge 3 ]; then
+    return
+  fi
+
+  echo "  $LABEL bucket: $MERGED_COUNT new merged PRs — scanning commits as fallback..."
+
+  gh api "repos/$REPO/commits?per_page=100" \
+    --jq '.[] | {sha: .sha, message: .commit.message}' \
+    > "/tmp/guidance-gen/$REPO_SLUG/${LABEL}-commits-raw.jsonl" 2>/dev/null
+
+  local SAMPLED=0
+  local MAX_COMMITS=50
+
+  while IFS= read -r LINE && [ "$SAMPLED" -lt "$MAX_COMMITS" ]; do
+    local SHA MSG_RAW TITLE
+
+    SHA=$(echo "$LINE" | jq -r '.sha')
+    MSG_RAW=$(echo "$LINE" | jq -r '.message' | sanitize_str)
+    TITLE=$(echo "$MSG_RAW" | head -1)
+
+    echo "$TITLE" | grep -qiE "$MSG_PATTERN" || continue
+
+    local FILES
+    FILES=$(gh api "repos/$REPO/commits/$SHA" \
+      --jq '[.files[].filename]' 2>/dev/null || echo "[]")
+
+    local BODY
+    BODY=$(echo "$MSG_RAW" | tail -n +2 | tr '\n' ' ' | cut -c1-300)
+
+    local RECORD
+    RECORD=$(jq -n \
+      --arg sha "$SHA" \
+      --arg title "$TITLE" \
+      --arg body "$BODY" \
+      --argjson files "$FILES" \
+      '{source: "commit", sha: $sha, state: "MERGED",
+        title: $title, branch: "", labels: [],
+        files: $files, changes_requested: [], close_reason: null,
+        commit_body: $body}' 2>/tmp/guidance-jq-err.txt)
+
+    if [ $? -ne 0 ]; then
+      echo "  WARNING: commit $SHA skipped — $(cat /tmp/guidance-jq-err.txt)"
+      continue
+    fi
+
+    jq --argjson rec "$RECORD" '. + [$rec]' "$OUT_FILE" > "${OUT_FILE}.tmp" \
+      && mv "${OUT_FILE}.tmp" "$OUT_FILE"
+    SAMPLED=$((SAMPLED + 1))
+
+  done < "/tmp/guidance-gen/$REPO_SLUG/${LABEL}-commits-raw.jsonl"
+
+  local COMMIT_COUNT
+  COMMIT_COUNT=$(jq 'length' "$OUT_FILE")
+  echo "  Found $COMMIT_COUNT matching $LABEL commits"
+  cp "$OUT_FILE" "artifacts/guidance/$REPO_SLUG/raw/${LABEL}-commits.json"
+}
+
+fetch_commit_fallback "cve" \
+  "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
+  "CVE-[0-9]{4}-[0-9]+|^security:|^fix\(cve\):|^Fix CVE"
+
+fetch_commit_fallback "bugfix" \
+  "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-commits.json" \
+  "^fix[:(]|^bugfix|^bug fix|fixes[[:space:]]#[0-9]+|closes[[:space:]]#[0-9]+"
+```
+
 ### 5. Fetch Per-PR Details (Pass 2)
 
 Same as `/guidance.generate` — files + reviews per PR, closing context for closed PRs.
@@ -400,6 +487,21 @@ fetch_pr_details \
   "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json" \
   "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details.json"
 
+# Merge commit fallback records into the detail files
+jq -s '.[0] + .[1]' \
+  "/tmp/guidance-gen/$REPO_SLUG/new-cve-details.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
+  > "/tmp/guidance-gen/$REPO_SLUG/new-cve-details-merged.json" \
+  && mv "/tmp/guidance-gen/$REPO_SLUG/new-cve-details-merged.json" \
+        "/tmp/guidance-gen/$REPO_SLUG/new-cve-details.json"
+
+jq -s '.[0] + .[1]' \
+  "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-commits.json" \
+  > "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details-merged.json" \
+  && mv "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details-merged.json" \
+        "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details.json"
+
 cp "/tmp/guidance-gen/$REPO_SLUG/new-cve-details.json" \
    "artifacts/guidance/$REPO_SLUG/raw/new-cve-prs.json"
 cp "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details.json" \
@@ -410,24 +512,49 @@ cp "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-details.json" \
 
 Read both the new PR detail files AND the existing guidance files.
 
-As the agent, analyze the new PR data for patterns. For each pattern found:
+As the agent, analyze the new detail records. Records with `source: "commit"`
+came from the commit fallback — treat them differently from PR records:
 
-**A. New rule** — a pattern seen in 3+ of the new PRs that does not already
-exist in the guidance file. Add it to the appropriate section.
+**Thresholds for new rules:**
 
-**B. Reinforced rule** — a pattern that already exists in the guidance file.
-Update its evidence count. For example: `(8/9 merged)` → `(14/15 merged)`.
+| Source | Min for a new rule |
+|--------|--------------------|
+| Merged PRs | 3 (or 2 if bucket had <10, or 1 if <3) |
+| Commits only | 5 |
+| Mixed (PRs + commits) | 3 total, at least 1 PR |
+
+**What commit records contribute:**
+- Message/title format patterns
+- File co-change patterns
+- Commit body trailer conventions (`Co-authored-by:`, `Fixes #`, etc.)
+
+**What commit records do NOT contribute:**
+- Don'ts section (no rejection signal)
+- Reviewer expectation rules (no `changes_requested` data)
+
+**Evidence notation for new rules:**
+- PR only: `(3/4 merged PRs)`
+- Commit only: `(6 commits)`
+- Mixed: `(2/3 merged PRs + 4 commits)`
+
+For each pattern found in the combined data:
+
+**A. New rule** — meets the threshold above and does not already exist in the
+guidance file. Add it to the appropriate section.
+
+**B. Reinforced rule** — already exists in the guidance file.
+Update evidence count: `(8/9 merged)` → `(14/15 merged)` or add commit count:
+`(8/9 merged)` → `(8/9 merged PRs + 5 commits)`.
 
 **C. Contradicting rule** — a pattern in new merged PRs that directly contradicts
-a "don't" in the existing guidance file (e.g., a merged PR combined two CVEs despite
-the guidance saying not to). Flag this with a comment in the guidance file:
+a "don't". Flag it:
 ```
 - [REVIEW NEEDED] Multiple CVEs per PR — previously flagged as a don't,
   but PR #N was merged combining CVEs. Policy may have changed. (N/N new merged)
 ```
 
-**D. New don't** — a pattern from newly closed PRs (3+ cases) not already in the
-don'ts section. Add it.
+**D. New don't** — pattern from newly closed PRs (3+ cases). Commits cannot
+produce new don'ts. Add only PR-sourced rejections here.
 
 Write findings to:
 - `artifacts/guidance/<repo-slug>/analysis/cve-update-patterns.md`

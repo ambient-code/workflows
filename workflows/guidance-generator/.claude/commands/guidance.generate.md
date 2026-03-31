@@ -276,6 +276,101 @@ echo "  Bugfix bucket: $BUGFIX_TOTAL PRs ($BUGFIX_MERGED merged, $BUGFIX_CLOSED 
 If both buckets are empty, report this clearly and exit — the repo may not have
 recognizable fix PR naming conventions. Suggest the user check PR title patterns.
 
+### 3.5. Fetch Commit Fallback
+
+For any bucket with fewer than 3 merged PRs, scan recent commits as a supplementary
+signal source. Skip this step entirely if `--pr` was specified (user chose the data).
+
+```bash
+# Fetch commit fallback for a bucket if merged PR count < 3
+# Args: BUCKET_LABEL META_FILE OUT_FILE MSG_PATTERN
+fetch_commit_fallback() {
+  local LABEL="$1"
+  local META_FILE="$2"
+  local OUT_FILE="$3"
+  local MSG_PATTERN="$4"
+
+  echo "[]" > "$OUT_FILE"
+
+  # Skip if manual PR mode — user chose the data explicitly
+  [ -n "$SPECIFIC_PR_NUMBERS" ] && return
+
+  local MERGED_COUNT
+  MERGED_COUNT=$(jq '[.[] | select(.state == "MERGED")] | length' "$META_FILE")
+
+  if [ "$MERGED_COUNT" -ge 3 ]; then
+    return  # Enough PR data — no fallback needed
+  fi
+
+  echo "  $LABEL bucket: $MERGED_COUNT merged PRs — scanning commits as fallback..."
+
+  # Fetch up to 100 recent commit messages (lightweight — no file data yet)
+  gh api "repos/$REPO/commits?per_page=100" \
+    --jq '.[] | {sha: .sha, message: .commit.message}' \
+    > "/tmp/guidance-gen/$REPO_SLUG/${LABEL}-commits-raw.jsonl" 2>/dev/null
+
+  local SAMPLED=0
+  local MAX_COMMITS=50
+
+  while IFS= read -r LINE && [ "$SAMPLED" -lt "$MAX_COMMITS" ]; do
+    local SHA MSG_RAW TITLE
+
+    SHA=$(echo "$LINE" | jq -r '.sha')
+    MSG_RAW=$(echo "$LINE" | jq -r '.message' | sanitize_str)
+    TITLE=$(echo "$MSG_RAW" | head -1)
+
+    # Filter by message pattern for this bucket
+    echo "$TITLE" | grep -qiE "$MSG_PATTERN" || continue
+
+    # Fetch file list for this commit (targeted — only for matched commits)
+    local FILES
+    FILES=$(gh api "repos/$REPO/commits/$SHA" \
+      --jq '[.files[].filename]' 2>/dev/null || echo "[]")
+
+    local BODY
+    BODY=$(echo "$MSG_RAW" | tail -n +2 | tr '\n' ' ' | cut -c1-300)
+
+    local RECORD
+    RECORD=$(jq -n \
+      --arg sha "$SHA" \
+      --arg title "$TITLE" \
+      --arg body "$BODY" \
+      --argjson files "$FILES" \
+      '{source: "commit", sha: $sha, state: "MERGED",
+        title: $title, branch: "", labels: [],
+        files: $files, changes_requested: [], close_reason: null,
+        commit_body: $body}' 2>/tmp/guidance-jq-err.txt)
+
+    if [ $? -ne 0 ]; then
+      echo "  WARNING: commit $SHA skipped — $(cat /tmp/guidance-jq-err.txt)"
+      continue
+    fi
+
+    jq --argjson rec "$RECORD" '. + [$rec]' "$OUT_FILE" > "${OUT_FILE}.tmp" \
+      && mv "${OUT_FILE}.tmp" "$OUT_FILE"
+    SAMPLED=$((SAMPLED + 1))
+
+  done < "/tmp/guidance-gen/$REPO_SLUG/${LABEL}-commits-raw.jsonl"
+
+  local COMMIT_COUNT
+  COMMIT_COUNT=$(jq 'length' "$OUT_FILE")
+  echo "  Found $COMMIT_COUNT matching $LABEL commits"
+
+  # Save to artifacts for transparency
+  cp "$OUT_FILE" "artifacts/guidance/$REPO_SLUG/raw/${LABEL}-commits.json"
+}
+
+fetch_commit_fallback "cve" \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
+  "CVE-[0-9]{4}-[0-9]+|^security:|^fix\(cve\):|^Fix CVE"
+
+fetch_commit_fallback "bugfix" \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-commits.json" \
+  "^fix[:(]|^bugfix|^bug fix|fixes[[:space:]]#[0-9]+|closes[[:space:]]#[0-9]+"
+```
+
 ### 4. Fetch Per-PR Details (Pass 2 — targeted)
 
 For each PR in both buckets, fetch only: file paths changed and review data.
@@ -373,7 +468,22 @@ fetch_pr_details \
   "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json" \
   "/tmp/guidance-gen/$REPO_SLUG/bugfix-details.json"
 
-# Save raw data to artifacts for reference
+# Merge commit fallback records into the detail files
+jq -s '.[0] + .[1]' \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-details.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
+  > "/tmp/guidance-gen/$REPO_SLUG/cve-details-merged.json" \
+  && mv "/tmp/guidance-gen/$REPO_SLUG/cve-details-merged.json" \
+        "/tmp/guidance-gen/$REPO_SLUG/cve-details.json"
+
+jq -s '.[0] + .[1]' \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-details.json" \
+  "/tmp/guidance-gen/$REPO_SLUG/bugfix-commits.json" \
+  > "/tmp/guidance-gen/$REPO_SLUG/bugfix-details-merged.json" \
+  && mv "/tmp/guidance-gen/$REPO_SLUG/bugfix-details-merged.json" \
+        "/tmp/guidance-gen/$REPO_SLUG/bugfix-details.json"
+
+# Save to artifacts for reference
 cp "/tmp/guidance-gen/$REPO_SLUG/cve-details.json" \
    "artifacts/guidance/$REPO_SLUG/raw/cve-prs.json"
 cp "/tmp/guidance-gen/$REPO_SLUG/bugfix-details.json" \
@@ -385,25 +495,43 @@ cp "/tmp/guidance-gen/$REPO_SLUG/bugfix-details.json" \
 Read `cve-details.json` and `bugfix-details.json` from the artifacts.
 Analyze them as the agent — do NOT write a script for this step.
 
-**For each bucket, identify patterns across the PR records. Apply these rules:**
+**Records have two sources — treat them differently:**
 
-**Inclusion threshold**: Only include a rule if it appears in 3 or more PRs.
-State the evidence count inline: `(8/9 merged PRs)`.
+Records with no `source` field (or `source != "commit"`) are PR records.
+Records with `source: "commit"` came from the commit fallback and have no
+`changes_requested` or `close_reason` data.
 
-**What to extract:**
+**Inclusion thresholds by source:**
 
-From merged PRs:
-- **Title format**: What template do titles follow? Extract the pattern.
-  Example: `Security: Fix CVE-YYYY-XXXXX (<package>)` or `fix(<scope>): <description>`
+| Source | Min occurrences per rule |
+|--------|--------------------------|
+| Merged PRs (10+ in bucket) | 3 |
+| Merged PRs (3–9 in bucket) | 2 |
+| Merged PRs (1–2 in bucket) | 1 |
+| Commits only | 5 |
+| Mixed (PRs + commits) | 3 total, at least 1 PR |
+
+**What to extract from PR records:**
+- **Title format**: What template do titles follow?
 - **Branch format**: What naming pattern do branches use?
-- **Files changed**: Which files appear together most often? Are there always-together groups?
+- **Files changed**: Which files appear together most often?
 - **Labels**: What labels are consistently applied?
 - **Co-changes**: When package A changes, does package B always change too?
-- **From changes_requested**: What did reviewers ask for that wasn't there? These are proactive rules.
+- **From changes_requested**: What reviewers asked for — these become proactive rules.
+- **From close_reason + changes_requested**: Why PRs were rejected — these become "don'ts".
 
-From closed PRs:
-- **close_reason + changes_requested**: Why was the PR closed/rejected? Each reason becomes a "don't".
-- Look for patterns across multiple closed PRs — single-occurrence rejections are excluded.
+**What to extract from commit records (no reviewer signal available):**
+- **Message format**: Title line pattern, body structure, trailers (`Co-authored-by:`, `Fixes #`)
+- **Files changed**: Which files appear together in fix commits
+- **Co-changes**: Package co-upgrade patterns visible in file sets
+
+**Commit-only rules cannot populate the "Don'ts" section** — there is no rejection
+signal from commits. If a bucket is commit-only, omit the Don'ts section entirely.
+
+**Evidence notation:**
+- PR-sourced: `(8/9 merged PRs)`
+- Commit-sourced: `(7 commits)`
+- Mixed: `(3/4 merged PRs + 5 commits)`
 
 **Output of synthesis step:**
 Write an intermediate analysis file per bucket:
@@ -415,9 +543,9 @@ artifacts/guidance/<repo-slug>/analysis/bugfix-patterns.md
 
 Each analysis file is a structured list:
 ```
-TITLE_FORMAT: "Security: Fix CVE-YYYY-XXXXX (<package>)" (N/N merged)
-BRANCH_FORMAT: "fix/cve-YYYY-XXXXX-<package>-attempt-N" (N/N merged)
-FILES_GO_STDLIB: go.mod + Dockerfile + Dockerfile.konflux (N/N Go CVE PRs)
+TITLE_FORMAT: "Security: Fix CVE-YYYY-XXXXX (<package>)" (3/4 merged PRs + 6 commits)
+BRANCH_FORMAT: "fix/cve-YYYY-XXXXX-<package>-attempt-N" (3/4 merged PRs)
+FILES_GO_STDLIB: go.mod + Dockerfile + Dockerfile.konflux (8 commits)
 PROACTIVE_go_sum: Include go.sum — flagged missing in N closed PRs
 DONT_multiple_cves: One CVE per PR — N closed PRs rejected for combining
 ...
@@ -444,7 +572,14 @@ When in manual PR mode, the header must note which PRs were used:
 <!-- last-analyzed: <YYYY-MM-DD> | cve-merged: N | cve-closed: M | manual-selection: PR#A,PR#B -->
 ```
 
-In auto mode, omit the `manual-selection` field:
+When commit fallback was used, add a `commit-fallback` count to the header:
+
+```markdown
+# CVE Fix Guidance — <repo>
+<!-- last-analyzed: <YYYY-MM-DD> | cve-merged: N | cve-closed: M | cve-commits: K -->
+```
+
+In auto mode with no fallback needed, omit the `cve-commits` field:
 
 ```markdown
 # CVE Fix Guidance — <repo>
