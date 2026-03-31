@@ -200,7 +200,7 @@ synthesis which guidance file it informs. Never silently drop a user-specified P
 # Explicit CVE/security signals — pass through unconditionally
 CVE_EXPLICIT='CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
 # Dependency/version bump patterns — may contain security patches; require body scan
-CVE_DEP_PATTERN='^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump'
+CVE_DEP_PATTERN='^[Bb]ump |^deps\(|^build\(deps\)'
 # Combined: either explicit or dep pattern matches the CVE bucket initially
 CVE_PATTERN="${CVE_EXPLICIT}|${CVE_DEP_PATTERN}"
 CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-|^dependabot/|^renovate/'
@@ -356,7 +356,7 @@ fetch_commit_fallback() {
     # For dep/bump commits without an explicit CVE/GHSA in the title,
     # verify the commit body contains a security indicator.
     # MSG_RAW already contains the full message — no extra API call needed.
-    if echo "$TITLE" | grep -qiE "^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"; then
+    if echo "$TITLE" | grep -qiE "^[Bb]ump |^deps\(|^build\(deps\)"; then
       if ! echo "$TITLE" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):"; then
         if ! echo "$MSG_RAW" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|security|vulnerab"; then
           continue  # dep update with no security signal — skip
@@ -405,7 +405,7 @@ fetch_commit_fallback() {
 fetch_commit_fallback "cve" \
   "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json" \
   "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
-  "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE|^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"
+  "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE|^[Bb]ump |^deps\(|^build\(deps\)"
 
 fetch_commit_fallback "bugfix" \
   "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json" \
