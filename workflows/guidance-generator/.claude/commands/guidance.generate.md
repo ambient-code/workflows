@@ -197,10 +197,17 @@ neither pattern, include it in both buckets and let Claude determine during
 synthesis which guidance file it informs. Never silently drop a user-specified PR.
 
 ```bash
-CVE_PATTERN='CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
-CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-'
+# Explicit CVE/security signals — pass through unconditionally
+CVE_EXPLICIT='CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
+# Dependency/version bump patterns — may contain security patches; require body scan
+CVE_DEP_PATTERN='^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump'
+# Combined: either explicit or dep pattern matches the CVE bucket initially
+CVE_PATTERN="${CVE_EXPLICIT}|${CVE_DEP_PATTERN}"
+CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-|^dependabot/|^renovate/'
 BUGFIX_PATTERN='^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+'
 BUGFIX_BRANCH_PATTERN='^(bugfix|fix|bug)/'
+# Keyword that confirms a dep-pattern match is security-relevant
+SECURITY_BODY='CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|security|vulnerab|security.advisory'
 
 if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
   # Manual mode: classify each PR, fallback to both buckets if unmatched
@@ -215,8 +222,8 @@ if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
       (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
       (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
     ) and
-    (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
-    (.headRefName | test("^fix/cve-"; "i") | not)
+    (.title | test("'"$CVE_PATTERN"'"; "i") | not) and
+    (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i") | not)
   )]' "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
     > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
 
@@ -253,12 +260,36 @@ else
         (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
         (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
       ) and
-      (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
-      (.headRefName | test("^fix/cve-"; "i") | not)
+      (.title | test("'"$CVE_PATTERN"'"; "i") | not) and
+      (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i") | not)
     )
   ] | .[:$limit]' \
     "/tmp/guidance-gen/$REPO_SLUG/all-prs.json" \
     > "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json"
+fi
+
+# Body scan: for dep-pattern matches without an explicit CVE/GHSA in the title,
+# fetch the PR body and verify it contains a security indicator.
+# Explicit CVE/GHSA/Security titles pass through unconditionally.
+# Only runs in auto mode — manual --pr mode trusts the user's selection.
+if [ -z "$SPECIFIC_PR_NUMBERS" ]; then
+  DEP_ONLY_NUMS=$(jq -r '[.[] | select(
+    (.title | test("'"$CVE_DEP_PATTERN"'"; "i")) and
+    (.title | test("'"$CVE_EXPLICIT"'"; "i") | not)
+  ) | .number] | .[]' "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json")
+
+  for PR_NUM in $DEP_ONLY_NUMS; do
+    BODY=$(gh pr view "$PR_NUM" --repo "$REPO" --json body \
+      --jq '.body // ""' 2>/dev/null | sanitize_str)
+    if ! echo "$BODY" | grep -qiE "$SECURITY_BODY"; then
+      echo "  Dropped PR #$PR_NUM from CVE bucket — dep update with no security signal in body"
+      jq --argjson n "$PR_NUM" '[.[] | select(.number != $n)]' \
+        "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json" \
+        > "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json.tmp" \
+        && mv "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json.tmp" \
+              "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json"
+    fi
+  done
 fi
 
 CVE_TOTAL=$(jq 'length' "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json")
@@ -322,6 +353,17 @@ fetch_commit_fallback() {
     # Filter by message pattern for this bucket
     echo "$TITLE" | grep -qiE "$MSG_PATTERN" || continue
 
+    # For dep/bump commits without an explicit CVE/GHSA in the title,
+    # verify the commit body contains a security indicator.
+    # MSG_RAW already contains the full message — no extra API call needed.
+    if echo "$TITLE" | grep -qiE "^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"; then
+      if ! echo "$TITLE" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):"; then
+        if ! echo "$MSG_RAW" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|security|vulnerab"; then
+          continue  # dep update with no security signal — skip
+        fi
+      fi
+    fi
+
     # Fetch file list for this commit (targeted — only for matched commits)
     local FILES
     FILES=$(gh api "repos/$REPO/commits/$SHA" \
@@ -363,7 +405,7 @@ fetch_commit_fallback() {
 fetch_commit_fallback "cve" \
   "/tmp/guidance-gen/$REPO_SLUG/cve-meta.json" \
   "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
-  "CVE-[0-9]{4}-[0-9]+|^security:|^fix\(cve\):|^Fix CVE"
+  "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE|^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"
 
 fetch_commit_fallback "bugfix" \
   "/tmp/guidance-gen/$REPO_SLUG/bugfix-meta.json" \

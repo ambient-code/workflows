@@ -258,10 +258,15 @@ In **auto mode**: CVE PRs take priority. In **manual mode (`--pr`)**: if a
 specified PR matches neither pattern, include it in both buckets for Claude to classify.
 
 ```bash
-CVE_PATTERN='CVE-[0-9]{4}-[0-9]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
-CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-'
+# Explicit CVE/security signals — pass through unconditionally
+CVE_EXPLICIT='CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE'
+# Dependency/version bump patterns — require body scan to confirm security relevance
+CVE_DEP_PATTERN='^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump'
+CVE_PATTERN="${CVE_EXPLICIT}|${CVE_DEP_PATTERN}"
+CVE_BRANCH_PATTERN='^fix/cve-|^security/cve-|^dependabot/|^renovate/'
 BUGFIX_PATTERN='^fix[:(]|^bugfix|^bug[[:space:]]fix|closes[[:space:]]#[0-9]+|fixes[[:space:]]#[0-9]+'
 BUGFIX_BRANCH_PATTERN='^(bugfix|fix|bug)/'
+SECURITY_BODY='CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|security|vulnerab|security.advisory'
 
 jq '[.[] | select(
   (.title | test("'"$CVE_PATTERN"'"; "i")) or
@@ -274,8 +279,8 @@ jq '[.[] | select(
     (.title | test("'"$BUGFIX_PATTERN"'"; "i")) or
     (.headRefName | test("'"$BUGFIX_BRANCH_PATTERN"'"; "i"))
   ) and
-  (.title | test("CVE-[0-9]{4}-[0-9]+"; "i") | not) and
-  (.headRefName | test("^fix/cve-"; "i") | not)
+  (.title | test("'"$CVE_PATTERN"'"; "i") | not) and
+  (.headRefName | test("'"$CVE_BRANCH_PATTERN"'"; "i") | not)
 )]' "/tmp/guidance-gen/$REPO_SLUG/new-all-prs.json" \
   > "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json"
 
@@ -295,6 +300,29 @@ if [ -n "$SPECIFIC_PR_NUMBERS" ]; then
         && mv "${META_FILE}.tmp" "$META_FILE"
     done
   fi
+fi
+
+# Body scan: for dep-pattern matches without an explicit CVE/GHSA title,
+# verify the PR body contains a security indicator before keeping it.
+# Only runs in auto mode — manual --pr mode trusts the user's selection.
+if [ -z "$SPECIFIC_PR_NUMBERS" ]; then
+  DEP_ONLY_NUMS=$(jq -r '[.[] | select(
+    (.title | test("'"$CVE_DEP_PATTERN"'"; "i")) and
+    (.title | test("'"$CVE_EXPLICIT"'"; "i") | not)
+  ) | .number] | .[]' "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json")
+
+  for PR_NUM in $DEP_ONLY_NUMS; do
+    BODY=$(gh pr view "$PR_NUM" --repo "$REPO" --json body \
+      --jq '.body // ""' 2>/dev/null | sanitize_str)
+    if ! echo "$BODY" | grep -qiE "$SECURITY_BODY"; then
+      echo "  Dropped PR #$PR_NUM from CVE bucket — dep update with no security signal in body"
+      jq --argjson n "$PR_NUM" '[.[] | select(.number != $n)]' \
+        "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json" \
+        > "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json.tmp" \
+        && mv "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json.tmp" \
+              "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json"
+    fi
+  done
 fi
 
 # Zero out skipped buckets so subsequent steps treat them as empty
@@ -348,6 +376,16 @@ fetch_commit_fallback() {
 
     echo "$TITLE" | grep -qiE "$MSG_PATTERN" || continue
 
+    # For dep/bump commits without explicit CVE/GHSA in title, verify body has security signal.
+    # MSG_RAW already contains the full message — no extra API call needed.
+    if echo "$TITLE" | grep -qiE "^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"; then
+      if ! echo "$TITLE" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):"; then
+        if ! echo "$MSG_RAW" | grep -qiE "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|security|vulnerab"; then
+          continue  # dep update with no security signal — skip
+        fi
+      fi
+    fi
+
     local FILES
     FILES=$(gh api "repos/$REPO/commits/$SHA" \
       --jq '[.files[].filename]' 2>/dev/null || echo "[]")
@@ -386,7 +424,7 @@ fetch_commit_fallback() {
 fetch_commit_fallback "cve" \
   "/tmp/guidance-gen/$REPO_SLUG/new-cve-meta.json" \
   "/tmp/guidance-gen/$REPO_SLUG/cve-commits.json" \
-  "CVE-[0-9]{4}-[0-9]+|^security:|^fix\(cve\):|^Fix CVE"
+  "CVE-[0-9]{4}-[0-9]+|GHSA-[a-zA-Z0-9-]+|^[Ss]ecurity:|^fix\(cve\):|^Fix CVE|^[Bb]ump |^deps\(|^build\(deps\)|^chore.*upgrade|^chore.*bump"
 
 fetch_commit_fallback "bugfix" \
   "/tmp/guidance-gen/$REPO_SLUG/new-bugfix-meta.json" \
