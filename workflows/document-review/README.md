@@ -1,6 +1,6 @@
 # Document Review Workflow
 
-Systematic workflow for reviewing a project's documentation — assessing quality, completeness, accuracy, and consistency, then generating actionable findings and fixes.
+Systematic workflow for reviewing a project's documentation — assessing quality, completeness, accuracy, and consistency, then generating actionable findings.
 
 ## Features
 
@@ -11,6 +11,51 @@ Systematic workflow for reviewing a project's documentation — assessing qualit
 - Runs quality-review and code-check in parallel as sub-agents for speed
 - Creates Jira epics with child bugs/tasks from the report via Jira REST API
 - Supports a full-review mode for one-shot review
+
+## Quick Start
+
+### Loading the Workflow
+
+In ACP, select **Custom Workflow…** and fill in:
+
+| Field | Value |
+|-------|-------|
+| **URL** | `https://github.com/ambient-code/workflows.git` |
+| **Branch** | `main` |
+| **Path** | `workflows/document-review` |
+
+Then open or point the session at the project whose documentation you want to review.
+
+### One-Shot Review
+
+Run `/full-review` — this executes scan → quality-review + code-check (parallel) → report automatically. Results are written to `artifacts/`.
+
+### Step-by-Step Review
+
+For more control, run phases individually:
+
+1. `/scan` — discover and catalog all docs
+2. `/quality-review` — deep quality analysis (runs as sub-agent)
+3. `/code-check` — cross-reference docs against source code (runs as sub-agent, parallel with quality-review)
+4. `/report` — consolidate findings into a single report
+5. `/jira` — create Jira issues from the report (optional, requires Jira credentials)
+
+### Environment Variables
+
+Only required if using `/jira`:
+
+| Variable | Required | `/jira` Argument | Description |
+|----------|----------|------------------|-------------|
+| `JIRA_URL` | Yes | — | Base URL of the Jira instance (e.g., `https://myorg.atlassian.net`) |
+| `JIRA_EMAIL` | Yes | — | Email address for authentication |
+| `JIRA_API_TOKEN` | Yes | — | API token for authentication |
+| `JIRA_PROJECT` | No | first positional arg | Default project key |
+| `JIRA_COMPONENT` | No | `component=<name>` | Default component name |
+| `JIRA_LABELS` | No | `labels=<a,b,c>` | Default comma-separated labels |
+| `JIRA_TEAM` | No | `team=<name>` | Default team name |
+| `JIRA_INITIAL_STATUS` | No | `status=<name>` | Workflow transition after creation (e.g., `Backlog`) |
+
+> **Warning:** `/jira` uses `curl` to call the Jira REST API directly because the Atlassian MCP does not support creating epics or issues. Your `JIRA_API_TOKEN` will be visible in the session history.
 
 ## Directory Structure
 
@@ -49,7 +94,7 @@ workflows/document-review/
 |---------|---------|
 | `/scan` | Discover and catalog all documentation in the project |
 | `/quality-review` | Deep quality review against 7 dimensions |
-| `/code-check` | Cross-reference docs against source code (optional) |
+| `/code-check` | Cross-reference docs against source code |
 | `/report` | Consolidate all findings into a deduplicated report |
 | `/jira` | Create Jira epic with child bugs/tasks from the report (optional) |
 | `/full-review` | Run scan → quality-review + code-check → report in one shot |
@@ -57,8 +102,8 @@ workflows/document-review/
 ## Workflow Phases
 
 ```text
-scan ──┬──> quality-review (sub-agent) ──┬──> report
-       └──> code-check (sub-agent)    ──┘       └──> jira
+scan ──┬──> quality-review (sub-agent) ──┬──> report ──> jira (optional)
+       └──> code-check (sub-agent)     ──┘       
 ```
 
 Quality review and code check are independent after scan — they run in parallel as sub-agents, each writing to its own findings file.
@@ -71,7 +116,7 @@ Discovers all documentation files using glob patterns. Catalogs each file by pat
 
 Deep-reads each document evaluating 7 quality dimensions: accuracy, completeness, consistency, clarity, currency, structure, and examples. Identifies target audience per document and assesses audience-appropriateness. Classifies findings by severity.
 
-### 3. Code Check (Optional)
+### 3. Code Check
 
 Runs a three-stage pipeline to systematically verify documentation against source code:
 
@@ -122,12 +167,3 @@ Output files are written to `artifacts/`:
 | `artifacts/findings-quality-review.md` | Detailed findings by document |
 | `artifacts/findings-code-check.md` | Code verification findings |
 | `artifacts/report.md` | Consolidated findings report |
-
-## Quick Start
-
-1. Point the workflow at a project repository
-2. Run `/scan` to discover documentation (or `/full-review` for the full pipeline)
-3. Run `/quality-review` for quality analysis
-4. Optionally run `/code-check` to check docs against code
-5. Run `/report` to consolidate all findings
-6. Optionally run `/jira` to create Jira issues for tracking
