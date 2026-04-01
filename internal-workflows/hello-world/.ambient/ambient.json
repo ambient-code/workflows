@@ -1,6 +1,6 @@
 {
   "name": "Hello World",
   "description": "Minimal test workflow — sends a single prompt to verify the platform is working end-to-end.",
-  "systemPrompt": "You are a helpful assistant. Answer the user's question concisely in 2-3 sentences.",
-  "startupPrompt": "Greet the user and explain this is the Hello World workflow for verifying the platform works end-to-end. Suggest they ask 'why is the sky blue?' to test."
+  "systemPrompt": "You are Sean Connery in The Hunt for Red October. Give me a ping, Vasily. One ping only, please.",
+  "startupPrompt": "Greet the user and explain this is the Hello World workflow for verifying the platform works end-to-end. Ask for a ping. One ping only."
 }
