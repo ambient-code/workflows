@@ -7,10 +7,10 @@ description: Generate a comprehensive sprint health report from Jira data (CSV o
 
 You are generating a sprint health report. Follow the full pipeline below.
 
-**Reference files** (read when needed, not upfront):
+**Reference files** (read these in Step 1a before querying Jira):
 
-- `references/jira-fields.md` — custom field IDs and discovery
-- `references/jira-query-patterns.md` — JQL patterns and data volume guidance
+- `.claude/skills/sprint-report/references/jira-fields.md` — custom field IDs and discovery
+- `.claude/skills/sprint-report/references/jira-query-patterns.md` — JQL patterns and data volume guidance
 
 ## Step 0: Discovery & Proposal
 
@@ -41,14 +41,41 @@ If Jira MCP is available:
    - If multiple active sprints: include all in proposal and ask which one
    - If none: offer the most recently closed sprint
 3. **Get a rough item count** (for the proposal only):
-   - `jira_get_sprint_issues(sprint_id=SPRINT_ID, fields="summary,status,assignee")`
+   - `jira_get_sprint_issues(sprint_id=SPRINT_ID, fields="summary,status,assignee,components,customfield_10001")`
    - Count total items and unique assignees from the response
-   - Do NOT fetch story points or custom fields yet — that happens in Step 1
+   - Do NOT fetch story points, description, or other heavy fields yet
 
 This is a lightweight preview. Full field discovery and data ingestion happen
 in Step 1 after the user approves the plan.
 
-### 0c. Propose a Plan
+### 0c. Detect Mixed-Team Sprints
+
+Before proposing the plan, check if the sprint contains work from multiple
+teams. Shared boards in large organizations often include release-wide items.
+
+**Indicators of a mixed-team sprint:**
+
+- Items span >2 Jira projects
+- >15 unique assignees
+- Multiple distinct values in Team field (`customfield_10001`)
+- High component diversity (>5 components)
+
+**If detected, include filtering options in the proposal:**
+
+```
+I found [Sprint Name] with [N] items, but they span multiple teams/projects.
+
+Filtering options:
+1. Team = "[Team Name]" → [X] items
+2. Component contains "[Component]" → [Y] items
+3. All items (no filter) → [N] items
+
+Which scope should I analyze? (Recommend: option 1 for team health)
+```
+
+Apply the chosen filter in Step 1b.
+
+### 0d. Propose a Plan
 
 Present a short proposal:
 
@@ -78,7 +105,7 @@ affirmative response ("yes", "approve", "looks good", "proceed", "continue")
 means go. If the user requests changes, adjust the plan and re-propose. Do
 not stall or ask for further confirmation after receiving approval.
 
-### 0d. CSV or Other Source
+### 0e. CSV or Other Source
 
 If Jira MCP is not available, or the user provides a CSV:
 
@@ -91,9 +118,9 @@ The user has approved the plan. Now fetch the full data set.
 
 ### 1a. Discover Custom Fields
 
-Read `references/jira-fields.md` for known field IDs. If the Jira instance
-is `redhat.atlassian.net`, use the confirmed IDs in the "Known Fields"
-section — no discovery needed.
+Read `.claude/skills/sprint-report/references/jira-fields.md` for known field
+IDs. If the Jira instance is `redhat.atlassian.net`, use the confirmed IDs in
+the "Known Fields" section — no discovery needed.
 
 For other instances, confirm the correct IDs:
 
@@ -107,7 +134,8 @@ For other instances, confirm the correct IDs:
 Now re-fetch the sprint data with the **complete field list**. The lightweight
 query from Step 0b was just for the proposal — this is the real data pull.
 
-See `references/jira-query-patterns.md` for details.
+See `.claude/skills/sprint-report/references/jira-query-patterns.md` for
+details.
 
 ```
 jira_get_sprint_issues(
@@ -118,8 +146,37 @@ jira_get_sprint_issues(
 
 Replace `customfield_XXXXX` and `customfield_YYYYY` with the IDs from 1a.
 
+If a team filter was chosen in Step 0c, apply it after fetching: keep only
+items where the Team field, component, or assignee matches the filter.
+
 **DO NOT use `fields=*all`** — this returns 100+ custom fields per issue and
 can produce 500k+ characters, exceeding tool output limits.
+
+### Handling Large Responses
+
+For sprints with >20 items, the response will likely exceed tool output limits
+(~25k tokens) and be **auto-saved to a file**. The error message contains the
+file path.
+
+**Parse the saved file with bash + jq:**
+
+```bash
+jq '.result | fromjson | .issues | map({
+  key, summary,
+  status: .status.name,
+  issuetype: (.issuetype.name // "Unknown"),
+  priority: (.priority.name // "Undefined"),
+  assignee: (.assignee.display_name // "Unassigned"),
+  story_points: (.customfield_10028.value // 0),
+  sprint: [.customfield_10020.value[]? | {name, state}],
+  created, updated, resolutiondate,
+  components: [.components[]?.name],
+  description: (.description // "")
+})' /path/to/tool-result.txt > /tmp/sprint_data.json
+```
+
+Then read `/tmp/sprint_data.json` with the Read tool. Adjust the
+`customfield_10028` key to match the story points field ID from Step 1a.
 
 ### 1c. Handle Mixed Sprints
 
@@ -141,9 +198,10 @@ After ingesting data, compute coverage:
 | Check | How to Measure |
 | --- | --- |
 | Story points | % of items with a non-null, non-zero points field |
+| Issue type | % of items with non-null `issuetype` |
 | Resolution dates | % of items with `resolutiondate` set |
 | Acceptance criteria | % of items with AC patterns in `description` |
-| Priority | % of items with priority set |
+| Priority | % of items with priority set (not "Undefined") |
 | Assignee | % of items with an assignee |
 
 **Minimum requirements:**
@@ -159,6 +217,8 @@ After ingesting data, compute coverage:
 | Velocity | Avg points per sprint | Avg items per sprint | "Item-based velocity" |
 | Cycle Time | Created → resolved (days) | Days in current status | "Estimated from status duration" |
 | Story Sizing | Point distribution | Item type distribution | "Cannot analyze sizing without estimates" |
+| Priority Analysis | Priority distribution | Skip dimension | "Priority data unavailable (X% Undefined)" |
+| Issue Type Analysis | Type breakdown | Treat all as "Item" | "Issue type data unavailable" |
 
 If 2+ critical gaps exist (no points + no priorities + no AC + <3 days
 elapsed), warn the user:
@@ -173,7 +233,8 @@ Executive Summary.
 
 Query the last 3–5 closed sprints from the same board. For each, retrieve
 issues the same way as the active sprint and calculate: velocity, completion
-rate, carryover count. See `references/jira-query-patterns.md` for queries.
+rate, carryover count. See
+`.claude/skills/sprint-report/references/jira-query-patterns.md` for queries.
 
 If fewer than 3 closed sprints exist, skip trends and note it in the report.
 
@@ -193,7 +254,7 @@ data is insufficient rather than omitting the dimension.
 | --- | --- |
 | Commitment Reliability | delivery rate (points or items completed / committed), item completion rate |
 | Scope Stability | items added/removed mid-sprint, scope change %, sprint goal alignment |
-| Flow Efficiency | cycle time, WIP count, status distribution (see cycle time tools below) |
+| Flow Efficiency | cycle time, WIP count, status distribution |
 | Story Sizing | point distribution, oversized items (>8 pts), unestimated items |
 | Work Distribution | load per assignee, concentration risk (>30% = flag), unassigned items |
 | Blocker Analysis | flagged items, blocking/blocked relationships, impediment duration |
@@ -202,20 +263,23 @@ data is insufficient rather than omitting the dimension.
 
 ### Cycle Time Calculation
 
-Prefer specialized tools over manual date arithmetic:
+Use `created` → `resolutiondate` from the sprint issue data. This is
+sufficient for sprint health reports.
 
-1. **Best:** `jira_get_issue_sla` — returns pre-computed cycle time, lead
-   time, and time-in-status breakdowns. Call for resolved items.
-2. **Good:** `jira_get_issue_dates` — returns status transition history.
-   Calculate cycle time as the span from first "In Progress" transition to
-   resolution.
-3. **Fallback:** `created` → `resolutiondate` from sprint issue data (less
-   accurate — includes backlog time).
+For deeper analysis on small sprints (<15 items), optionally call
+`jira_get_issue_dates` for the top 5–10 resolved items to get precise
+time-in-status breakdowns. Do NOT call it for every item — the API overhead
+is not worth it for sprint-level reporting.
 
-For items still in progress, use `jira_get_issue_dates` to get time-in-status
-for the current status. This is useful for WIP aging analysis.
+### Progress Bar Point Calculation
 
-Batch these calls for the top 10–15 items to avoid excessive API calls.
+The template requires point breakdowns by status. Calculate:
+
+1. **Done points:** Sum story points where status is Done/Closed/Resolved
+2. **Review/In Progress/New points:** Sum story points per status group
+3. If items lack individual point estimates, distribute remaining points
+   proportionally by item count per status
+4. Compute percentages: `status_pct = (status_points / total_points) * 100`
 
 ### Sprint Goal Alignment
 
@@ -320,9 +384,13 @@ Every report follows this structure regardless of format:
 6. **Coaching Notes** — retrospective facilitation, sprint planning, backlog refinement
 7. **Appendix** — per-item detail table with status, points, assignee, sprint history
 
-### HTML Template
+### HTML Template (MANDATORY)
 
-Before generating the HTML report, **Read** the template at `templates/report.html`.
+**Do NOT create HTML from scratch.** You MUST use the template.
+
+Read the template at `templates/report.html`. The file is ~1285 lines — read
+it in chunks if needed (e.g., offset=1/limit=500, then offset=501/limit=500,
+then offset=1001/limit=285).
 
 - Use the exact CSS, HTML structure, and JavaScript from the template
 - Replace all `{{PLACEHOLDER}}` markers with computed values
@@ -337,6 +405,13 @@ Before generating the HTML report, **Read** the template at `templates/report.ht
 - Do NOT add features not present in the template (charts, trend graphs, etc.)
 - Preserve the sidebar table of contents and all section IDs for scroll-spy
 
+**Why this matters:** The template contains 753 lines of production CSS,
+interactive JavaScript (KPI details, scroll-spy), dark mode, print/PDF
+export, and responsive layout. Creating HTML from scratch loses all of this.
+
+Use a Python script to handle placeholder replacement and repeating section
+generation — see "Scripting Policy" below.
+
 ### Placeholder Derivation
 
 Key placeholders and how to derive them:
@@ -348,27 +423,44 @@ Key placeholders and how to derive them:
 - `{{DELIVERY_RATE_SUB}}` — "X of Y items completed" or "X of Y points completed"
 - Progress bar widths — use point totals if available, otherwise item counts;
   show label only if segment width >10%
+- `{{DONE_PCT}}`, `{{REVIEW_PCT}}`, `{{INPROG_PCT}}`, `{{NEW_PCT}}` — percentage widths from progress bar calculation
 
-## Step 6: Changelog Analysis (Conditional)
+After rendering, verify no unreplaced placeholders remain:
+`grep "{{" output.html` should return nothing.
 
-Changelogs add significant payload. Do NOT include `expand=changelog` on the
-main sprint query in Step 1b — fetch changelogs separately for targeted items.
+## Step 6: Changelog Analysis (Optional)
+
+Changelog analysis is **optional enrichment**. The core report (Steps 1–5) is
+complete without it.
+
+### When to Include
+
+- Sprint has <20 items (low data volume)
+- Team specifically requested deep analysis
+- Investigating known process issues (thrashing, reassignment)
+
+### When to Skip
+
+- Sprint has >30 items (data volume too high)
+- Basic anti-patterns (zombie items, carryover) already detected
+- Time-constrained analysis
+- First-time runs (get baseline report first)
+
+### If Including
 
 **Preferred tool:** `jira_batch_get_changelogs` — fetches changelogs for
-multiple issue keys in one call. Use this for the top 10–15 highest-risk
-items (oldest, blocked, carryover, reassigned).
+multiple issue keys in one call.
 
 ```
 jira_batch_get_changelogs(issue_keys=["KEY-1", "KEY-2", "KEY-3", ...])
 ```
 
+Limit to the top 10–15 highest-risk items (oldest, blocked, carryover).
+
 **Fallback** (if batch tool is unavailable): `jira_search` with
 `key in (KEY-1, KEY-2, ...)` and `expand=changelog`.
 
-**If skipping entirely:** note in the report that some anti-patterns (item
-repurposing, hidden work, reassignment churn) could not be assessed.
-
-### What to Extract from Changelogs
+### What to Extract
 
 | Pattern | What to Look For |
 | --- | --- |
@@ -378,12 +470,26 @@ repurposing, hidden work, reassignment churn) could not be assessed.
 | Sprint hopping | `Sprint` field changed (added/removed mid-sprint) |
 | Hidden work | no status transitions since item was added |
 
+### If Skipping
+
+Add a note in the report:
+
+> Changelog analysis was not performed. Anti-patterns requiring change history
+> (item repurposing, reassignment churn, status regression) could not be
+> assessed.
+
 Integrate findings into the report on the first write — do not produce the
 report and then rewrite it.
 
-## Critical Constraints
+## Scripting Policy
 
-- Do NOT build Python scripts, CLI tools, or reusable analyzers
+- **Use Python scripts** for data processing that exceeds what tool calls and
+  inline reasoning can handle: metric computation, template placeholder
+  replacement, large JSON transformations
+- **Use bash + jq** for simple transforms: extracting fields from tool result
+  files, filtering, counting
+- **Do NOT** create reusable frameworks, CLI tools, or generalized analyzers
+  meant for distribution — scripts should be sprint-specific and disposable
 - Do NOT implement features the user didn't ask for (dark mode, PDF export, trend charts, etc.)
 - Batch tool calls wherever possible (parallel `jira_search` calls, not serial)
 - Stick to the requested output format(s) — don't produce both unless asked
