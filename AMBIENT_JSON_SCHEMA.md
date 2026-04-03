@@ -80,62 +80,18 @@ interface AmbientConfig {
 **Should Include**:
 
 1. **Role definition**: "You are a [role]..."
-2. **Available slash commands**: `/command` with descriptions
-3. **Workflow phases**: Step-by-step methodology
-4. **Output locations**: Where to write artifacts (e.g., `artifacts/specsmith/`)
-5. **Agent orchestration**: Which specialized agents to invoke and when
-6. **API integrations**: Instructions for Jira/GitHub/etc.
-7. **Best practices**: Conventions and quality standards
-8. **Error handling**: How to handle failures
+2. **Workspace navigation**: Standard file locations and tool selection rules
+3. **Workflow entry point**: Point to the skill(s) that contain the methodology (e.g., "Read and execute `.claude/skills/my-skill/SKILL.md`")
+4. **Output locations**: Where to write artifacts (e.g., `artifacts/my-workflow/`)
+5. **Error handling**: How to handle failures
 
-**Example Structure**:
+**Note**: Keep the systemPrompt focused on role, navigation, and entry points. Move detailed methodology into `.claude/skills/` files. This keeps the ambient.json readable and makes the methodology easier to maintain. The agent already knows how to use tools, read files, and follow instructions — the systemPrompt just needs to tell it *what* to do and *where* things are.
+
+**Example**:
 
 ```json
-"systemPrompt": "You are Specsmith, a spec-driven development assistant.
-
-## Available Commands
-
-- `/spec.interview` - Start interactive feature interview
-- `/spec.speedrun` - Quick planning mode
-- `/validate` - Validate implementation plan
-
-## Workflow Phases
-
-### Phase 1: Interview
-Conduct structured interview with user...
-
-### Phase 2: Planning
-Generate implementation plan...
-
-## Specialized Agents
-
-Invoke these agents as needed:
-- **Quinn (Architect)**: System design and architecture
-- **Maya (Engineer)**: Implementation details
-- **Alex (QA)**: Testing strategy
-
-## Output Structure
-
-All artifacts go in `artifacts/specsmith/`:
-- `interview-notes.md` - Interview Q&A
-- `PLAN.md` - Implementation plan
-- `validation-report.md` - Validation results
-
-## Best Practices
-
-1. Always validate user requirements
-2. Consider edge cases early
-3. Generate testable acceptance criteria
-..."
+"systemPrompt": "You are a Sprint Health Analyst.\n\nStandard file locations:\n- Skill: .claude/skills/sprint-report/SKILL.md\n- Template: templates/report.html\n- Outputs: artifacts/sprint-report/\n\nOnce the user provides context, read and execute the sprint-report skill."
 ```
-
-**Real-World Example** (from Specsmith):
-
-- 5 workflow phases defined
-- 5 specialized agent personas (Quinn, Maya, Alex, Casey, Dana)
-- Multiple slash commands
-- Detailed artifact structure
-- ~3000+ characters
 
 ---
 
@@ -146,18 +102,18 @@ All artifacts go in `artifacts/specsmith/`:
 **Guidelines**:
 
 - Write as an instruction to the agent (e.g., "Greet the user and introduce yourself as...")
-- Tell the agent what information to include in its greeting (available commands, purpose, etc.)
+- Tell the agent what information to include in its greeting
 - Keep it concise -- 1-3 sentences directing the agent's behavior
 - Do NOT write it as a greeting the user would see directly
 
 **Examples**:
 
 ```json
-"startupPrompt": "Greet the user and introduce yourself as a spec-driven development assistant. Mention the available commands (/spec.interview, /spec.speedrun, /validate) and suggest starting with /spec.interview."
+"startupPrompt": "Greet the user as a Sprint Health Analyst. Ask for their data source, team name, sprint details, audience, and preferred output format."
 
-"startupPrompt": "Introduce yourself as a bug fix assistant. Briefly explain that you help triage, analyze, and fix bugs systematically. Mention the /fix command and ask the user to describe their bug."
+"startupPrompt": "Introduce yourself as a bug fix assistant. Ask the user to describe the bug or provide an issue URL."
 
-"startupPrompt": "Greet the user and explain that you help collect user feedback through structured interviews. Mention Jira and GitHub integration and suggest using /interview to start."
+"startupPrompt": "Greet the user and explain that you help collect user feedback through structured interviews. Ask what product area they want to cover."
 ```
 
 ---
@@ -220,29 +176,11 @@ workflow-repository/
 └── [other workflow files]
 ```
 
-### Loading Code
+### How the Platform Uses ambient.json
 
-The platform loads ambient.json at startup:
-
-**File**: `platform/components/runners/ambient-runner/ambient_runner/platform/config.py`
-
-```python
-def load_ambient_config(cwd_path: str) -> dict:
-    """Load ambient.json configuration from workflow directory."""
-    config_path = Path(cwd_path) / ".ambient" / "ambient.json"
-    if not config_path.exists():
-        return {}
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-        logger.info(f"Loaded ambient.json: name={config.get('name')}")
-        return config
-```
-
-### Usage
-
-1. **System prompt injection** (`prompts.py`): `systemPrompt` is appended to the workspace context prompt
-2. **Startup directive** (`app.py`): `startupPrompt` sent to agent as hidden user message at session start
-3. **Workflow metadata API** (`content.py`): `name`, `description`, and other fields returned via `/content/workflow-metadata` endpoint
+1. **System prompt injection**: `systemPrompt` is appended to the workspace context prompt
+2. **Startup directive**: `startupPrompt` is sent to the agent as a hidden user message at session start
+3. **Workflow metadata API**: `name`, `description`, and other fields are returned via the `/content/workflow-metadata` endpoint
 
 ---
 
@@ -285,31 +223,13 @@ def load_ambient_config(cwd_path: str) -> dict:
 
 ```json
 {
-  "name": "Feature Planning Workflow",
-  "description": "Plan features through structured interviews and generate implementation specs",
-  "systemPrompt": "You are a feature planning assistant.\n\n## Commands\n- /interview - Start interview\n- /plan - Generate plan\n\n## Output\nWrite all artifacts to artifacts/planning/",
-  "startupPrompt": "Greet the user and introduce yourself as a feature planning assistant. Mention the /interview and /plan commands and suggest starting with /interview.",
+  "name": "Sprint Health Report",
+  "description": "Generates sprint health reports from Jira data with risk ratings, anti-pattern detection, and coaching recommendations.",
+  "systemPrompt": "You are a Sprint Health Analyst...\n\nWORKSPACE NAVIGATION:\n- Skill: .claude/skills/sprint-report/SKILL.md\n- Template: templates/report.html\n- Outputs: artifacts/sprint-report/\n\nWORKFLOW:\nOnce the user answers the startup questions, read and execute the sprint-report skill.",
+  "startupPrompt": "Greet the user as a Sprint Health Analyst. Ask the intake questions: data source, team/sprint name, audience, output format, and whether they have historical data for comparison. List the default assumptions and ask the user to confirm or correct them.",
   "results": {
-    "Interview Notes": "artifacts/planning/interview.md",
-    "Implementation Plan": "artifacts/planning/plan.md"
-  }
-}
-```
-
-### Comprehensive Example (Specsmith-style)
-
-```json
-{
-  "name": "Specsmith Workflow",
-  "description": "Transform feature ideas into implementation-ready plans through structured interviews with multi-agent collaboration",
-  "systemPrompt": "You are Specsmith, a spec-driven development assistant...\n\n[Extensive system prompt with phases, agents, commands, output structure]\n\n## Phase 1: Interview\n...\n\n## Specialized Agents\n- Quinn (Architect)\n- Maya (Engineer)\n- Alex (QA)\n...",
-  "startupPrompt": "Greet the user as Specsmith. Explain that you transform feature ideas into implementation-ready plans. List the commands: /spec.interview, /spec.speedrun, /validate. Suggest starting with /spec.interview.",
-  "results": {
-    "Interview Notes": "artifacts/specsmith/interview-notes.md",
-    "Implementation Plan": "artifacts/specsmith/PLAN.md",
-    "Validation Report": "artifacts/specsmith/validation-report.md",
-    "Speedrun Summary": "artifacts/specsmith/speedrun-summary.md",
-    "All Artifacts": "artifacts/specsmith/**/*"
+    "Health Reports (Markdown)": "artifacts/sprint-report/**/*.md",
+    "Health Reports (HTML)": "artifacts/sprint-report/**/*.html"
   }
 }
 ```
@@ -321,13 +241,12 @@ def load_ambient_config(cwd_path: str) -> dict:
 ### System Prompt Design
 
 1. **Be specific about role**: Define exact persona and expertise
-2. **Document all commands**: List every `/command` with purpose
-3. **Define workflow phases**: Clear step-by-step methodology
-4. **Specify output locations**: Absolute paths for artifacts
-5. **Include agent orchestration**: When to invoke specialized agents
-6. **Add error handling**: How to recover from failures
-7. **Use markdown formatting**: Headers, lists, code blocks for readability
-8. **Add workspace navigation guidance**: Help Claude find files efficiently (see [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md))
+2. **Add workspace navigation guidance**: Standard file locations and tool selection rules (see [WORKSPACE_NAVIGATION_GUIDELINES.md](WORKSPACE_NAVIGATION_GUIDELINES.md))
+3. **Point to skills**: For complex workflows, reference the skill file(s) that contain the methodology
+4. **Specify output locations**: Where artifacts are written (e.g., `artifacts/my-workflow/`)
+5. **Add error handling**: How to recover from failures
+6. **Use markdown formatting**: Headers, lists, code blocks for readability
+7. **Keep it focused**: Delegate detailed methodology to skills rather than cramming everything into the systemPrompt
 
 ### Startup Prompt Design
 
@@ -348,12 +267,22 @@ def load_ambient_config(cwd_path: str) -> dict:
 workflow-repo/
 ├── .ambient/
 │   └── ambient.json          ← Configuration here
-├── artifacts/                ← Output location (in systemPrompt)
-│   └── workflow-name/
-│       ├── interview.md
-│       └── plan.md
+├── .claude/
+│   └── skills/               ← Skill definitions (preferred)
+│       └── my-skill/
+│           └── SKILL.md
+├── templates/                ← Optional templates
 ├── README.md
 └── scripts/                  ← Optional helper scripts
+```
+
+At runtime, artifacts are written relative to the workspace root, not inside
+the workflow directory:
+
+```text
+/workspace/sessions/{session}/
+├── workflows/my-workflow/    ← Workflow files loaded here
+└── artifacts/my-workflow/    ← Output goes here (sibling, not nested)
 ```
 
 ---
@@ -383,7 +312,7 @@ workflow-repo/
 ```json
 {
   "systemPrompt": "You help with development"
-  // Too generic - needs phases, commands, outputs
+  // Too generic - needs role, file locations, entry point
 }
 ```
 
@@ -393,8 +322,8 @@ workflow-repo/
 {
   "name": "My Workflow",
   "description": "Detailed description of purpose",
-  "systemPrompt": "You are [role].\n\n## Commands\n- /cmd\n\n## Phases\n1. Step one\n\n## Output\nartifacts/my-workflow/",
-  "startupPrompt": "Greet the user, briefly describe your purpose, and suggest using /cmd to start.",
+  "systemPrompt": "You are [role].\n\nFile locations:\n- Skill: .claude/skills/my-skill/SKILL.md\n- Outputs: artifacts/my-workflow/\n\nRead and execute the skill when the user provides context.",
+  "startupPrompt": "Greet the user, briefly describe your purpose, and ask what they need help with.",
   "results": {
     "Output": "artifacts/my-workflow/**/*.md"
   }
@@ -412,24 +341,23 @@ workflow-repo/
 - Startup prompt execution: `platform/components/runners/ambient-runner/ambient_runner/app.py`
 - Workflow metadata API: `platform/components/runners/ambient-runner/ambient_runner/endpoints/content.py`
 
-**Example Workflows**:
+**Example Workflows** (in this repository):
 
-- `/Users/jeder/repos/workflows/workflows/specsmith-workflow/.ambient/ambient.json`
-- `/Users/jeder/repos/workflows/workflows/amber-interview/.ambient/ambient.json`
-- `/Users/jeder/repos/workflows/workflows/template-workflow/.ambient/ambient.json`
-- `/Users/jeder/repos/workflows/workflows/bugfix/.ambient/ambient.json`
-- `/Users/jeder/repos/workflows/workflows/triage/.ambient/ambient.json`
+- `workflows/bugfix/.ambient/ambient.json` — skill-based, multi-phase workflow
+- `workflows/sprint-report/.ambient/ambient.json` — skill-based, 1–2 turn workflow
+- `workflows/triage/.ambient/ambient.json` — command-based triage workflow
+- `workflows/template-workflow/.ambient/ambient.json` — minimal starter template
 
 **Documentation**:
 
-- Field reference: `workflows/template-workflow/FIELD_REFERENCE.md`
-- Platform docs: `github.com/ambient-code/platform`
+- Workflow development guide: [WORKFLOW_DEVELOPMENT_GUIDE.md](WORKFLOW_DEVELOPMENT_GUIDE.md)
+- Agent guidelines: [AGENTS.md](AGENTS.md)
 
 ---
 
 ## Summary
 
-The `ambient.json` schema has 4 required fields and 1 optional field, keeping the format lightweight and portable. The `systemPrompt` field is where workflows become powerful -- a well-crafted systemPrompt can define complex multi-phase workflows with specialized agents, API integrations, and sophisticated output structures.
+The `ambient.json` schema has 4 required fields and 1 optional field, keeping the format lightweight and portable. For simple workflows, the `systemPrompt` can contain the full methodology inline. For complex workflows, keep the `systemPrompt` focused on role and navigation, and move detailed methodology into `.claude/skills/` files that the agent reads on demand.
 
 **Minimum viable ambient.json**: 4 required string fields (`name`, `description`, `systemPrompt`, `startupPrompt`)
 **Optional**: `results` for documenting artifact locations (informational only)
