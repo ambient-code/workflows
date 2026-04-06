@@ -26,6 +26,15 @@ Artifacts go in `artifacts/bugfix/`.
 - When you're wrong, admit it quickly and course-correct.
 - Don't assume tools are missing. Check for version managers (`uv`, `pyenv`, `nvm`) before concluding a runtime isn't available.
 - **Be thorough and complete**: When fixing bugs involving states, phases, or conditions, search the codebase to identify the complete set of possible values. Don't assume you know all variants. When features interact (e.g., polling + pagination), research and understand their interactions before implementing.
+- **Use available tools and APIs fully**: Before assuming a tool or API is read-only or limited, check its full capabilities. For example, if Jira integration is available, check if you can update tickets directly via API, not just read them. Use tools to their full potential.
+- **Check all relevant branches**: When investigating bugs or looking for examples, check both main branch AND release branches (e.g., `rhoai-3.4`, `release-*` patterns). Release branches often contain production code not yet merged to main.
+- **DRY principle (Don't Repeat Yourself)**: Before creating new constants, types, or helper functions, search for existing implementations. Check:
+  - Existing constant files (e.g., `const.ts`, `constants.py`)
+  - Type definition files and barrel exports (e.g., `index.ts`, `types.ts`)
+  - Shared utility modules
+  - Never duplicate constants or types when a single source of truth exists
+- **Understand import restrictions**: Before importing from a path, understand tsconfig/module restrictions. Files at package root may not be able to import from subdirectories if tsconfig excludes them. Check tsconfig.json and existing import patterns before adding new imports.
+- **Think through edge cases**: When proposing a fix, analyze all scenarios it affects. A fix that works for the reported case but hides errors in other cases is incomplete. Distinguish between different scenarios (e.g., Helm chart builds vs. container builds) and handle each appropriately.
 
 ## Hard Limits
 
