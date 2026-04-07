@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Simple query to display all tickets marked with "Blocker" priority in the project. This highlights critical items that may be blocking other work.
+Display all tickets that are blocking other tickets via "Blocks" issue links. This highlights items that are preventing other work from progressing.
 
 ## Prerequisites
 
@@ -16,29 +16,37 @@ Simple query to display all tickets marked with "Blocker" priority in the projec
 
 2. **Query blocking tickets**:
    ```jql
-   project = {PROJECT} AND priority = Blocker AND resolution = Unresolved
+   project = {PROJECT} AND issueFunction in linkedIssuesOf("project = {PROJECT}", "blocks") AND resolution = Unresolved
    ```
-   - Fetch: key, summary, assignee, status, created, updated
+   - This finds tickets that have outward "blocks" links to other tickets
+   - Fetch: key, summary, assignee, status, created, updated, priority
+   - Also fetch issue links to see what tickets are being blocked
    - Order by updated descending (most recent first)
+   
+   **Alternative approach** (if issueFunction not available):
+   - Get all unresolved tickets
+   - For each, fetch issue links via `/rest/api/3/issue/{key}?fields=issuelinks`
+   - Filter tickets that have outward "blocks" type links
 
 3. **Format as markdown table with Jira links**:
    ```markdown
    # Blocking Tickets in {PROJECT}
    
-   **Total**: N tickets
+   **Total**: N tickets blocking M other tickets
    **Generated**: {timestamp}
-   **[View in Jira]({JIRA_URL}/issues/?jql=project+%3D+{PROJECT}+AND+priority+%3D+Blocker+AND+resolution+%3D+Unresolved)**
+   **[View in Jira]({JIRA_URL}/issues/?jql=project+%3D+{PROJECT}+AND+issueFunction+in+linkedIssuesOf%28%22project+%3D+{PROJECT}%22%2C+%22blocks%22%29+AND+resolution+%3D+Unresolved)**
    
-   | Key | Summary | Assignee | Status | Age | Last Updated |
-   |-----|---------|----------|--------|-----|--------------|
-   | [PROJ-123]({JIRA_URL}/browse/PROJ-123) | Critical API failure | John Doe | In Progress | 5d | 2d ago |
-   | [PROJ-456]({JIRA_URL}/browse/PROJ-456) | Database migration blocked | Unassigned | To Do | 12d | 3d ago |
+   | Blocking Ticket | Summary | Blocks | Assignee | Status | Priority | Last Updated |
+   |-----------------|---------|--------|----------|--------|----------|--------------|
+   | [PROJ-123]({JIRA_URL}/browse/PROJ-123) | Database migration issue | [PROJ-145]({JIRA_URL}/browse/PROJ-145), [PROJ-167]({JIRA_URL}/browse/PROJ-167) | John Doe | In Progress | High | 2d ago |
+   | [PROJ-456]({JIRA_URL}/browse/PROJ-456) | Security audit | [PROJ-500]({JIRA_URL}/browse/PROJ-500) | Unassigned | To Do | Medium | 3d ago |
    ```
    
    **Link format**:
    - Ticket links: `[{KEY}]({JIRA_URL}/browse/{KEY})`
    - Search link: `[View in Jira]({JIRA_URL}/issues/?jql={URL_ENCODED_JQL})`
    - URL-encode JQL: spaces → `+`, special chars → percent-encoded
+   - List blocked tickets in "Blocks" column as comma-separated links
 
 4. **Write report**:
    - Save to `artifacts/jira-hygiene/reports/blocking-tickets.md`
@@ -57,9 +65,9 @@ Simple query to display all tickets marked with "Blocker" priority in the projec
 ```markdown
 # Blocking Tickets in PROJ
 
-**Total**: 3 tickets  
+**Total**: 3 tickets blocking 5 other tickets  
 **Generated**: 2026-04-07 10:30 UTC  
-**[View in Jira](https://company.atlassian.net/issues/?jql=project+%3D+PROJ+AND+priority+%3D+Blocker+AND+resolution+%3D+Unresolved)**
+**[View in Jira](https://company.atlassian.net/issues/?jql=project+%3D+PROJ+AND+issueFunction+in+linkedIssuesOf%28%22project+%3D+PROJ%22%2C+%22blocks%22%29+AND+resolution+%3D+Unresolved)**
 
 ## Summary
 
@@ -69,19 +77,22 @@ Simple query to display all tickets marked with "Blocker" priority in the projec
 
 ## Tickets
 
-| Key | Summary | Assignee | Status | Age | Last Updated |
-|-----|---------|----------|--------|-----|--------------|
-| [PROJ-123](https://company.atlassian.net/browse/PROJ-123) | Critical API failure in auth endpoint | John Doe | In Progress | 5d | 2d ago |
-| [PROJ-456](https://company.atlassian.net/browse/PROJ-456) | Database migration blocked by schema lock | Unassigned | To Do | 12d | 3d ago |
-| [PROJ-789](https://company.atlassian.net/browse/PROJ-789) | Production deployment failing | Jane Smith | Code Review | 3d | 1d ago |
+| Blocking Ticket | Summary | Blocks | Assignee | Status | Priority | Last Updated |
+|-----------------|---------|--------|----------|--------|----------|--------------|
+| [PROJ-123](https://company.atlassian.net/browse/PROJ-123) | Critical API failure in auth endpoint | [PROJ-150](https://company.atlassian.net/browse/PROJ-150), [PROJ-151](https://company.atlassian.net/browse/PROJ-151) | John Doe | In Progress | High | 2d ago |
+| [PROJ-456](https://company.atlassian.net/browse/PROJ-456) | Database migration blocked by schema lock | [PROJ-460](https://company.atlassian.net/browse/PROJ-460) | Unassigned | To Do | Medium | 3d ago |
+| [PROJ-789](https://company.atlassian.net/browse/PROJ-789) | Production deployment failing | [PROJ-800](https://company.atlassian.net/browse/PROJ-800), [PROJ-801](https://company.atlassian.net/browse/PROJ-801) | Jane Smith | Code Review | High | 1d ago |
 
 ## Recommendations
 
-- **[PROJ-456](https://company.atlassian.net/browse/PROJ-456)**: Assign to database team immediately (unassigned for 12 days)
-- **[PROJ-123](https://company.atlassian.net/browse/PROJ-123)**: Follow up on progress (blocker for 5 days)
+- **[PROJ-456](https://company.atlassian.net/browse/PROJ-456)**: Assign to database team immediately (unassigned, blocking [PROJ-460](https://company.atlassian.net/browse/PROJ-460))
+- **[PROJ-123](https://company.atlassian.net/browse/PROJ-123)**: Follow up on progress (blocking 2 tickets for 5 days)
+- **[PROJ-789](https://company.atlassian.net/browse/PROJ-789)**: In code review, close to unblocking deployment work
 ```
 
 ## Error Handling
 
-- **No blocking tickets found**: Report "No blocking tickets in {PROJECT}" (good news!)
+- **No blocking tickets found**: Report "No tickets are currently blocking other work in {PROJECT}" (good news!)
+- **issueFunction not available**: Fall back to API approach (fetch all tickets, check issue links)
 - **Query failed**: Check JQL syntax, validate project key
+- **Issue links unavailable**: Some Jira instances may restrict issue link access; note in report
