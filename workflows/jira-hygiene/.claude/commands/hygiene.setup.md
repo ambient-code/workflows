@@ -29,7 +29,7 @@ Environment variables must be set:
 3. **Prompt for project configuration**:
    - **Target project key**: The Jira project to operate on (e.g., "PROJ")
    - **Initiative project keys**: Comma-separated list of projects containing initiatives (e.g., "INIT1,INIT2")
-   - If user is unsure, suggest running a query to list accessible projects
+   - User must provide the exact project keys they want to use
 
 4. **Fetch Activity Type field metadata**:
    - Call `/rest/api/3/field` to get all custom fields
