@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Output artifacts (generated at runtime)
+artifacts/
+
+# Logs
+*.log
+.claude/logs/
+
+# Temporary files
+*.tmp
+.temp/
+tmp/
+
+# Environment
+.env
+.env.local
+
+# Test outputs
+test-output/
