@@ -60,14 +60,115 @@ When user asks for release notes, gather:
 - **Repository**: 
   - Remote: `repo_url` (e.g., "https://github.com/owner/repo")
   - Local: `repo_path` (e.g., "/path/to/repo")
-- **Tokens** (optional but recommended):
-  - `github_token` for GitHub repos (increases rate limits)
-  - `gitlab_token` for GitLab private repos
+- **Authentication**: See Token Handling Strategy below
 
 **Examples of natural requests:**
 - "Generate release notes for v1.0.0"
 - "Create notes for v2.0.0 from https://github.com/owner/repo"
 - "I need release notes comparing v2.0.0 to v1.9.0"
+
+### 1.5 Token Handling Strategy (CRITICAL)
+
+When user provides a **remote repository URL** (GitHub or GitLab):
+
+#### Step 1: Check for ACP Integration Tokens
+
+```python
+import os
+
+# Check for tokens from ACP integrations
+github_token = os.getenv('GITHUB_TOKEN')  # From ACP GitHub integration
+gitlab_token = os.getenv('GITLAB_TOKEN')  # From ACP GitLab integration
+```
+
+#### Step 2: Apply Decision Tree
+
+**If token found in environment:**
+- ✅ Use it automatically (no need to ask user)
+- Proceed with remote fetch
+- Example: `github_token=github_token` or `gitlab_token=gitlab_token`
+
+**If NO token found:**
+- ❌ Don't silently fail or assume
+- 💬 Ask user:
+  ```
+  "I don't have a GitHub token configured. Would you like to:
+   1. Provide a token (recommended for private repos and better rate limits)
+   2. Proceed without a token (works for public repos, has rate limits)
+   3. Clone the repository locally instead"
+  ```
+
+**User Response Handling:**
+- **Option 1 (Provides token)**: Use the token they provide
+- **Option 2 (No token)**: Try with `github_token=None`, may fail for private repos
+- **Option 3 (Local clone)**: Ask for local path or clone to temp directory, use `repo_path`
+
+#### Step 3: Handle Errors Gracefully
+
+**If remote fetch fails (401/403/404):**
+```
+Explain: "Failed to access repository. This might be a private repo requiring a token."
+Offer fallback: "Would you like to provide a token or clone the repository locally?"
+```
+
+**If rate limit exceeded:**
+```
+Explain: "GitHub API rate limit exceeded. A token would increase limits."
+Offer: "Would you like to provide a token or try again later?"
+```
+
+#### Token Handling Examples
+
+**Scenario 1: Token found from ACP integration**
+```python
+github_token = os.getenv('GITHUB_TOKEN')
+if github_token:
+    # Use automatically - no need to ask user
+    result = await generate_release_notes(
+        version="v1.0.0",
+        repo_url="https://github.com/owner/repo",
+        github_token=github_token  # From ACP integration
+    )
+```
+
+**Scenario 2: No token, ask user**
+```
+You: "I don't have a GitHub token configured. Would you like to:
+      1. Provide a token (recommended for private repos)
+      2. Try without (works for public repos)
+      3. Use local clone"
+
+User: "Try without it"
+
+You: [Call tool with github_token=None]
+```
+
+**Scenario 3: Private repo needs token**
+```
+You: [Try without token, get 404 error]
+
+You: "Failed to access repository. This appears to be private. 
+      Would you like to:
+      1. Provide a GitHub token
+      2. Clone it locally instead"
+
+User: "I'll provide a token: ghp_xxx..."
+
+You: [Use the token they provided]
+```
+
+**Scenario 4: Fallback to local**
+```
+You: "Failed to access remotely. Would you like to clone it locally?"
+
+User: "Yes"
+
+You: "Where would you like me to clone it? (e.g., /tmp/repo)"
+
+User: "/tmp/my-repo"
+
+You: [Clone repo to /tmp/my-repo, then use repo_path="/tmp/my-repo"]
+```
 
 ### 2. Fetch Commit Data and Instructions
 
@@ -75,18 +176,30 @@ Use the MCP tool to get commits **and categorization instructions**:
 
 ```python
 from utility_mcp_server.src.tools.release_notes_tool import generate_release_notes
+import os
 
+# Check for token from ACP integration (see Token Handling Strategy above)
+github_token = os.getenv('GITHUB_TOKEN')
+gitlab_token = os.getenv('GITLAB_TOKEN')
+
+# Call tool with appropriate token
 result = await generate_release_notes(
     version="v1.0.0",
     previous_version="v0.9.0",  # Optional - auto-detected if omitted
     repo_url="https://github.com/owner/repo",
-    github_token=os.getenv('GITHUB_TOKEN'),  # Optional
+    github_token=github_token,  # From ACP integration or user-provided
+    # OR for GitLab:
+    # gitlab_token=gitlab_token,
     formatted_output=False  # DEFAULT - use AI-powered categorization
     # Set to True only if user explicitly requests pre-formatted output
 )
 ```
 
-**Important**: Always use `formatted_output=False` (default) for this workflow. Only set to `True` if the user explicitly requests pre-formatted output for direct IDE usage.
+**Important**: 
+- Always check for `GITHUB_TOKEN` or `GITLAB_TOKEN` environment variables first
+- If not found, ask user for token or offer alternatives
+- Always use `formatted_output=False` (default) for this workflow
+- Only set `formatted_output=True` if user explicitly requests pre-formatted output
 
 **The tool returns data + instructions:**
 ```json

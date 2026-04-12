@@ -96,9 +96,11 @@ The workflow will guide you to provide:
    - **Remote URL**: `repo_url="https://github.com/owner/repo"` (GitHub/GitLab)
    - **Local path**: `repo_path="/path/to/repository"` (local repos)
 
-4. **Authentication** (optional but recommended):
-   - `github_token` for GitHub repos (increases rate limits, required for private repos)
-   - `gitlab_token` for GitLab repos (required for private repos)
+4. **Authentication** (handled automatically):
+   - Workflow automatically uses tokens from ACP integrations (`GITHUB_TOKEN`, `GITLAB_TOKEN` environment variables)
+   - If no token found, asks: "Provide token, proceed without, or use local clone?"
+   - For public repos without tokens: Works but has API rate limits
+   - For private repos: Token required or fallback to local clone
 
 ## Output
 
