@@ -2,7 +2,24 @@
 
 ## Overview
 
-This workflow helps users generate professional release notes from git commit history. Guide users through a conversational process to gather requirements and produce structured, categorized release notes.
+This workflow helps users generate professional release notes from git commit history using **AI-powered intelligent categorization**. You analyze commits and create dynamic categories that reflect the actual changes, far more powerful than regex pattern matching.
+
+## 🧠 Architecture: AI-Powered Categorization
+
+### MCP Tool's Job (Data Fetching + Instructions)
+The `generate_release_notes` MCP tool:
+- Connects to GitHub/GitLab (remote) or local git repos
+- Extracts commits between version tags
+- Returns: hash, message, author, date, PR/MR number
+- **Includes `ai_instructions`** with comprehensive categorization guidance
+- **Does NOT categorize or format** - just returns raw data + instructions
+
+### Your Job (Follow Tool's Instructions)
+**The tool tells you exactly how to categorize commits:**
+- **Follow `ai_instructions`** provided in the tool response
+- **Instructions include**: guidelines, categorization strategy, suggested sections, output format
+- **Instructions are version-controlled** with the tool (always in sync)
+- **Your expertise**: Apply the instructions intelligently to the specific commits
 
 ## Your Approach
 
@@ -11,100 +28,196 @@ This workflow helps users generate professional release notes from git commit hi
 - Don't require exact syntax or commands
 - Understand natural language requests
 - Ask clarifying questions when needed
-- Explain what you're doing at each step
+- Explain your categorization strategy
 
 ### Guide, Don't Dictate
 
-- If user is unclear about version tags, help them discover available tags
+- Help users discover available tags if needed
 - Suggest best practices but work with what they have
-- Explain why you're asking for certain information
+- Explain why certain changes go in certain categories
 
 ## Process Flow
 
 ### 1. Understand the Request
 
 When user asks for release notes, gather:
-- Current version tag (required)
-- Previous version tag (recommended)
-- Repository path (if not current directory)
-- Repository URL (for links)
+- **Current version tag** (required)
+- **Previous version tag** (optional - auto-detected if omitted)
+- **Repository**: 
+  - Remote: `repo_url` (e.g., "https://github.com/owner/repo")
+  - Local: `repo_path` (e.g., "/path/to/repo")
+- **Tokens** (optional but recommended):
+  - `github_token` for GitHub repos (increases rate limits)
+  - `gitlab_token` for GitLab private repos
 
 **Examples of natural requests:**
 - "Generate release notes for v1.0.0"
+- "Create notes for v2.0.0 from https://github.com/owner/repo"
 - "I need release notes comparing v2.0.0 to v1.9.0"
-- "Create notes for the v1.5.0 release from /path/to/repo"
 
-### 2. Verify Git Environment
+### 2. Fetch Commit Data and Instructions
 
-Before generating, check:
-
-```bash
-# List available tags to help user
-git tag -l
-
-# Verify specific tags exist
-git tag -l | grep -x v1.0.0
-```
-
-If tags don't exist or there's confusion, show available tags and help user decide.
-
-### 3. Install Tool (Automatically)
-
-Ensure the generation tool is available:
-
-```bash
-python3 -c "import utility_mcp_server" 2>/dev/null || pip install utility-mcp-server
-```
-
-Do this quietly - just mention "Installing the release notes generator tool..." if installation is needed.
-
-### 4. Generate Release Notes
-
-Create a Python script in `artifacts/release-notes/` that calls the tool:
+Use the MCP tool to get commits **and categorization instructions**:
 
 ```python
-#!/usr/bin/env python3
-import asyncio
-import json
 from utility_mcp_server.src.tools.release_notes_tool import generate_release_notes
 
-async def main():
-    result = await generate_release_notes(
-        version="<version>",
-        previous_version="<previous_version>",
-        repo_path="<repo_path>",
-        repo_url="<repo_url>"
-    )
-    
-    if result["status"] == "success":
-        # Save the release notes
-        with open("artifacts/release-notes/RELEASE_NOTES_<version>.md", "w") as f:
-            f.write(result["release_notes"])
-        
-        # Save statistics
-        if "statistics" in result:
-            with open("artifacts/release-notes/stats_<version>.json", "w") as f:
-                json.dump(result["statistics"], f, indent=2)
-        
-        print(result["release_notes"])
-        return result
-    else:
-        print(f"Error: {result.get('error')}")
-        return result
+result = await generate_release_notes(
+    version="v1.0.0",
+    previous_version="v0.9.0",  # Optional - auto-detected if omitted
+    repo_url="https://github.com/owner/repo",
+    github_token=os.getenv('GITHUB_TOKEN')  # Optional
+)
+```
 
-if __name__ == "__main__":
-    asyncio.run(main())
+**The tool returns data + instructions:**
+```json
+{
+  "status": "success",
+  "data": {
+    "version": "v1.0.0",
+    "previous_version": "v0.9.0",
+    "commits": [
+      {
+        "hash": "abc123",
+        "message": "feat: add user authentication\n\nImplements JWT-based auth with refresh tokens",
+        "author": "John Doe",
+        "date": "2024-01-01",
+        "pr_number": "123"
+      }
+    ],
+    "commit_count": 42,
+    "compare_url": "https://github.com/owner/repo/compare/v0.9.0...v1.0.0"
+  },
+  "ai_instructions": {
+    "role": "release_notes_categorizer",
+    "task": "Analyze commits and create intelligent release notes",
+    "guidelines": [
+      "Create dynamic categories based on actual changes",
+      "Group related commits intelligently",
+      ...
+    ],
+    "categorization_strategy": {...},
+    "suggested_sections": {...},
+    "output_format": {...}
+  }
+}
+```
+
+### 3. Analyze and Categorize Commits (Follow Tool's Instructions)
+
+**Extract the instructions from tool response:**
+```python
+instructions = result["ai_instructions"]
+commits = result["data"]["commits"]
+```
+
+**Follow the tool's guidance:**
+- Read `instructions["guidelines"]` - how to approach categorization
+- Review `instructions["categorization_strategy"]` - step-by-step process
+- Consider `instructions["suggested_sections"]` - what categories to create
+- Use `instructions["output_format"]` - how to format the output
+
+**Apply instructions to the commits:**
+
+✅ **Good (Dynamic, Context-Aware):**
+```markdown
+## 🎉 New Features
+
+### Authentication & Security
+- JWT-based authentication with refresh tokens (#123)
+- OAuth2 integration for Google and GitHub (#145)
+
+### Developer Experience  
+- Hot module reloading in development (#156)
+- Improved error messages with stack traces (#167)
+
+## 🐛 Bug Fixes
+
+### Critical Fixes
+- Fixed memory leak in WebSocket connections (#134)
+- Resolved race condition in auth middleware (#178)
+```
+
+❌ **Bad (Predefined Template, Misses Context):**
+```markdown
+## API
+- feat: add JWT auth (#123)
+- fix: auth race condition (#178)
+
+## General
+- improve: error messages (#167)
+```
+
+**Why dynamic categorization is better:**
+- Groups related changes together
+- Highlights important changes (critical fixes, security)
+- Creates context-specific categories (not generic buckets)
+- Helps users understand the release narrative
+
+### 4. Format Release Notes
+
+Create professional markdown:
+
+```markdown
+# v1.0.0 Release Notes
+
+**Release Date:** January 15, 2024
+**Previous Version:** v0.9.0
+**Repository:** https://github.com/owner/repo
+
+[View Full Changelog](https://github.com/owner/repo/compare/v0.9.0...v1.0.0)
+
+---
+
+## ⚠️ Breaking Changes
+
+**Authentication API Changes**
+- Removed deprecated `/auth/login` endpoint - use `/v2/auth/login` instead (#156)
+- Changed token expiration from 24h to 1h for security (#178)
+
+**Impact:** Update your authentication flows before upgrading.
+
+## 🎉 New Features
+
+### Authentication & Security
+- **JWT-based authentication**: Implements secure token-based auth with refresh tokens (#123)
+- **OAuth2 integration**: Support for Google and GitHub login (#145)
+- **Two-factor authentication**: Optional 2FA via TOTP (#189)
+
+### Developer Experience
+- **Hot module reloading**: Fast development workflow (#156)
+- **Improved error messages**: Stack traces and context in development mode (#167)
+
+## 🐛 Bug Fixes
+
+### Critical
+- **Memory leak fix**: Resolved WebSocket connection leak affecting long-running servers (#134)
+- **Race condition**: Fixed auth middleware race condition on concurrent requests (#178)
+
+### Minor
+- Corrected timezone handling in date picker (#142)
+- Fixed typo in welcome email template (#155)
+
+## 📊 Release Statistics
+
+- **Total Commits:** 42
+- **Contributors:** 8
+- **New Features:** 12
+- **Bug Fixes:** 15
+- **Breaking Changes:** 2
 ```
 
 ### 5. Present Results
 
 After generation:
-1. **Show the release notes** (read the generated file)
-2. **Highlight statistics** (commits, features, bugs, breaking changes)
-3. **Explain what was created**:
-   - Release notes markdown file
-   - Statistics JSON file
-   - Location of saved files
+1. **Save the release notes** to `artifacts/release-notes/RELEASE_NOTES_<version>.md`
+2. **Show the user** the formatted notes
+3. **Explain your categorization**:
+   - "I grouped the auth changes together since they're related"
+   - "I highlighted the breaking changes at the top"
+   - "I created a 'Critical Fixes' section for the memory leak and race condition"
+4. **Provide statistics**
 
 ### 6. Offer Next Steps
 
@@ -112,7 +225,150 @@ Suggest what they can do:
 - Copy to GitHub Releases
 - Edit for additional context
 - Generate notes for other versions
-- Review commit message patterns for future improvements
+- Review commit message quality for future releases
+
+## Intelligent Categorization Guidelines
+
+### Follow the Tool's Instructions
+
+**The tool provides comprehensive instructions in `ai_instructions`:**
+
+```python
+# Extract instructions from tool response
+instructions = result["ai_instructions"]
+
+# Follow the guidelines
+for guideline in instructions["guidelines"]:
+    # e.g., "Create dynamic categories based on actual changes"
+    # e.g., "Understand context beyond pattern matching"
+    
+# Use the categorization strategy
+strategy = instructions["categorization_strategy"]
+# step1: Read all commits first
+# step2: Identify major themes
+# step3: Create relevant categories
+# step4: Group intelligently
+# step5: Prioritize (breaking changes first)
+
+# Consider suggested sections
+sections = instructions["suggested_sections"]
+# - Always consider: Breaking Changes, Security, Features, Bug Fixes
+# - Conditionally add: Performance, Documentation, Infrastructure, etc.
+```
+
+**Example of following instructions:**
+```
+Tool says: "Understand context beyond pattern matching"
+
+You read: "refactor: rewrite authentication system"
+You think: This is a major change, check full message for breaking indicators
+You find: Message mentions API changes
+You categorize: ⚠️ Breaking Changes (not just Refactoring)
+```
+
+### Common Categories to Consider
+
+Create categories based on what's actually in the release:
+
+**Always Consider:**
+- ⚠️ **Breaking Changes** (highest priority)
+- 🔒 **Security Updates** (if any security fixes)
+- 🎉 **New Features** (grouped by theme)
+- 🐛 **Bug Fixes** (separate Critical from Minor)
+
+**Conditionally Add:**
+- ⚡ **Performance Improvements** (if multiple performance commits)
+- 📚 **Documentation** (if significant doc updates)
+- 🔧 **Infrastructure** (if deployment/build changes)
+- ♿ **Accessibility** (if a11y improvements)
+- 🌍 **Internationalization** (if i18n work)
+- 🧪 **Testing** (if major test additions)
+
+### Understanding Context
+
+Some commits need interpretation:
+
+| Commit Message | Appears To Be | Actually Might Be |
+|----------------|---------------|-------------------|
+| `refactor: auth` | Enhancement | Breaking change if API changes |
+| `update: deps` | Chore | Security update if CVE fix |
+| `improve: perf` | Enhancement | Critical fix if resolving timeout |
+| `add: tests` | Testing | Bug fix verification |
+
+**Always read the full commit message** (not just the first line) for context.
+
+### Grouping Related Changes
+
+Group commits that work together:
+
+```markdown
+## 🎉 Real-time Collaboration
+
+- WebSocket support for live updates (#123)
+- Presence indicators showing active users (#134)
+- Conflict resolution for concurrent edits (#145)
+- Optimistic UI updates for better UX (#156)
+```
+
+Better than:
+```markdown
+## New Features
+- WebSocket support (#123)
+- Presence indicators (#134)
+
+## Enhancements
+- Conflict resolution (#145)
+- Optimistic UI (#156)
+```
+
+## Error Handling
+
+### Common Issues
+
+**Tags Don't Exist**
+- Tool will return error: "Tag 'v1.0.0' does not exist"
+- Help user verify tag names
+- Suggest: `git tag -l` to list available tags
+
+**No Commits Between Tags**
+- Tool will return: "No commits found"
+- Explain possible causes (wrong order, same commit)
+- Suggest checking: `git log v0.9.0..v1.0.0 --oneline`
+
+**Auto-detection Fails**
+- Tool will error if can't find previous tag
+- Ask user to provide `previous_version` explicitly
+
+**Remote Repository Authentication**
+- For private repos, token might be needed
+- Suggest setting `github_token` or `gitlab_token`
+- Public repos work without tokens
+
+## Communication Style
+
+### Clear and Insightful
+
+```
+✅ "I've grouped the authentication changes together since they're all part of the new security architecture. The breaking changes are highlighted at the top."
+
+❌ "Release notes generated successfully."
+```
+
+### Explain Your Reasoning
+
+```
+✅ "I created a 'Critical Fixes' category for the memory leak and race condition since these could cause production issues. The other bug fixes are listed separately."
+
+❌ "Here are the bug fixes."
+```
+
+### Educational
+
+```
+✅ "I notice you're using conventional commits (feat:, fix:) which makes categorization easier. Consider adding more context in commit bodies for even better release notes."
+
+❌ "Commits processed."
+```
 
 ## Output Organization
 
@@ -120,135 +376,40 @@ All artifacts go to `artifacts/release-notes/`:
 
 ```
 artifacts/release-notes/
-├── RELEASE_NOTES_v1.0.0.md    # Main output
-├── stats_v1.0.0.json          # Statistics
-└── generate_v1.0.0.py         # Script for reference/reuse
-```
-
-## Error Handling
-
-### Common Issues and How to Help
-
-**Tags Don't Exist**
-- List available tags: `git tag -l`
-- Ask user to verify tag names
-- Offer to show recent tags if list is long
-
-**No Commits Between Tags**
-- Explain possible causes (wrong order, no changes, same commit)
-- Suggest checking: `git log v0.9.0..v1.0.0 --oneline`
-
-**Not a Git Repository**
-- Verify the path is correct
-- Check if user meant a different directory
-- Suggest navigating to the correct location
-
-**Tool Installation Fails**
-- Check Python version
-- Verify internet connection
-- Suggest manual installation: `pip install utility-mcp-server`
-
-## Communication Style
-
-### Clear and Direct
-```
-✅ "I'll generate release notes for v1.0.0 comparing with v0.9.0"
-❌ "I will now proceed to execute the release notes generation workflow"
-```
-
-### Helpful and Educational
-```
-✅ "I notice most commits aren't using conventional format. The notes will still work, but using 'feat:' and 'fix:' prefixes would improve categorization"
-❌ "Commit messages are poorly formatted"
-```
-
-### Proactive Problem Solving
-```
-✅ "I don't see a v1.0.0 tag. Here are the available tags: [list]. Which one did you mean?"
-❌ "Error: Tag not found"
+├── RELEASE_NOTES_v1.0.0.md    # Main formatted output
+└── commits_v1.0.0.json        # Raw commit data for reference
 ```
 
 ## Best Practices to Share
 
-When appropriate, educate users about:
+### Conventional Commits Help (But Aren't Required)
 
-### Conventional Commits
 ```
-feat: Add user authentication
-fix: Resolve login timeout
-BREAKING CHANGE: Remove legacy API
+✅ feat: Add user authentication
+✅ fix: Resolve login timeout  
+✅ BREAKING CHANGE: Remove legacy API
 ```
 
-### Including PR Numbers
+Even without conventional format, you can understand:
+```
+✅ "Add user authentication feature"
+✅ "Resolve login timeout issue"
+✅ "Remove legacy API (breaking)"
+```
+
+### PR Numbers Add Context
+
 ```
 feat: Add dark mode (#123)
 fix: Memory leak in cache (#456)
 ```
 
-### Consistent Tagging
-```
-v1.0.0, v1.1.0, v2.0.0  (semantic versioning)
-```
-
-## Technical Details
-
-### Tool: utility-mcp-server
-
-The workflow uses the `generate_release_notes` function which:
-- Parses git log between tags
-- Recognizes conventional commit patterns
-- Categorizes by type (feat, fix, breaking, enhance)
-- Groups by component (api, ui, database, cli, etc.)
-- Extracts PR numbers and commit hashes
-- Generates professional markdown
-
-### Supported Commit Patterns
-
-**Features**: `feat:`, `feature:`, `add:`, `implement:`
-**Fixes**: `fix:`, `bugfix:`, `bug:`, `resolve:`
-**Breaking**: `BREAKING CHANGE:`, `breaking:`, `!:`
-**Enhancements**: `enhance:`, `improve:`, `update:`, `refactor:`
-
-### Component Detection
-
-Auto-detects from keywords:
-- **ui/ux**: ui, ux, frontend, interface, design
-- **api**: api, endpoint, rest, graphql
-- **database**: database, db, postgres, mysql
-- **cli**: cli, command, terminal
-- **kubernetes**: k8s, kubernetes, operator
-- **integration**: integration, test, testing
-- And more...
-
-## Quality Checklist
-
-Before presenting results, verify:
-- [ ] Release notes file was created
-- [ ] Statistics were calculated
-- [ ] File locations are communicated
-- [ ] Any warnings or issues are explained
-- [ ] User knows what to do next
-
-## Edge Cases
-
-### First Release (No Previous Version)
-- All commits from repository start to current tag
-- Explain this creates a comprehensive initial changelog
-- Statistics will show full history
-
-### Same Tag Twice
-- No commits to compare
-- Explain the issue
-- Ask for clarification
-
-### Very Large Changelogs
-- Tool handles large commit histories
-- Statistics help summarize scope
-- Consider suggesting release cadence improvements
+You can link to PRs for more details.
 
 ## Remember
 
-- This is a helper tool, not a replacement for human judgment
-- Users may want to edit the generated notes
-- The goal is to save time, not to be perfect
-- Context and tone matter as much as content
+- **You are the intelligence** - the tool just fetches data
+- **Create categories that make sense** - not predefined templates  
+- **Understand context** - don't just pattern match
+- **Explain your choices** - help users understand your categorization
+- **The goal is clarity** - help users communicate what changed and why
