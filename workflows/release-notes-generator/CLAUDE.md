@@ -7,15 +7,29 @@ This workflow helps users generate professional release notes from git commit hi
 ## 🧠 Architecture: AI-Powered Categorization
 
 ### MCP Tool's Job (Data Fetching + Instructions)
-The `generate_release_notes` MCP tool:
+The `generate_release_notes` MCP tool provides **two modes**:
+
+#### Mode 1: AI-Powered (formatted_output=False - DEFAULT for this workflow)
 - Connects to GitHub/GitLab (remote) or local git repos
 - Extracts commits between version tags
 - Returns: hash, message, author, date, PR/MR number
 - **Includes `ai_instructions`** with comprehensive categorization guidance
 - **Does NOT categorize or format** - just returns raw data + instructions
+- **Best for**: AI agents that can intelligently categorize based on context
 
-### Your Job (Follow Tool's Instructions)
+#### Mode 2: Pre-Formatted (formatted_output=True - for direct IDE usage)
+- Same data fetching as Mode 1
+- **Automatically categorizes** commits into 10 predefined categories:
+  * ⚠️ Breaking Changes, 🔒 Security Updates, 🎉 New Features, 🐛 Bug Fixes
+  * ⚡ Performance Improvements, 📚 Documentation, 🔄 Refactoring
+  * 🧪 Testing, 🔧 Chores, 📦 Other Changes
+- Returns pre-formatted markdown with emojis and statistics
+- **Best for**: Direct IDE usage (Cursor, VS Code) where Claude doesn't follow instructions well
+- **Not recommended for this workflow** - defeats the purpose of AI-powered categorization
+
+### Your Job (Follow Tool's Instructions - Mode 1)
 **The tool tells you exactly how to categorize commits:**
+- **Always use formatted_output=False** (default) for AI-powered categorization
 - **Follow `ai_instructions`** provided in the tool response
 - **Instructions include**: guidelines, categorization strategy, suggested sections, output format
 - **Instructions are version-controlled** with the tool (always in sync)
@@ -66,9 +80,13 @@ result = await generate_release_notes(
     version="v1.0.0",
     previous_version="v0.9.0",  # Optional - auto-detected if omitted
     repo_url="https://github.com/owner/repo",
-    github_token=os.getenv('GITHUB_TOKEN')  # Optional
+    github_token=os.getenv('GITHUB_TOKEN'),  # Optional
+    formatted_output=False  # DEFAULT - use AI-powered categorization
+    # Set to True only if user explicitly requests pre-formatted output
 )
 ```
+
+**Important**: Always use `formatted_output=False` (default) for this workflow. Only set to `True` if the user explicitly requests pre-formatted output for direct IDE usage.
 
 **The tool returns data + instructions:**
 ```json
@@ -343,6 +361,58 @@ Better than:
 - For private repos, token might be needed
 - Suggest setting `github_token` or `gitlab_token`
 - Public repos work without tokens
+
+## When to Use formatted_output Parameter
+
+### Use formatted_output=False (DEFAULT - Recommended for this workflow)
+
+**When:**
+- You are running this workflow (AI-powered categorization)
+- User wants intelligent, context-aware release notes
+- User wants custom categories that fit the specific release
+
+**Why:**
+- You analyze commits with full context understanding
+- You create dynamic categories based on actual changes
+- You group related commits intelligently
+- You provide insights and explanations
+
+**Result:**
+```python
+result = await generate_release_notes(version="v1.0.0", repo_url="...", formatted_output=False)
+# Returns: raw commits + ai_instructions
+# You: Analyze, categorize, format with intelligence
+```
+
+### Use formatted_output=True (Only when explicitly requested)
+
+**When:**
+- User explicitly asks for "pre-formatted output"
+- User is testing the tool directly in Cursor or VS Code
+- User wants quick output without AI analysis
+
+**Why:**
+- Tool automatically categorizes into 10 predefined categories
+- Returns ready-to-use markdown with emojis and statistics
+- No AI intelligence needed - just display the result
+
+**Result:**
+```python
+result = await generate_release_notes(version="v1.0.0", repo_url="...", formatted_output=True)
+# Returns: pre-formatted markdown in result['formatted_output']
+# You: Just display it, minimal processing needed
+```
+
+**Trade-offs:**
+
+| Feature | formatted_output=False | formatted_output=True |
+|---------|----------------------|----------------------|
+| Categorization | AI-powered, context-aware | Automatic, predefined |
+| Categories | Dynamic, custom | Fixed 10 categories |
+| Commit grouping | Intelligent, related commits together | Based on keywords only |
+| Context understanding | Full commit message analysis | First line + keywords |
+| Insights | Detailed explanations | Basic statistics |
+| Best for | This AI workflow | Direct IDE usage |
 
 ## Communication Style
 

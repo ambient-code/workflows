@@ -10,16 +10,30 @@ This workflow uses Claude's intelligence to create comprehensive release notes b
 
 ### Two-Part Architecture
 
-**1. MCP Tool (Data Fetching)**
-- Fetches raw commit data from GitHub/GitLab/local repos
-- Extracts: commit hash, message, author, date, PR/MR numbers
-- **Does NOT categorize** - just returns structured data
+The MCP tool provides **two modes** of operation:
 
-**2. Claude AI (Intelligence)**
-- **Analyzes** commit messages to understand actual changes
-- **Creates dynamic categories** that fit your release (not predefined templates)
-- **Groups related changes** intelligently
-- **Formats professional release notes** with context and clarity
+**Mode 1: AI-Powered (Default - Recommended for this workflow)**
+- **MCP Tool**: Fetches raw commit data + provides AI instructions
+- **Claude AI**: Analyzes commits, creates dynamic categories, formats intelligently
+- **Best for**: Context-aware release notes with custom categories
+
+**Mode 2: Pre-Formatted (For direct IDE usage)**
+- **MCP Tool**: Fetches commits + automatically categorizes into 10 predefined categories
+- **Output**: Ready-to-use markdown with emojis and statistics
+- **Best for**: Quick testing in Cursor/VS Code, no AI analysis needed
+
+**This Workflow Uses Mode 1:**
+1. **MCP Tool (Data Fetching)**
+   - Fetches raw commit data from GitHub/GitLab/local repos
+   - Extracts: commit hash, message, author, date, PR/MR numbers
+   - Provides AI instructions for intelligent categorization
+   - **Does NOT categorize** - just returns structured data + instructions
+
+2. **Claude AI (Intelligence)**
+   - **Analyzes** commit messages to understand actual changes
+   - **Creates dynamic categories** that fit your release (not predefined templates)
+   - **Groups related changes** intelligently
+   - **Formats professional release notes** with context and clarity
 
 This separation means you get **smarter categorization** than regex-based tools can provide.
 
@@ -329,6 +343,50 @@ Workflow:
 ```
 
 ## Advanced Features
+
+### Two Output Modes (formatted_output parameter)
+
+**AI-Powered Mode (formatted_output=False - Default)**
+
+Best for this workflow - AI analyzes and categorizes intelligently:
+
+```python
+generate_release_notes(
+    version="v1.0.0",
+    repo_url="https://github.com/owner/repo",
+    formatted_output=False  # Default - AI-powered categorization
+)
+```
+
+**Result**: Raw commits + AI instructions → Claude creates dynamic categories
+
+**Pre-Formatted Mode (formatted_output=True - For IDE testing)**
+
+For quick testing in Cursor or VS Code:
+
+```python
+generate_release_notes(
+    version="v1.0.0",
+    repo_url="https://github.com/owner/repo",
+    formatted_output=True  # Pre-formatted output
+)
+```
+
+**Result**: Pre-formatted markdown with 10 automatic categories:
+- ⚠️ Breaking Changes, 🔒 Security Updates, 🎉 New Features, 🐛 Bug Fixes
+- ⚡ Performance, 📚 Documentation, 🔄 Refactoring, 🧪 Testing
+- 🔧 Chores, 📦 Other Changes
+
+**When to use each mode:**
+
+| Use Case | Mode | Why |
+|----------|------|-----|
+| This AI workflow | formatted_output=False | Intelligent, context-aware categorization |
+| Direct IDE testing | formatted_output=True | Quick output, no AI analysis needed |
+| Custom categories | formatted_output=False | Dynamic categories based on actual changes |
+| Standard categories | formatted_output=True | Fixed 10 categories, automatic |
+
+**Note**: This workflow always uses `formatted_output=False` for AI-powered categorization. Only use `formatted_output=True` if explicitly testing the tool directly in an IDE.
 
 ### Auto-detect Previous Tag
 
