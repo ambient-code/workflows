@@ -32,7 +32,8 @@ workflows/rhoai-manager/
 │       ├── odh-install.md        # ODH installation
 │       ├── odh-update.md         # ODH update to latest nightly
 │       ├── odh-uninstall.md      # ODH uninstall
-│       └── odh-pr-tracker.md     # Track ODH PRs in RHOAI builds
+│       ├── odh-pr-tracker.md     # Track ODH PRs in RHOAI builds
+│       └── mirror-images.md     # Mirror images to disconnected bastions
 └── README.md                     # This file
 ```
 
@@ -165,6 +166,25 @@ Track whether an ODH pull request has been included in the latest RHOAI build.
 
 ---
 
+### /mirror-images
+
+Mirror all RHOAI operator and component images from a connected cluster to both disconnected cluster bastion registries.
+
+**Usage:** `/mirror-images`
+
+**What it does:**
+
+1. Extracts images from connected cluster's CSV relatedImages + running pods
+2. Builds a combined pull secret with source registry and bastion credentials
+3. Deploys a mirror pod on the connected cluster (fast AWS-internal transfers)
+4. Mirrors all images to both bastions with `--keep-manifest-list=true --filter-by-os=".*"`
+5. Tags destinations with `:latest` to prevent Quay tagless manifest GC
+6. Verifies every image on both bastions, reports failures
+
+**Required inputs:** Both bastion addresses, bastion credentials, RHOAI version, optional exclude patterns.
+
+---
+
 ## Typical Workflows
 
 ### Fresh RHOAI Installation
@@ -206,6 +226,12 @@ Track whether an ODH pull request has been included in the latest RHOAI build.
 1. /oc-login
 2. /odh-uninstall            # Standard uninstall (removes CRDs)
 3. /rhoai-install
+```
+
+### Mirror Images to Disconnected Clusters
+```
+1. /oc-login           # Connect to the connected cluster
+2. /mirror-images      # Mirror all RHOAI images to both bastions
 ```
 
 ### Decommission
