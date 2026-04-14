@@ -471,3 +471,40 @@ The following table lists all image categories that must be mirrored for a compl
 - `artifacts/rhoai-manager/mirror-images-{version}.txt` -- categorized image list extracted from the connected cluster
 - `artifacts/rhoai-manager/mirror-log-{version}.txt` -- complete mirror pod log with verification results
 - `artifacts/rhoai-manager/mirror-idms-{version}.yaml` -- ImageDigestMirrorSet YAML for the disconnected cluster (generated from the mirrored image list)
+
+## Summary Display
+
+After mirroring completes, display a summary table to the user in this format:
+
+```
+**RHOAI v{version} Image Mirror — Complete**
+
+| Metric | Value |
+|--------|-------|
+| Total images | {total} |
+| Verified | {verified} |
+| Skipped (already on bastion) | {skipped} |
+| Failed | {failed} |
+| Duration | {duration} |
+| Target | `{bastion_registry}` |
+
+**Image Breakdown:**
+
+| Category | Count |
+|----------|-------|
+| RHOAI Operator and Components | {count} |
+| Model Serving Runtimes (vLLM) | {count} |
+| Infrastructure Dependencies | {count} |
+| FBC Catalog | {count} |
+| Base Images | {count} |
+
+**Artifacts saved:**
+- `artifacts/rhoai-manager/mirror-images-{version}.txt` — categorized image list
+- `artifacts/rhoai-manager/mirror-log-{version}.txt` — full mirror log ({line_count} lines)
+- `artifacts/rhoai-manager/mirror-idms-{version}.yaml` — ImageDigestMirrorSet YAML for disconnected cluster
+
+**Next step:** Apply the IDMS on the disconnected cluster:
+oc apply -f artifacts/rhoai-manager/mirror-idms-{version}.yaml
+```
+
+If any images failed, append a **Failed Images** section listing them by category with their full image references.
