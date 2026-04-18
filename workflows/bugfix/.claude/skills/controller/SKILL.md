@@ -91,6 +91,12 @@ After presenting results, consider what just happened, then offer options that m
 - A trivial fix might go straight from `/fix` → `/test` → `/review` → `/pr`
 - If the user already has their own PR process, they may stop after `/review`
 
+**Always recommend `/review` before `/pr`.** Do not recommend skipping review, even for
+fixes that seem simple or mechanical. You implemented the fix and wrote the
+tests — you are not in a position to objectively evaluate their quality.
+Review exists precisely to catch what the fixer misses. Only the user can
+decide to skip it.
+
 ### How to Present Options
 
 Lead with your top recommendation, then list alternatives briefly:
