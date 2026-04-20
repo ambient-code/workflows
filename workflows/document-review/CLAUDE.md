@@ -8,7 +8,7 @@ Systematic documentation review through these phases:
 4. **Report** (`/report`) — Consolidate all findings into a single deduplicated report
 5. **Jira** (`/jira`) — *(Optional)* Create Jira epic with child bugs/tasks from the report
 
-### Convenience Commands
+## Convenience Commands
 
 - **Full Review** (`/full-review`) — Run scan → quality-review + code-check → report in one shot
 

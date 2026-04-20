@@ -201,7 +201,7 @@ Each finding must include:
 
 - **Severity**: Critical, High, Medium, or Low (use the guidance in the
   verification process above, but assess each finding individually)
-- **Dimension**: Accuracy or Completeness
+- **Dimension**: Accuracy, Completeness, or Staleness
 - **File**: Doc file path and line (e.g., `README.md:85`)
 - **Code location**: Source file and line
 - **Documented claim**: What the docs say (direct quote)

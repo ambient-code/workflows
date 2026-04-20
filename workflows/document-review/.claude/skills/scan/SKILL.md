@@ -84,7 +84,7 @@ Search for documentation using multiple strategies:
 
 Use Glob for pattern-based discovery:
 
-```
+```text
 **/*.md
 **/*.rst
 **/*.adoc

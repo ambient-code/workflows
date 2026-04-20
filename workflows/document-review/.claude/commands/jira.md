@@ -10,6 +10,7 @@ items.
 ## Prerequisites
 
 - `artifacts/report.md` must exist (run `/report` first)
+- `pandoc` must be installed (install via `pip install pypandoc_binary`)
 - `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` environment variables must be set
 
 ## Usage

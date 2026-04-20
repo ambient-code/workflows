@@ -35,7 +35,8 @@ workflow by executing phases and handling transitions between them.
    Run scan → quality-review + code-check (parallel) → report automatically, pausing
    only for critical decisions.
 
-Phases can be skipped or reordered at the user's discretion.
+Phases may be requested in any order, but dependency requirements still apply
+(e.g., run `/scan` before phases that require `artifacts/inventory.md`).
 
 ## Dependency Graph
 

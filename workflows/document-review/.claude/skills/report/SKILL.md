@@ -21,7 +21,7 @@ duplicates another.
 - **Findings must exist.** If neither
   `artifacts/findings-quality-review.md` nor
   `artifacts/findings-code-check.md` exists, inform the user and
-  recommend running `/quality-review` first.
+  recommend running `/quality-review`, `/code-check`, or `/full-review`.
 - **Include every finding.** This is not a summary — it is the consolidated
   record. Every finding from every phase must appear unless it is a duplicate.
 - **Deduplicate across phases.** The same issue may be reported by
@@ -73,8 +73,10 @@ For each dimension, assign a qualitative rating:
 
 Check whether optional phases were skipped and note the reason in the report:
 
-- If `artifacts/findings-code-check.md` does not exist, note that code verification was not
-  performed.
+- If `artifacts/findings-quality-review.md` does not exist, note that quality
+  review was not performed.
+- If `artifacts/findings-code-check.md` does not exist, note that code
+  verification was not performed.
 
 This helps readers understand the scope of the review.
 
