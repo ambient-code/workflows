@@ -2,6 +2,7 @@
 
 **Date:** [date]
 **Repository:** [repository] @ [commit SHA]
+**Repository root:** [absolute path to the repo root on disk, so all file paths in findings can be resolved]
 **Instruction:** [task and goal description]
 
 ---
@@ -29,6 +30,7 @@
 - **Issue:** [what is wrong]
 - **Evidence:** [quoted text or output]
 - **Fix:** [correction, if known with high confidence]
+- **Dependencies:** [IDs of related findings, e.g., M3, H2 — omit if none]
 
 ### C2. [title]
 

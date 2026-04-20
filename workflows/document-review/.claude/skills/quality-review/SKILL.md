@@ -37,6 +37,68 @@ you are not cross-referencing against source code (that's `/code-check`).
 - **Assess audience fit.** Identify who each document is written for and
   evaluate whether the content is appropriate for that audience.
 
+## Before You Record a Finding
+
+Every finding must survive these checks. If any check fails, the finding is
+a false positive — discard it.
+
+### Check surrounding context
+
+Read at least 10 lines above and below the issue before flagging it. Many
+"missing" content is present in adjacent lines, tabs, or admonitions that are
+easy to miss when scanning a narrow range.
+
+- A placeholder flagged as ambiguous may be clarified in the very next
+  paragraph.
+- A "missing prerequisite" may be stated in an admonition or note block
+  adjacent to the step.
+
+### Follow cross-references before claiming content is absent
+
+If a document links to another page (e.g., "see the [Validation Guide]
+(validation.md)"), read the linked page before flagging missing content. The
+linked page may contain the verification steps, error handling, or detail you
+expected. Flag only when the linked page also lacks the content.
+
+### Verify filesystem claims
+
+When a document references a file or script (e.g., `./scripts/deploy.sh`),
+use Glob or Read to confirm it exists before reporting "script may not exist"
+or "file is missing." If the file exists, the finding is a false positive.
+
+### Do not make definitive claims about code behavior
+
+Quality review is a docs-only phase. If a finding depends on knowing what
+the code does (e.g., whether a value is configurable, whether a handler
+exists), either:
+
+- Flag it with explicit uncertainty: "Cannot verify from docs alone —
+  confirm via /code-check"
+- Omit it entirely and let `/code-check` catch it
+
+Never state "the code does X" or "the default is exactly Y" from this phase.
+
+### Respect multi-component project boundaries
+
+In projects with multiple components (e.g., `maas-api/`, `maas-controller/`,
+an operator), deploying one component does not conflict with a separately
+managed component. Before flagging a "conflict" between two deployment
+instructions, verify they target the same component.
+
+### Calibrate procedural checks for documentation context
+
+Documentation shell snippets are not production scripts. Apply these
+adjustments:
+
+- **Variable validation.** Do not flag missing `[[ -z "$VAR" ]]` checks in
+  doc snippets when the variable is set from a guaranteed source (e.g., a
+  Kubernetes API call) in the same code block. Documentation prioritizes
+  readability over defensive scripting.
+- **Error handling.** Flag missing error guidance only when there is no
+  linked troubleshooting resource AND the procedure has 5+ steps AND common
+  failure modes exist. A procedure that links to a troubleshooting or
+  validation guide has addressed this, even if inline error notes are absent.
+
 ## Quality Dimensions
 
 Evaluate each document against these 7 dimensions:

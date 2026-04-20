@@ -56,6 +56,26 @@ location. When two or more phases report the same issue:
 - Use the highest severity if they differ
 - Merge the **Source** field to list all phases that detected it
 
+### Step 2.5: Identify Cross-Dependencies
+
+Scan the deduplicated findings for dependencies — cases where fixing one
+finding affects or requires fixing another. Common patterns:
+
+- **Anchor dependencies.** A finding about misnumbered steps (e.g., step 4
+  jumps to step 6) and a finding about a broken anchor link to one of those
+  steps (e.g., `#6-test-rate-limiting`) are dependent — renumbering changes
+  the correct anchor.
+- **Shared content.** Multiple findings about the same concept (e.g., legacy
+  feature references across several files) should be coordinated into one
+  remediation effort.
+- **Prerequisite fixes.** A finding that adds a new section (e.g., a missing
+  CRD reference page) may resolve a separate finding about a broken link to
+  that section.
+
+For each dependency found, add a **Dependencies** field to the affected
+findings listing the IDs of related findings (e.g., `Dependencies: C4, M5`).
+Add the field to both sides of the dependency.
+
 ### Step 3: Compute Statistics
 
 Build a dimension × severity cross-tabulation from the deduplicated list: for
@@ -88,11 +108,18 @@ Follow the template at `templates/report.md` exactly. Write to
 Write every finding under its severity heading. Each finding must include:
 
 - **Dimension** — which quality dimension is affected
-- **File** — file path and line in backticks (e.g., `docs/guide.md:42`)
+- **File** — file path and line in backticks (e.g., `docs/guide.md:42`).
+  All paths must be relative to the repository root stated in the report
+  header.
 - **Source** — which phase(s) detected it (quality-review, code-check)
 - **Issue** — what the problem is
-- **Evidence** — quoted text, code snippet, or command output
+- **Evidence** — quoted text, code snippet, or command output. For code-check
+  findings, include the source file path and line (e.g.,
+  `pkg/server/main.go:142`) so the reader can locate both the doc claim and
+  the code reality.
 - **Fix** — the correction, if known with high confidence (omit if unsure)
+- **Dependencies** — IDs of related findings that should be fixed together
+  or in a specific order (omit if none)
 
 Omit any severity section that has zero findings (e.g., if there are no
 Critical findings, omit the `## Critical` section entirely).

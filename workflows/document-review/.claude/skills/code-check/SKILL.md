@@ -161,6 +161,24 @@ against the code inventory:
 - Default values: what the code actually sets
 - Behavior descriptions: auth flows, error handling, rate limiting
 
+**Verification rigor for mismatch claims:**
+
+Before reporting that documentation contradicts code, confirm the code
+behavior with a direct Read or Grep — do not rely solely on the discovery
+inventory.
+
+- **Read the full definition.** When checking types, structs, or schemas,
+  read the entire definition including validation markers, annotations,
+  comments, and embedded/inherited fields. Constraints and behaviors are
+  often on adjacent lines, not on the field declaration itself.
+- **Check all configuration sources.** A value may be set via CLI flag, env
+  var, config file, or deployment overlay. Before claiming "only supported
+  as X" or "not supported via Y," grep for the name across the entire
+  project.
+- **Confirm absence, not just non-discovery.** If a discovery agent did not
+  find an item, that does not prove it doesn't exist. Use Grep to verify
+  before reporting absence as fact.
+
 **Completeness — are code features documented?**
 
 - Code inventory items with NO mention in any documentation file

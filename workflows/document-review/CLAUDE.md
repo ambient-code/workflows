@@ -44,6 +44,10 @@ Output files are written to `artifacts/`.
 - Don't nitpick style when content is the real issue
 - Assess audience-appropriateness for each document
 - Flag uncertainty rather than guessing
+- Verify before asserting — check surrounding context, follow links, confirm
+  file existence. A false positive wastes more developer time than a missed
+  finding, because it generates a JIRA ticket, gets assigned, investigated,
+  and closed as invalid
 
 ## Hard Limits
 
