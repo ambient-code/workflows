@@ -102,15 +102,26 @@ This helps readers understand the scope of the review.
 
 ### Step 5: Write the Report
 
-Follow the template at `templates/report.md` exactly. Write to
+Read the template at `templates/report.md` before writing. Write to
 `artifacts/report.md`.
 
-Write every finding under its severity heading. Each finding must include:
+**Report header** — include ALL of these fields:
+
+- **Date**: today's date
+- **Repository**: org/repo @ commit SHA
+- **Repository root**: absolute filesystem path to the repo root (e.g.,
+  `/home/user/projects/my-repo`). This lets downstream consumers resolve
+  every relative file path in the findings.
+- **Instruction**: the original task description
+
+**Finding fields** — carry forward each finding from the source phases.
+Strip the `Context checked` and `Code verified` fields (these are working
+notes for the review phases, not for the final report). Each finding in the
+report must include:
 
 - **Dimension** — which quality dimension is affected
 - **File** — file path and line in backticks (e.g., `docs/guide.md:42`).
-  All paths must be relative to the repository root stated in the report
-  header.
+  All paths must be relative to the repository root stated in the header.
 - **Source** — which phase(s) detected it (quality-review, code-check)
 - **Issue** — what the problem is
 - **Evidence** — quoted text, code snippet, or command output. For code-check

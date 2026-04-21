@@ -34,6 +34,10 @@
 - **Issue:** The documented command uses a flag that doesn't exist.
 - **Evidence:** `pip install --global mypackage`
   (`--global` is not a valid pip flag)
+- **Context checked:**
+  - *Lines read*: Read lines 35-55; no correction or note about this flag
+  - *Links followed*: No links in this section
+  - *Files verified*: N/A — no file-existence claims
 - **Fix:** Change `--global` to `--user` or remove the flag entirely.
 
 #### Finding 2

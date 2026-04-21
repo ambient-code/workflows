@@ -161,24 +161,6 @@ against the code inventory:
 - Default values: what the code actually sets
 - Behavior descriptions: auth flows, error handling, rate limiting
 
-**Verification rigor for mismatch claims:**
-
-Before reporting that documentation contradicts code, confirm the code
-behavior with a direct Read or Grep — do not rely solely on the discovery
-inventory.
-
-- **Read the full definition.** When checking types, structs, or schemas,
-  read the entire definition including validation markers, annotations,
-  comments, and embedded/inherited fields. Constraints and behaviors are
-  often on adjacent lines, not on the field declaration itself.
-- **Check all configuration sources.** A value may be set via CLI flag, env
-  var, config file, or deployment overlay. Before claiming "only supported
-  as X" or "not supported via Y," grep for the name across the entire
-  project.
-- **Confirm absence, not just non-discovery.** If a discovery agent did not
-  find an item, that does not prove it doesn't exist. Use Grep to verify
-  before reporting absence as fact.
-
 **Completeness — are code features documented?**
 
 - Code inventory items with NO mention in any documentation file
@@ -215,7 +197,8 @@ inventory.
 Follow the template at `templates/findings-code-check.md`. Write to
 `artifacts/findings-code-check.md`.
 
-Each finding must include:
+Each finding must include all of these fields — if you cannot fill in
+**Code verified**, discard the finding:
 
 - **Severity**: Critical, High, Medium, or Low (use the guidance in the
   verification process above, but assess each finding individually)
@@ -225,6 +208,19 @@ Each finding must include:
 - **Documented claim**: What the docs say (direct quote)
 - **Actual behavior**: What the code does
 - **Evidence**: Code snippet in a fenced code block with language tag
+- **Code verified**: What you read or searched to confirm the mismatch.
+  Two sub-items, each required:
+  - *Full definition read*: The complete type, struct, function, or config
+    block you read, with file and line range (e.g., "Read
+    externalmodel_types.go:40-65 — full Provider field definition
+    including all kubebuilder markers"). Prior runs missed validation
+    constraints on adjacent lines because only a few lines were read.
+    Always read the entire definition.
+  - *Alternative sources checked*: Grep results for the name across the
+    project to rule out other configuration paths (e.g., "Grepped for
+    TLS_MIN_VERSION: found in tls.go:96 as env var"). Write "Single
+    source confirmed — grep returned one match" if only one source
+    exists.
 - **Fix**: Correction, if known with high confidence (omit if unsure)
 
 ## Output

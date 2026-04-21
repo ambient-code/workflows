@@ -43,6 +43,11 @@
   DEFAULT_MAX_RETRIES = 5  # src/config.py:42
   ```
 
+- **Code verified:**
+  - *Full definition read*: Read src/config.py:30-60, full Config class
+    including all defaults and env var overrides
+  - *Alternative sources checked*: Grepped for MAX_RETRIES — found only
+    in src/config.py:42. Single source confirmed.
 - **Fix:** Change "default: 3" to "default: 5".
 
 ## Undocumented Features

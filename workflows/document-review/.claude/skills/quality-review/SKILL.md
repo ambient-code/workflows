@@ -37,67 +37,33 @@ you are not cross-referencing against source code (that's `/code-check`).
 - **Assess audience fit.** Identify who each document is written for and
   evaluate whether the content is appropriate for that audience.
 
-## Before You Record a Finding
+## False Positive Prevention
 
-Every finding must survive these checks. If any check fails, the finding is
-a false positive — discard it.
+Every finding you record becomes a JIRA ticket that a developer gets
+assigned, investigates, and closes. A false positive wastes that entire
+cycle. Prior runs of this workflow produced false positives where:
 
-### Check surrounding context
+- A script was flagged as "may not exist" when it did exist (no one checked
+  the filesystem)
+- A linked validation guide contained the "missing" error handling guidance
+  (no one followed the link)
+- Clarifying text for "ambiguous" placeholders appeared on the very next
+  line (no one read beyond the cited line)
 
-Read at least 10 lines above and below the issue before flagging it. Many
-"missing" content is present in adjacent lines, tabs, or admonitions that are
-easy to miss when scanning a narrow range.
+The finding format below includes a **Context checked** field that captures
+your verification work. This field exists because of those specific failures.
+If you cannot fill it in with concrete evidence, discard the finding.
 
-- A placeholder flagged as ambiguous may be clarified in the very next
-  paragraph.
-- A "missing prerequisite" may be stated in an admonition or note block
-  adjacent to the step.
+Two additional calibrations that prevent recurring false positive patterns:
 
-### Follow cross-references before claiming content is absent
-
-If a document links to another page (e.g., "see the [Validation Guide]
-(validation.md)"), read the linked page before flagging missing content. The
-linked page may contain the verification steps, error handling, or detail you
-expected. Flag only when the linked page also lacks the content.
-
-### Verify filesystem claims
-
-When a document references a file or script (e.g., `./scripts/deploy.sh`),
-use Glob or Read to confirm it exists before reporting "script may not exist"
-or "file is missing." If the file exists, the finding is a false positive.
-
-### Do not make definitive claims about code behavior
-
-Quality review is a docs-only phase. If a finding depends on knowing what
-the code does (e.g., whether a value is configurable, whether a handler
-exists), either:
-
-- Flag it with explicit uncertainty: "Cannot verify from docs alone —
-  confirm via /code-check"
-- Omit it entirely and let `/code-check` catch it
-
-Never state "the code does X" or "the default is exactly Y" from this phase.
-
-### Respect multi-component project boundaries
-
-In projects with multiple components (e.g., `maas-api/`, `maas-controller/`,
-an operator), deploying one component does not conflict with a separately
-managed component. Before flagging a "conflict" between two deployment
-instructions, verify they target the same component.
-
-### Calibrate procedural checks for documentation context
-
-Documentation shell snippets are not production scripts. Apply these
-adjustments:
-
-- **Variable validation.** Do not flag missing `[[ -z "$VAR" ]]` checks in
-  doc snippets when the variable is set from a guaranteed source (e.g., a
-  Kubernetes API call) in the same code block. Documentation prioritizes
-  readability over defensive scripting.
-- **Error handling.** Flag missing error guidance only when there is no
-  linked troubleshooting resource AND the procedure has 5+ steps AND common
-  failure modes exist. A procedure that links to a troubleshooting or
-  validation guide has addressed this, even if inline error notes are absent.
+- **Documentation shell snippets are not production scripts.** Do not flag
+  missing `[[ -z "$VAR" ]]` checks in doc snippets when the variable is set
+  from a reliable source in the same code block. Do not flag missing error
+  guidance when the procedure links to a troubleshooting or validation guide.
+- **Multi-component projects.** Deploying one component (e.g.,
+  `maas-controller`) does not conflict with an operator managing a different
+  component (e.g., `maas-api`). Verify deployment instructions target the
+  same component before flagging a conflict.
 
 ## Quality Dimensions
 
@@ -305,12 +271,27 @@ document:
    - **Conceptual / mixed docs** → apply the architect lens (internal
      consistency, abstraction level, "why" context, onward paths).
    - For mixed docs, apply both sets of checks to the relevant sections.
-7. **Record** findings with:
+7. **Record** findings. Each finding must include all of these fields —
+   if you cannot fill in **Context checked**, discard the finding:
    - **Severity**: Critical, High, Medium, or Low
    - **Dimension**: Which quality dimension is affected
    - **File**: File path and line in backticks (e.g., `docs/guide.md:42`)
    - **Issue**: What the problem is
    - **Evidence**: Quote the problematic text
+   - **Context checked**: What you verified to confirm this is not a false
+     positive. Three sub-items, each required:
+     - *Lines read*: The range you read beyond the cited lines to check
+       for nearby clarification (e.g., "Read lines 15-40; no
+       clarification found"). Always read at least 10 lines above and
+       below before recording.
+     - *Links followed*: If the section contains links to other pages,
+       state what you found there (e.g., "Followed link to
+       validation.md; no error guidance found"). Write "No links in
+       this section" if there are none.
+     - *Files verified*: If the finding claims a file or script is
+       missing or may not exist, state the Glob/Read result (e.g.,
+       "Glob for scripts/deploy.sh: not found"). Write "N/A — no
+       file-existence claims" if the finding makes no such claims.
    - **Fix**: The correction, if known with high confidence (omit if unsure)
    - **Audience impact**: How this affects the target audience
 8. **Append** the document's section to `artifacts/findings-quality-review.md`
