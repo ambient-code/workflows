@@ -165,9 +165,24 @@ When invoked via `/index`, build semantic indexes without running discovery.
 Scan the docs location for top-level folders containing documentation files.
 Skip hidden directories and internal folders (starting with `_` or `.`).
 
+For folders with 50+ files, split into sub-indexes by subfolder rather
+than building one large index. For example, if `operator-manual/` has
+subfolders `notifications/`, `upgrading/`, etc., index each subfolder
+separately. This keeps each index focused and reduces token cost.
+
+When there are 3 or more folders to index, use the Agent tool to dispatch
+a subagent for the index building. Provide the subagent with the docs
+root path, the output path, and the list of folders to index. The
+subagent reads the doc files, generates the indexes, writes them to disk,
+and returns a summary of what was built. This keeps the main session's
+context free for discovery and generation work.
+
+By default, indexes are written to `{docs_root}/.doc-index/`. If the user
+specifies a different output path, use that instead.
+
 For each folder:
 
-1. Read all documentation files in the folder
+1. Read all documentation files in the folder (including subdirectories)
 2. Generate a semantic index with these sections:
 
 ```markdown
@@ -189,9 +204,9 @@ For each folder:
 [System components, modules, or subsystems this documentation describes]
 ```
 
-3. Write the index to `{docs_root}/.doc-index/{folder-name}.index.md`
+3. Write the index to `{output_path}/{folder-name}.index.md`
 
-After building all indexes, update `{docs_root}/.doc-index/manifest.json`:
+After building all indexes, update `{output_path}/manifest.json`:
 
 ```json
 {
@@ -214,8 +229,10 @@ Before rebuilding an index, compare current file hashes against
 `manifest.json`. Only rebuild folders where file hashes changed. Skip
 unchanged folders.
 
+Use recursive find to hash all files including subdirectories:
+
 ```bash
-sha256sum {docs_root}/{folder}/*.md {docs_root}/{folder}/*.adoc {docs_root}/{folder}/*.rst 2>/dev/null
+find {docs_root}/{folder} -type f \( -name "*.md" -o -name "*.adoc" -o -name "*.rst" \) -exec sha256sum {} \;
 ```
 
 ### Committing indexes
