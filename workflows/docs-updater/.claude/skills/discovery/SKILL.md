@@ -139,16 +139,17 @@ user intends to persist them.
 
 ### How it works
 
-1. Read all `{docs_root}/.doc-index/*.index.md` files — these are compact
-   per-folder summaries
-2. For each index, determine: would documentation in this area become
-   incorrect based on this diff?
-3. Only folders that pass this check are scanned — the rest are skipped
-4. Within relevant folders, apply the same identifier matching and grep
-   process from the default mode (Steps 2-5)
-
-This narrows the search from all folders to just 2-3 relevant ones,
-which matters on locations with many doc folders.
+1. Read all `{docs_root}/.doc-index/*.index.md` files
+2. Read the code diff
+3. For each index, determine: would documentation in this area become
+   incorrect based on this diff? Use the "Code Changes That Would Require
+   Documentation Updates" and "Key Technical Concepts" sections to decide
+4. Only folders that pass this check proceed — the rest are skipped entirely
+5. For the relevant folders, use the "Files Summary" section of the index
+   to identify which specific files are likely affected — do NOT read all
+   files in the folder. Only read the files whose summary suggests they
+   document the changed behavior
+6. Present results to the user (same as Step 6 of the default mode)
 
 ### When to suggest indexing
 

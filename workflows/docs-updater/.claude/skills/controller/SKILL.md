@@ -89,7 +89,10 @@ setup → review → (user selects files) → update → pr
 
 **After Setup:**
 - Recommend `/review` to discover affected doc files
-- Offer `/index` if the docs location has many files
+- Offer `/index` if the docs location has many files — but explain that
+  building indexes takes time and tokens on the first run, and is only
+  worth it if the user commits and pushes them so future runs can reuse
+  them. Otherwise `/review` with grep is faster for a one-off
 
 **After Review:**
 - Recommend `/update` to apply the proposed changes
