@@ -41,6 +41,11 @@ For each file, apply this logic:
 Do not restructure or rewrite surrounding content. Change only what the
 diff justifies.
 
+If the diff alone doesn't provide enough context to write an accurate
+update, read the relevant source code to understand the behavior before
+writing. If the behavior is still unclear, flag the update as needing
+human review rather than guessing.
+
 ## User Instructions
 
 The user may provide instructions when invoking `/update`:
