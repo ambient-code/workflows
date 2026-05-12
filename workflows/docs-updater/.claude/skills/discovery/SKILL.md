@@ -14,8 +14,8 @@ need updating based on the code changes.
   matching and grep — no setup required, works immediately
 - **Index-assisted mode**: If semantic indexes exist (`.doc-index/`), use them
   for faster discovery on large repos
-- **Index-build mode** (when invoked via `/index`): Build or rebuild semantic
-  indexes only
+
+Index building is handled by the `/index` command, not this skill.
 
 ## Discovery Process (Default — No Indexes)
 
@@ -154,100 +154,8 @@ user intends to persist them.
 ### When to suggest indexing
 
 After completing discovery in default mode, if the docs location has 10+
-folders, suggest running `/index` and committing the indexes to speed up
-future runs.
-
-## Index Build Mode (`/index`)
-
-When invoked via `/index`, build semantic indexes without running discovery.
-
-### Process
-
-Scan the docs location for top-level folders containing documentation files.
-Skip hidden directories and internal folders (starting with `_` or `.`).
-
-For folders with 50+ files, split into sub-indexes by subfolder rather
-than building one large index. For example, if `operator-manual/` has
-subfolders `notifications/`, `upgrading/`, etc., index each subfolder
-separately. This keeps each index focused and reduces token cost.
-
-When there are 3 or more folders to index, use the Agent tool to dispatch
-a subagent for the index building. Provide the subagent with the docs
-root path, the output path, and the list of folders to index. The
-subagent reads the doc files, generates the indexes, writes them to disk,
-and returns a summary of what was built. This keeps the main session's
-context free for discovery and generation work.
-
-By default, indexes are written to `{docs_root}/.doc-index/`. If the user
-specifies a different output path, use that instead.
-
-For each folder:
-
-1. Read all documentation files in the folder (including subdirectories)
-2. Generate a semantic index with these sections:
-
-```markdown
-# {FOLDER} Documentation Index
-
-## Overview
-[2-3 sentences describing what this documentation area covers]
-
-## Files Summary
-[Each file with a 1-2 sentence description of its purpose]
-
-## Code Changes That Would Require Documentation Updates
-[Specific types of code changes that would make these docs outdated]
-
-## Key Technical Concepts
-[Important terms, APIs, configuration options, commands]
-
-## Related Components
-[System components, modules, or subsystems this documentation describes]
-```
-
-3. Write the index to `{output_path}/{folder-name}.index.md`
-
-After building all indexes, update `{output_path}/manifest.json`:
-
-```json
-{
-  "version": "1.0",
-  "updated": "<ISO 8601>",
-  "folders": {
-    "folder-name": {
-      "built": "<ISO 8601>",
-      "doc_hashes": {
-        "folder-name/file.md": "<sha256>"
-      }
-    }
-  }
-}
-```
-
-### Hash-based invalidation
-
-Before rebuilding an index, compare current file hashes against
-`manifest.json`. Only rebuild folders where file hashes changed. Skip
-unchanged folders.
-
-Use recursive find to hash all files including subdirectories:
-
-```bash
-find {docs_root}/{folder} -type f \( -name "*.md" -o -name "*.adoc" -o -name "*.rst" \) -exec sha256sum {} \;
-```
-
-### Committing indexes
-
-After building indexes, ask the user via `AskUserQuestion` where to commit
-them. Indexes only have value if they are persisted:
-
-- **Commit to current branch** — indexes travel with the doc changes
-- **Commit to main/default branch** — indexes persist across all sessions (recommended)
-
-If the user chooses not to commit, warn that the indexes will be lost when
-the session ends and the default grep-based discovery will be used next time.
-
-Do not push to any branch without explicit confirmation.
+folders, suggest running the `/index` command to build indexes and
+committing them to speed up future runs.
 
 ## Output
 

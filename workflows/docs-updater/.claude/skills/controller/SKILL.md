@@ -13,19 +13,20 @@ by executing phases and handling transitions between them.
 1. **Setup** (automatic, first interaction)
    Establish the code change source (diff) and the documentation repo location.
 
-2. **Review** (`/review`) — the `discovery` skill then the `generation` skill in preview mode
+2. **Review** — the `discovery` skill then the `generation` skill in preview mode.
    Discover which doc files need updates and show proposed changes.
 
-3. **Update** (`/update`) — the `generation` skill in apply mode
+3. **Update** — the `generation` skill in apply mode.
    Apply the accepted changes to documentation files.
 
-4. **Index** (`/index`) — the `discovery` skill in index-build mode
-   Build or rebuild the semantic indexes for the docs repo.
-
-5. **PR** (`/pr`) — the `pr` skill
+4. **Open PR** — the `pr` skill.
    Push changes and create a draft pull request for the documentation updates.
 
 Phases can be skipped or reordered at the user's discretion.
+
+Note: The `/index` command is available separately for building semantic
+indexes. It is not a phase managed by this controller — the user can run
+it independently at any time.
 
 ## Setup Procedure
 
@@ -91,29 +92,18 @@ setup → review → (user selects files) → update → pr
 ### What to Recommend
 
 **After Setup — present these options via `AskUserQuestion`:**
-- `/review` (recommended) — discover affected doc files
-- `/index` — if the docs location has 10+ folders, offer this option.
-  Explain clearly:
-  - What it does: builds a semantic summary of each doc folder so future
-    runs can skip irrelevant folders instead of grepping all files
-  - The benefit: once built and committed, every future run is faster
-    because discovery reads compact summaries instead of scanning
-    hundreds of files
-  - The cost: the first build takes time and tokens
-  - The requirement: only worth it if the user commits and pushes the
-    indexes — without that, they're lost when the session ends
-  - For a one-off run or smaller repos, `/review` with grep is simpler
+- Review (recommended) — discover affected doc files
+- If the docs location has 10+ folders and no `.doc-index/` exists,
+  mention that the user can run `/index` first to build semantic indexes
+  for faster discovery in future runs
 
 **After Review:**
-- Recommend `/update` to apply the proposed changes
+- Recommend Update to apply the proposed changes
 - Offer to adjust the file selection first
 
 **After Update:**
-- Recommend `/pr` to submit the changes
+- Recommend Open PR to submit the changes
 - Offer to stop here if the user handles PRs manually
-
-**After Index:**
-- Recommend `/review` to use the newly built indexes for discovery
 
 **After PR:**
 - The workflow is complete. Summarize what was done.
@@ -124,8 +114,8 @@ When invoking skills, provide the following context:
 
 - **Discovery skill**: The diff content and the docs root path
 - **Generation skill**: The diff content, the docs root path, and the list of
-  selected files from the discovery phase. Specify the mode: `preview` for
-  `/review`, `apply` for `/update`
+  selected files from the discovery phase. Specify the mode: preview for
+  Review, apply for Update
 - **PR skill**: Invoke after changes are written to disk. Use branch prefix
   `docs/` and conventional commit format `docs(scope): description`
 

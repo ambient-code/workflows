@@ -13,18 +13,20 @@ Analyze code changes and keep documentation in sync. This workflow discovers whi
 
 ## Workflow Phases
 
-| Phase | Command | Purpose |
-|-------|---------|---------|
-| **Setup** | (automatic) | Establish the diff source and docs location |
-| **Review** | `/review` | Discover affected files and preview proposed changes |
-| **Update** | `/update` | Apply accepted changes to documentation files |
-| **Index** | `/index` | Build or rebuild semantic indexes (optional, for large repos) |
-| **PR** | `/pr` | Push changes and create a draft pull request |
+| Phase | Purpose |
+|-------|---------|
+| **Setup** | Establish the diff source and docs location (automatic) |
+| **Review** | Discover affected files and preview proposed changes |
+| **Update** | Apply accepted changes to documentation files |
+| **Open PR** | Push changes and create a draft pull request |
+
+The `/index` command is available separately for building semantic indexes
+on large repos.
 
 ### Typical Flow
 
 ```text
-setup → /review → (select files) → /update → /pr
+setup → review → (select files) → update → open PR
 ```
 
 ## Getting Started
@@ -45,9 +47,9 @@ setup → /review → (select files) → /update → /pr
 
 ### Scenario 3: Large Docs Location, First Run
 
-1. Start the workflow and complete setup
-2. Run `/index` to build semantic indexes (optional, but speeds up discovery on repos with 15+ doc files across 3+ folders)
-3. Run `/review` to discover affected files
+1. Run `/index` to build semantic indexes before starting the workflow
+2. Start the workflow and complete setup
+3. Choose "Review" — discovery will use the indexes automatically
 
 ## The Semantic Index System (Optional)
 
@@ -75,9 +77,11 @@ docs-updater/
 ├── .ambient/
 │   └── ambient.json              # Workflow configuration
 ├── .claude/
+│   ├── commands/
+│   │   └── index.md              # /index command for building semantic indexes
 │   └── skills/
 │       ├── controller/SKILL.md   # Phase management and transitions
-│       ├── discovery/SKILL.md    # File discovery and optional indexing
+│       ├── discovery/SKILL.md    # File discovery (grep or index-assisted)
 │       ├── generation/SKILL.md   # Content generation
 │       └── pr/SKILL.md           # PR creation
 ├── CLAUDE.md                     # Behavioral guidelines

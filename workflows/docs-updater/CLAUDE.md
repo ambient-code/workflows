@@ -2,10 +2,11 @@
 
 Keep documentation in sync with code changes through these phases:
 
-1. **Review** (`/review`) — Discover which doc files need updates and preview changes
-2. **Update** (`/update`) — Apply accepted changes to documentation files
-3. **Index** (`/index`) — Build or rebuild semantic indexes for the docs repo
-4. **PR** (`/pr`) — Submit a documentation pull request
+1. **Review** — Discover which doc files need updates and preview changes
+2. **Update** — Apply accepted changes to documentation files
+3. **Open PR** — Submit a documentation pull request
+
+The `/index` command is available separately for building semantic indexes.
 
 All phases are implemented as skills. The controller skill manages phase
 transitions and recommendations. Artifacts go in `artifacts/docs-updater/`.
