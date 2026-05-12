@@ -153,9 +153,9 @@ user intends to persist them.
 
 ### When to suggest indexing
 
-After completing discovery in default mode, if the docs location has more
-than 15 documentation files across 3+ folders, suggest running `/index`
-and committing the indexes to speed up future runs.
+After completing discovery in default mode, if the docs location has 10+
+folders, suggest running `/index` and committing the indexes to speed up
+future runs.
 
 ## Index Build Mode (`/index`)
 

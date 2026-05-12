@@ -92,13 +92,17 @@ setup → review → (user selects files) → update → pr
 
 **After Setup — present these options via `AskUserQuestion`:**
 - `/review` (recommended) — discover affected doc files
-- `/index` — if the docs location has 15+ files across 3+ folders, offer
-  this option. Explain what it does: builds a semantic summary of each doc
-  folder (what it covers, what code changes would affect it, key concepts)
-  so future discovery can skip irrelevant folders entirely. But note that
-  it takes time and tokens on the first run, and is only worth it if the
-  user commits and pushes the indexes so future runs can reuse them.
-  Otherwise `/review` with grep is faster for a one-off
+- `/index` — if the docs location has 10+ folders, offer this option.
+  Explain clearly:
+  - What it does: builds a semantic summary of each doc folder so future
+    runs can skip irrelevant folders instead of grepping all files
+  - The benefit: once built and committed, every future run is faster
+    because discovery reads compact summaries instead of scanning
+    hundreds of files
+  - The cost: the first build takes time and tokens
+  - The requirement: only worth it if the user commits and pushes the
+    indexes — without that, they're lost when the session ends
+  - For a one-off run or smaller repos, `/review` with grep is simpler
 
 **After Review:**
 - Recommend `/update` to apply the proposed changes
