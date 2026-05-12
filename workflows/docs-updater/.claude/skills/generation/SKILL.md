@@ -12,7 +12,9 @@ generate minimal, format-correct updated content for each file.
 
 - **Preview mode** (during `/review`): Generate proposed changes, show diffs
   to the user. Do not write files.
-- **Apply mode** (during `/update`): Generate changes and write them to disk.
+- **Apply mode** (during `/update`): Generate changes, write them to disk,
+  and show the diff of each change to the user so they can see exactly what
+  was modified.
 
 ## Formatting
 
