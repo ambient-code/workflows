@@ -54,13 +54,16 @@ Ask the user via `AskUserQuestion` where the documentation lives:
 Navigate to the docs location and record the path. All subsequent skills
 operate relative to this docs root.
 
-### Step 3: Confirm setup
+### Step 3: Confirm setup and ask for next step
 
 Summarize the setup to the user:
 - Code change source and diff size (number of files changed)
 - Docs repo location and number of doc files found (`.md`, `.adoc`, `.rst`)
 
-Then recommend starting with `/review`.
+Then **you MUST use `AskUserQuestion`** to present the next step options.
+Do NOT use a plain text question — `AskUserQuestion` triggers platform
+notifications so the user knows you need input. Plain text questions do
+not create these signals and the user may not see them.
 
 ## How to Execute a Phase
 
@@ -87,12 +90,15 @@ setup → review → (user selects files) → update → pr
 
 ### What to Recommend
 
-**After Setup:**
-- Recommend `/review` to discover affected doc files
-- Offer `/index` if the docs location has many files — but explain that
-  building indexes takes time and tokens on the first run, and is only
-  worth it if the user commits and pushes them so future runs can reuse
-  them. Otherwise `/review` with grep is faster for a one-off
+**After Setup — present these options via `AskUserQuestion`:**
+- `/review` (recommended) — discover affected doc files
+- `/index` — if the docs location has 15+ files across 3+ folders, offer
+  this option. Explain what it does: builds a semantic summary of each doc
+  folder (what it covers, what code changes would affect it, key concepts)
+  so future discovery can skip irrelevant folders entirely. But note that
+  it takes time and tokens on the first run, and is only worth it if the
+  user commits and pushes the indexes so future runs can reuse them.
+  Otherwise `/review` with grep is faster for a one-off
 
 **After Review:**
 - Recommend `/update` to apply the proposed changes
