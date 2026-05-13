@@ -96,7 +96,7 @@ Exclude from the candidate list:
 only the lines that matched (use `grep -n` to see them in context). Based
 on the matching lines alone, decide whether the doc might be stale:
 
-```
+```text
 - path/to/doc.md → possibly stale (describes behavior that changed)
 - path/to/other.md → not stale (mentions identifier in passing)
 - path/to/another.md → not stale (changelog entry, historical)
