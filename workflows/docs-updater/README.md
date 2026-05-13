@@ -90,7 +90,7 @@ docs-updater/
 
 ## Troubleshooting
 
-**No docs found**: Make sure the docs location path is correct and contains `.md`, `.adoc`, or `.rst` files.
+**No docs found**: Make sure the docs location path is correct and contains documentation files.
 
 **Empty diff**: Verify the code change source — the PR URL must be accessible, or local changes must be uncommitted.
 

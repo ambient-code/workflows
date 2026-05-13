@@ -59,7 +59,7 @@ operate relative to this docs root.
 
 Summarize the setup to the user:
 - Code change source and diff size (number of files changed)
-- Docs repo location and number of doc files found (`.md`, `.adoc`, `.rst`)
+- Docs location and number of doc files found
 
 Then **you MUST use `AskUserQuestion`** to present the next step options.
 Do NOT use a plain text question — `AskUserQuestion` triggers platform
