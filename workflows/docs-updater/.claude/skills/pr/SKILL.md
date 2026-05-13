@@ -375,7 +375,7 @@ particularly when upstream has added workflow files (`.github/workflows/`) that
 don't exist in the fork, pushing a feature branch can fail with a confusing
 error like:
 
-```
+```text
 refusing to allow a GitHub App to create or update workflow `.github/workflows/foo.yml` without `workflows` permission
 ```
 

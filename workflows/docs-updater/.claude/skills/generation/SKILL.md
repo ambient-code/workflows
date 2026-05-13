@@ -32,7 +32,7 @@ For each file, apply this logic:
 1. **Does this file document the EXACT thing being changed in the diff?**
    - If NO → skip this file (NO_UPDATE_NEEDED)
 
-2. **Does the diff add something NEW that should be documented?**
+2. **Does the diff change behavior, interfaces, or documented usage in a way that could make this file incorrect?**
    - If NO → skip (NO_UPDATE_NEEDED)
 
 3. **Is that new thing already documented in this file?**

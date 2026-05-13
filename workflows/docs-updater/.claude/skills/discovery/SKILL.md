@@ -72,7 +72,7 @@ files. Run it in a single Bash call:
 
 ```bash
 for id in "identifier1" "identifier2" "identifier3"; do
-  matches=$(grep -rl "$id" {docs_root} --include="*.md" --include="*.adoc" --include="*.rst" --include="*.txt" --include="*.html" --include="*.yaml" --include="*.yml" 2>/dev/null)
+  matches=$(grep -rFl "$id" {docs_root} --include="*.md" --include="*.adoc" --include="*.rst" --include="*.txt" --include="*.html" --include="*.yaml" --include="*.yml" 2>/dev/null)
   if [ -n "$matches" ]; then
     echo "MATCH: $id -> $matches"
   fi
