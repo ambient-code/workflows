@@ -131,12 +131,6 @@ Present files as options the user can accept or reject individually.
 
 If `.doc-index/` exists in the docs location, use it for faster discovery.
 
-The value of indexes is **only realized when they are committed and pushed**
-so that subsequent runs (by you or other users) can reuse them. Building
-indexes without committing them is equivalent to the default grep-based
-approach but slower and more token-costly. Only suggest `/index` when the
-user intends to persist them.
-
 ### How it works
 
 1. Read all `{docs_root}/.doc-index/*.index.md` files

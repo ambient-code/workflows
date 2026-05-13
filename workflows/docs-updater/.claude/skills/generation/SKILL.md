@@ -50,7 +50,7 @@ human review rather than guessing.
 
 ## User Instructions
 
-The user may provide instructions when invoking `/update`:
+The user may provide instructions when invoking Update:
 
 - **Global instructions** (e.g., "keep changes minimal")
 - **Per-file instructions** (e.g., "config.rst: only update the CLI usage

@@ -21,7 +21,7 @@ Analyze code changes and keep documentation in sync. This workflow discovers whi
 | **Open PR** | Push changes and create a draft pull request |
 
 The `/index` command is available separately for building semantic indexes
-on large repos.
+on large docs locations.
 
 ### Typical Flow
 
@@ -36,14 +36,14 @@ setup → review → (select files) → update → open PR
 1. Start the workflow
 2. Provide the PR URL when asked
 3. Point to where docs live (subfolder, separate repo, or current directory)
-4. Run `/review` to see which docs need updating
+4. Choose "Review" to see which docs need updating
 
 ### Scenario 2: You Have Local Changes
 
 1. Start the workflow from within the code repo
 2. Choose "local uncommitted changes" when asked
 3. Point to where docs live
-4. Run `/review` to see which docs need updating
+4. Choose "Review" to see which docs need updating
 
 ### Scenario 3: Large Docs Location, First Run
 
