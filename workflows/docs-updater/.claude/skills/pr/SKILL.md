@@ -428,7 +428,7 @@ gh api --method POST repos/FORK_OWNER/REPO/merge-upstream -f branch=DEFAULT_BRAN
 >    "Sync fork" → "Update branch"
 >
 > 2. **Via command line** (may require `gh auth refresh -s workflow` first):
->    ```
+>    ```bash
 >    gh repo sync FORK_OWNER/REPO --branch DEFAULT_BRANCH
 >    ```
 >
